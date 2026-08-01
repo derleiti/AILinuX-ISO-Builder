@@ -26,7 +26,7 @@ test -L "$latest_iso" || {
     exit 1
 }
 test -s "$latest_iso"
-sha256sum --check "$latest_iso.sha256"
+(cd "$project_dir/output" && sha256sum --check "$(basename "$latest_iso.sha256")")
 
 AILINUX_ISO="$latest_iso" ./scripts/smoke-test-iso.sh
 

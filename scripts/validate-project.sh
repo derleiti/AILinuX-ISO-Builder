@@ -152,7 +152,7 @@ grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux
 # widget/view rules can make their text unreadable, even when other pages look
 # correct. Branding must remain scoped to the application shell.
 calamares_qss=config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
-if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|QTableView)([[:space:],:{]|$)|::item' "$calamares_qss"; then
+if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|QTableView)([[:space:],:{]|$)|^[[:space:]]*[A-Za-z#][^{]*::item' "$calamares_qss"; then
     echo "Unsafe broad Calamares selector in $calamares_qss" >&2
     exit 1
 fi
