@@ -1,0 +1,61 @@
+#!/bin/sh
+# AILinuX: Wallpaper als Plasma- und SDDM-Default verdrahten.
+# Laeuft nach chroot_includes, d.h. /usr/share/wallpapers/AILinuX existiert bereits.
+set -e
+
+WPNAME="AILinuX"
+IMG="/usr/share/wallpapers/AILinuX/contents/images/3840x2160.png"
+
+echo "I: [ailinux-wallpaper] start"
+
+if [ ! -f "$IMG" ]; then
+    echo "E: [ailinux-wallpaper] $IMG fehlt - Abbruch"
+    exit 1
+fi
+
+# --- 1. Look-and-Feel defaults: Wallpaper eintragen ---------------------------
+found_lnf=0
+for lnf in /usr/share/plasma/look-and-feel/*/; do
+    [ -d "${lnf}contents" ] || continue
+    d="${lnf}contents/defaults"
+    case "$lnf" in
+        *org.kde.oxygen.desktop/|*org.kde.breeze.desktop/|*org.kde.breezedark.desktop/) ;;
+        *) continue ;;
+    esac
+    found_lnf=1
+    if [ -f "$d" ] && grep -q '^\[Wallpaper\]' "$d"; then
+        if grep -q '^\[Wallpaper\]' "$d" && sed -n '/^\[Wallpaper\]/,/^\[/p' "$d" | grep -q '^Image='; then
+            sed -i "/^\[Wallpaper\]/,/^\[/ s|^Image=.*|Image=${WPNAME}|" "$d"
+        else
+            sed -i "/^\[Wallpaper\]/a Image=${WPNAME}" "$d"
+        fi
+    else
+        printf '\n[Wallpaper]\nImage=%s\n' "$WPNAME" >> "$d"
+    fi
+    echo "I: [ailinux-wallpaper] gesetzt in $d"
+done
+[ "$found_lnf" = 1 ] || echo "W: [ailinux-wallpaper] kein passendes look-and-feel gefunden"
+
+# --- 2. SDDM: Hintergrund und Theme ------------------------------------------
+sddm_theme=""
+for t in /usr/share/sddm/themes/breeze /usr/share/sddm/themes/maui /usr/share/sddm/themes/elarun; do
+    if [ -d "$t" ]; then sddm_theme="$t"; break; fi
+done
+
+if [ -n "$sddm_theme" ]; then
+    cat > "${sddm_theme}/theme.conf.user" <<EOF
+[General]
+type=image
+background=${IMG}
+EOF
+    mkdir -p /etc/sddm.conf.d
+    cat > /etc/sddm.conf.d/10-ailinux-theme.conf <<EOF
+[Theme]
+Current=$(basename "$sddm_theme")
+EOF
+    echo "I: [ailinux-wallpaper] SDDM-Theme: $sddm_theme"
+else
+    echo "W: [ailinux-wallpaper] kein SDDM-Theme gefunden - uebersprungen"
+fi
+
+echo "I: [ailinux-wallpaper] fertig"

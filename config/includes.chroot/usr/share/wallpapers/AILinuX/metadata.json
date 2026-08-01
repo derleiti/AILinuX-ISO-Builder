@@ -1,0 +1,14 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "AILinuX",
+                "Email": "admin@ailinux.me"
+            }
+        ],
+        "Id": "AILinuX",
+        "License": "CC-BY-SA-4.0",
+        "Name": "AILinuX",
+        "Description": "AILinuX default wallpaper"
+    }
+}

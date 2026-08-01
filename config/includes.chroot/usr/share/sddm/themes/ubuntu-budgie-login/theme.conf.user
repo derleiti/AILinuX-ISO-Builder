@@ -1,0 +1,15 @@
+[LoginScreen]
+background = "/usr/share/wallpapers/AILinuX/contents/images/3840x2160.png"
+use-background-color = false
+background-color = "#0c111e"
+blur = 0
+brightness = 0.0
+saturation = 0.0
+
+[LockScreen]
+background = "/usr/share/wallpapers/AILinuX/contents/images/3840x2160.png"
+use-background-color = false
+background-color = "#0c111e"
+blur = 16
+brightness = 0.0
+saturation = 0.0
