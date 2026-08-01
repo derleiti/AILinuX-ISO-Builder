@@ -17,6 +17,7 @@ config/archives/ailinux-mirrors.list.chroot
 config/archives/mozilla.list.chroot
 config/archives/mozilla.key.chroot
 config/archives/mozilla.pref.chroot
+config/includes.binary/live/tools.conf
 config/includes.chroot/etc/calamares/settings.conf
 config/includes.chroot/etc/calamares/modules/partition.conf
 config/includes.chroot/etc/calamares/modules/bootloader.conf
@@ -85,6 +86,7 @@ for script in \
     config/hooks/live/0100-ailinux-config.hook.chroot \
     config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
+    config/includes.binary/live/tools.conf \
     config/includes.chroot/usr/local/bin/ailinux-installer \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
     config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
@@ -128,6 +130,7 @@ grep -q '^calamares$' config/package-lists/desktop.list.chroot
 grep -q '^ubuntu-server$' config/package-lists/desktop.list.chroot
 grep -q '^plasma-desktop$' config/package-lists/desktop.list.chroot
 grep -q '^plasma-session-wayland$' config/package-lists/desktop.list.chroot
+grep -q '^live-tools$' config/package-lists/desktop.list.chroot
 for oxygen_package in \
     kde-style-oxygen-qt6 \
     kwin-decoration-oxygen \
@@ -276,6 +279,7 @@ grep -Fq 'SidebarBackground:' config/includes.chroot/etc/calamares/branding/aili
 grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
 grep -Fq 'restartNowMode: user-checked' config/includes.chroot/etc/calamares/modules/finished.conf
 grep -Fq 'restartNowCommand: "systemctl -i reboot"' config/includes.chroot/etc/calamares/modules/finished.conf
+grep -Fxq 'LIVE_MEDIUM_EJECT_VERBOSE=false' config/includes.binary/live/tools.conf
 awk '
     $1 == "-" && $2 == "id:" { instance_id = $3 }
     instance_id == "cleanup" && $1 == "module:" && $2 == "shellprocess" { found = 1 }
