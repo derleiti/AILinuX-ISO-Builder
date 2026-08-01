@@ -20,7 +20,22 @@
 }
 
 /*
+ * Module pages use the dark branded wallpaper, while Breeze supplies a dark
+ * foreground for ordinary labels. Scope the contrast correction to labels in
+ * the content pane; partition tables and their custom delegates stay native.
+ */
+#mainApp QLabel {
+    background-color: transparent;
+    color: #e3e8f1;
+}
+
+#mainApp QLabel:disabled {
+    color: #94a3b8;
+}
+
+/*
  * Sidebar row colors are supplied by branding.desc. Do not add selectors for
- * QWidget, QLabel, QAbstractItemView, QListView, QTreeView, QTableView or
+ * QWidget, unscoped QLabel, QAbstractItemView, QListView, QTreeView,
+ * QTableView or
  * ::item here: those selectors also affect the partitioning module.
  */
