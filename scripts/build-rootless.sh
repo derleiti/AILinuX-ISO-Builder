@@ -137,7 +137,7 @@ unshare --user --map-root-user --map-auto --mount --pid --fork --mount-proc \
                     dosfstools \
                     ca-certificates \
                     curl \
-                    gzip
+                    gzip gnupg
                 cd /workspace
                 ./scripts/patch-live-build-rootless.sh
                 ./scripts/patch-live-build-mounts.sh
