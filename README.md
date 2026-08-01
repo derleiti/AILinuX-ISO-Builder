@@ -6,6 +6,20 @@ the AILinuX package suite, and the Calamares installer.
 
 ## Build
 
+For a complete clean build from the project root, including validation,
+checksum verification and a BIOS boot smoke test:
+
+```bash
+./create.sh
+```
+
+The script uses the rootless builder and purges live-build's previous chroot,
+binary tree and downloaded image-package cache before rebuilding. Only the
+isolated Resolute builder environment below `~/.cache/ailinux-distro-builder/`
+is reused.
+
+For a direct host build with preinstalled dependencies:
+
 ```bash
 sudo apt-get update
 sudo apt-get install --yes live-build debootstrap xorriso squashfs-tools \

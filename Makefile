@@ -1,7 +1,10 @@
-.PHONY: build clean validate smoke
+.PHONY: build create clean validate smoke
 
 build:
 	./scripts/build.sh
+
+create:
+	./create.sh
 
 clean:
 	sudo lb clean --purge

@@ -5,6 +5,7 @@ project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
 
 required_files="
+create.sh
 auto/config.in
 config/ailinux-kernel.env
 config/package-lists/desktop.list.chroot
@@ -42,6 +43,7 @@ for path in $required_files; do
 done
 
 for script in \
+    create.sh \
     auto/config.in \
     scripts/build.sh \
     scripts/build-rootless.sh \
@@ -145,5 +147,21 @@ grep -Fq 'mountPoint: /dev' config/includes.chroot/etc/calamares/modules/mount.c
 grep -Fq '/run/live/medium/md5sum.txt' config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
 grep -Fq 'SidebarBackground:' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
 grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
+
+# Calamares' partition module contains custom-painted item delegates. Broad
+# widget/view rules can make their text unreadable, even when other pages look
+# correct. Branding must remain scoped to the application shell.
+calamares_qss=config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|QTableView)([[:space:],:{]|$)|::item' "$calamares_qss"; then
+    echo "Unsafe broad Calamares selector in $calamares_qss" >&2
+    exit 1
+fi
+
+for excluded_product in triforce aicoder ai-coder kimi; do
+    if grep -Riq --include='*.list.chroot' -- "$excluded_product" config/package-lists; then
+        echo "Excluded product found in package lists: $excluded_product" >&2
+        exit 1
+    fi
+done
 
 echo "Project validation passed: Wayland autologin, managed networking, complete repositories, kernel $AILINUX_KERNEL_VERSION."
