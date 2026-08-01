@@ -6,6 +6,8 @@ cd "$project_dir"
 
 required_files="
 create.sh
+assets/branding/ailinux-system-logo-source.png
+assets/branding/ailinux-system-logo.png
 auto/config.in
 config/ailinux-kernel.env
 config/package-lists/desktop.list.chroot
@@ -137,6 +139,21 @@ grep -Fq 'Session=$wayland_session' config/includes.chroot/usr/local/sbin/ailinu
 grep -Fq 'cat > /etc/sddm.conf' config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
 grep -Fq 'live-media=/dev/disk/by-label/AILINUX_2604 live-media-path=casper' auto/config.in
+grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
+
+# KDE's about-distro KCM resolves LOGO through the hicolor icon theme. Keep
+# several native raster sizes so the logo stays sharp in normal and HiDPI UI.
+for icon_size in 32 48 64 128 256 512; do
+    icon_path="config/includes.chroot/usr/share/icons/hicolor/${icon_size}x${icon_size}/apps/ailinux-logo.png"
+    test -s "$icon_path" || {
+        echo "Missing AILinuX system logo size: $icon_path" >&2
+        exit 1
+    }
+    python3 -c 'import struct,sys; p=sys.argv[1]; n=int(sys.argv[2]); d=open(p,"rb").read(24); assert d[:8] == b"\x89PNG\r\n\x1a\n"; assert struct.unpack(">II", d[16:24]) == (n,n)' "$icon_path" "$icon_size"
+done
+test -s config/includes.chroot/usr/share/pixmaps/ailinux-logo.png
+grep -Fq 'update-icon-caches /usr/share/icons/hicolor' config/hooks/0100-ailinux-config.chroot
+grep -Fq 'update-icon-caches /usr/share/icons/hicolor' config/hooks/live/0100-ailinux-config.hook.chroot
 
 test -f config/includes.chroot/usr/lib/systemd/system/ailinux-live-autologin.service
 grep -Fq 'ConditionKernelCommandLine=boot=casper' config/includes.chroot/usr/lib/systemd/system/ailinux-live-autologin.service

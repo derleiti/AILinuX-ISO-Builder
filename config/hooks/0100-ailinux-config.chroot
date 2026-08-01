@@ -17,6 +17,14 @@ if command -v update-alternatives >/dev/null 2>&1; then
     update-alternatives --set x-session-manager /usr/bin/startplasma-wayland 2>/dev/null || true
 fi
 
+# KDE System Information resolves LOGO=ailinux-logo through the freedesktop
+# icon theme. Refresh hicolor after the AILinuX raster sizes are installed.
+if command -v update-icon-caches >/dev/null 2>&1; then
+    update-icon-caches /usr/share/icons/hicolor
+elif command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache --force --ignore-theme-index /usr/share/icons/hicolor
+fi
+
 systemctl enable NetworkManager.service
 systemctl enable sddm.service
 systemctl enable ssh.service

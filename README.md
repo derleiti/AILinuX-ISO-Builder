@@ -60,6 +60,8 @@ Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
   installed sudoers policy is checked with `visudo` before installation ends
 - Installed GRUB always shows a 10-second AILinuX menu with each kernel and its
   corresponding recovery (safe-mode) entry at the top level
+- A generated AILinuX logo is installed in the hicolor icon theme at six
+  raster sizes and selected through `LOGO=ailinux-logo` in KDE System Information
 - Official Ubuntu bootstrap with signed AILinuX mirrors for all image packages
 - All current AILinuX packages from `repo.ailinux.me`
 - Active third-party repositories from the reference AILinuX workstation
