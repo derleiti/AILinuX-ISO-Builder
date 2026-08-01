@@ -3,9 +3,9 @@ cryptsetup
 dosfstools
 efibootmgr
 exfatprogs
+grub2-common
 grub-efi-amd64-bin
 grub-pc-bin
-grub2-common
 kde-config-sddm
 kde-standard
 kde-style-oxygen-qt6
@@ -21,8 +21,10 @@ network-manager
 network-manager-openvpn
 ntfs-3g
 os-prober
+oxygen-icon-theme
 oxygen-sounds
 partitionmanager
+pkexec
 plasma-desktop
 plasma-discover
 plasma-nm
@@ -30,7 +32,6 @@ plasma-pa
 plasma-session-wayland
 plasma-theme-oxygen
 plasma-workspace
-pkexec
 polkitd
 powerdevil
 qemu-guest-agent
