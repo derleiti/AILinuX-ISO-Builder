@@ -4,6 +4,14 @@ set -eu
 chmod 0755 /usr/local/bin/ailinux-installer
 chmod 0755 /etc/skel/Desktop/ailinux-installer.desktop
 chmod 0755 /usr/local/sbin/ailinux-live-autologin
+chmod 0755 /usr/local/sbin/ailinux-installed-cleanup
+
+# Kubuntu settings used to seed these links and its welcome assistant. Keep the
+# installer icon in the live session, but do not ship Kubuntu web shortcuts.
+rm -f \
+    /etc/skel/Desktop/org.kfocus.web.howtos.desktop \
+    /etc/skel/Desktop/org.kubuntu.web.home.desktop \
+    /etc/xdg/autostart/org.kde.plasma-welcome.desktop
 
 if command -v update-alternatives >/dev/null 2>&1; then
     update-alternatives --set x-session-manager /usr/bin/startplasma-wayland 2>/dev/null || true

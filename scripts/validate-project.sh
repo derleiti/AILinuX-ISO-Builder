@@ -17,12 +17,15 @@ config/includes.chroot/etc/calamares/modules/bootloader.conf
 config/includes.chroot/etc/calamares/modules/mount.conf
 config/includes.chroot/etc/calamares/modules/fstab.conf
 config/includes.chroot/etc/calamares/modules/welcome.conf
+config/includes.chroot/etc/calamares/modules/cleanup.conf
 config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
 config/includes.chroot/etc/NetworkManager/conf.d/10-globally-managed-devices.conf
 config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
 config/includes.chroot/usr/local/bin/ailinux-installer
 config/includes.chroot/usr/local/sbin/ailinux-live-autologin
+config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 config/binary_grub/grub.cfg
 scripts/prepare-keyrings.sh
 scripts/resolve-latest-kernel.sh
@@ -61,7 +64,8 @@ for script in \
     config/hooks/live/0100-ailinux-config.hook.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
     config/includes.chroot/usr/local/bin/ailinux-installer \
-    config/includes.chroot/usr/local/sbin/ailinux-live-autologin
+    config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
+    config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 do
     sh -n "$script"
 done
@@ -73,6 +77,14 @@ grep -Fq -- '--linux-packages "linux-image"' auto/config.in
 grep -Fq -- '--linux-flavours "$AILINUX_KERNEL_FLAVOUR"' auto/config.in
 grep -q 'repo.ailinux.me/mirror/repo.ailinux.me' config/archives/ailinux-mirrors.list.chroot
 grep -q '^calamares$' config/package-lists/desktop.list.chroot
+grep -q '^ubuntu-server$' config/package-lists/desktop.list.chroot
+grep -q '^plasma-desktop$' config/package-lists/desktop.list.chroot
+grep -q '^plasma-session-wayland$' config/package-lists/desktop.list.chroot
+grep -q '^firefox$' config/package-lists/productivity.list.chroot
+if grep -Rqs '^kubuntu-desktop$' config/package-lists; then
+    echo "Kubuntu desktop meta-package is forbidden; use Ubuntu Server plus explicit Plasma packages." >&2
+    exit 1
+fi
 grep -q '^copa$' config/package-lists/ailinux.list.chroot
 grep -q '^python3$' config/package-lists/productivity.list.chroot
 grep -q '^set timeout=5$' config/binary_grub/grub.cfg
@@ -147,6 +159,12 @@ grep -Fq 'mountPoint: /dev' config/includes.chroot/etc/calamares/modules/mount.c
 grep -Fq '/run/live/medium/md5sum.txt' config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
 grep -Fq 'SidebarBackground:' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
 grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
+grep -Fq 'restartNowMode: user-checked' config/includes.chroot/etc/calamares/modules/finished.conf
+grep -Fq 'restartNowCommand: "systemctl -i reboot"' config/includes.chroot/etc/calamares/modules/finished.conf
+grep -Fq -- '- cleanup' config/includes.chroot/etc/calamares/settings.conf
+grep -Fq 'Pin-Priority: 1001' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
+grep -Fq '#mainApp QLabel' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq 'color: #7cff00;' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 
 # Calamares' partition module contains custom-painted item delegates. Broad
 # widget/view rules can make their text unreadable, even when other pages look

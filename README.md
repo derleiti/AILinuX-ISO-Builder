@@ -51,7 +51,10 @@ Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
 ## Design
 
 - Ubuntu 26.04 LTS (`resolute`), amd64, hybrid BIOS/UEFI ISO
-- KDE Plasma via `kubuntu-desktop`
+- Ubuntu Server base via `ubuntu-server`, with KDE Plasma/Wayland installed as
+  explicit desktop packages instead of the Kubuntu desktop meta-package
+- Firefox from Mozilla's APT repository (native package, not the Ubuntu Snap
+  transition wrapper)
 - Calamares graphical installer for physical desktop and server-class PCs
 - Official Ubuntu bootstrap with signed AILinuX mirrors for all image packages
 - All current AILinuX packages from `repo.ailinux.me`

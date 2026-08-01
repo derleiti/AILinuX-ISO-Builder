@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+
+# The installer launcher and distribution-provided web links belong only to
+# the live session. Users created by Calamares have already received /etc/skel
+# when this target-side job runs, so clean both the skeleton and home folders.
+rm -f \
+    /etc/skel/Desktop/*.desktop \
+    /etc/skel/Schreibtisch/*.desktop \
+    /usr/share/applications/ailinux-installer.desktop \
+    /usr/share/applications/org.kfocus.web.howtos.desktop \
+    /usr/share/applications/org.kubuntu.restore-desktop-links.desktop \
+    /usr/share/applications/org.kubuntu.web.home.desktop \
+    /usr/local/bin/ailinux-installer
+
+find /home -mindepth 3 -maxdepth 3 -type f \
+    \( -path '*/Desktop/*.desktop' -o -path '*/Schreibtisch/*.desktop' \) \
+    -delete
+
+# A server-based Plasma image must not start Kubuntu's first-run assistant.
+rm -f /usr/share/applications/org.kde.plasma-welcome.desktop
+
+exit 0
