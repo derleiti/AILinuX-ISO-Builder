@@ -28,6 +28,13 @@ config/includes.chroot/etc/calamares/modules/users.conf
 config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
+config/includes.chroot/etc/skel/.config/kdeglobals
+config/includes.chroot/etc/skel/.config/kdedefaults/kcminputrc
+config/includes.chroot/etc/skel/.config/kdedefaults/kdeglobals
+config/includes.chroot/etc/skel/.config/kdedefaults/ksplashrc
+config/includes.chroot/etc/skel/.config/kdedefaults/kwinrc
+config/includes.chroot/etc/skel/.config/kdedefaults/package
+config/includes.chroot/etc/skel/.config/kdedefaults/plasmarc
 config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
 config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
 config/includes.chroot/etc/NetworkManager/conf.d/10-globally-managed-devices.conf
@@ -188,6 +195,29 @@ grep -Fq 'cat > /etc/sddm.conf' config/includes.chroot/usr/local/sbin/ailinux-li
 grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
 grep -Fq 'live-media=/dev/disk/by-label/AILINUX_2604 live-media-path=casper' auto/config.in
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
+
+# Seed Oxygen through Plasma's per-user kdedefaults mechanism. These files are
+# copied from /etc/skel only when a user is created, so choosing another Global
+# Theme later replaces them normally; no login-time service may force Oxygen.
+oxygen_skel=config/includes.chroot/etc/skel/.config
+grep -Fqx 'LookAndFeelPackage=org.kde.oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kdedefaults/kcminputrc"
+grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/kdedefaults/ksplashrc"
+grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kdedefaults/kwinrc"
+grep -Fqx 'NoPlugin=false' "$oxygen_skel/kdedefaults/kwinrc"
+grep -Fqx 'org.kde.oxygen' "$oxygen_skel/kdedefaults/package"
+grep -Fqx 'name=oxygen' "$oxygen_skel/kdedefaults/plasmarc"
+if grep -RqsE 'plasma-apply-lookandfeel.*org\.kde\.oxygen|lookandfeeltool.*org\.kde\.oxygen' \
+        config/includes.chroot/etc/xdg/autostart \
+        config/includes.chroot/etc/systemd \
+        config/includes.chroot/usr/lib/systemd \
+        config/includes.chroot/usr/local 2>/dev/null; then
+    echo "Oxygen must be a user-changeable default, not a login-time override." >&2
+    exit 1
+fi
 
 # KDE's about-distro KCM resolves LOGO through the hicolor icon theme. Keep
 # several native raster sizes so the logo stays sharp in normal and HiDPI UI.
