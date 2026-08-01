@@ -1,0 +1,3 @@
+Package: *
+Pin: origin "repo.ailinux.me"
+Pin-Priority: 700

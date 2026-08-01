@@ -1,0 +1,192 @@
+{
+  "description": "AILinux Federation - Third-Party Repository Manifest (vollst\u00e4ndig, alle Nodes)",
+  "generated": "2026-03-11",
+  "nodes_indexed": [
+    "hetzner",
+    "zombie-pc",
+    "backup"
+  ],
+  "repos": [
+    {
+      "category": "dev",
+      "id": "cursor",
+      "key": "anysphere.gpg",
+      "key_dest": "/usr/share/keyrings/anysphere.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/anysphere.gpg",
+      "name": "Cursor IDE",
+      "nodes": [
+        "hetzner",
+        "zombie-pc"
+      ],
+      "note": "Cursor IDE von Anysphere (AI-Editor)",
+      "optional": true,
+      "source_content": "Types: deb\nURIs: https://downloads.cursor.com/aptrepo\nSuites: stable\nComponents: main\nArchitectures: amd64,arm64\nSigned-By: /usr/share/keyrings/anysphere.gpg",
+      "source_file": "/etc/apt/sources.list.d/cursor.sources",
+      "source_format": "deb822"
+    },
+    {
+      "category": "dev",
+      "id": "windsurf",
+      "key": "windsurf-stable.gpg",
+      "key_dest": "/etc/apt/keyrings/windsurf-stable.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/windsurf-stable.gpg",
+      "name": "Windsurf (Codeium)",
+      "nodes": [
+        "hetzner",
+        "zombie-pc"
+      ],
+      "note": "Windsurf AI-Editor von Codeium",
+      "optional": true,
+      "source_content": "deb [arch=amd64 signed-by=/etc/apt/keyrings/windsurf-stable.gpg] https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main",
+      "source_file": "/etc/apt/sources.list.d/windsurf.list",
+      "source_format": "one-line"
+    },
+    {
+      "category": "dev",
+      "id": "vscode",
+      "key": "microsoft.gpg",
+      "key_dest": "/usr/share/keyrings/microsoft.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/microsoft.gpg",
+      "name": "Visual Studio Code",
+      "nodes": [
+        "zombie-pc"
+      ],
+      "note": "VS Code (Microsoft) \u2013 Deb822 Format",
+      "optional": true,
+      "source_content": "Types: deb\nURIs: https://packages.microsoft.com/repos/code\nSuites: stable\nComponents: main\nArchitectures: amd64\nSigned-By: /usr/share/keyrings/microsoft.gpg",
+      "source_file": "/etc/apt/sources.list.d/vscode.sources",
+      "source_format": "deb822"
+    },
+    {
+      "category": "dev",
+      "id": "docker",
+      "key": "docker.gpg",
+      "key_dest": "/etc/apt/keyrings/docker.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/docker.gpg",
+      "name": "Docker CE",
+      "nodes": [
+        "hetzner"
+      ],
+      "note": "Docker CE \u2013 Pflicht auf Server-Nodes",
+      "optional": false,
+      "source_content": "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu noble stable",
+      "source_file": "/etc/apt/sources.list.d/docker.list",
+      "source_format": "one-line"
+    },
+    {
+      "category": "dev",
+      "id": "nodesource",
+      "key": "nodesource.gpg",
+      "key_dest": "/etc/apt/keyrings/nodesource.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/nodesource.gpg",
+      "name": "Node.js 22.x (NodeSource)",
+      "nodes": [
+        "hetzner"
+      ],
+      "note": "Node.js 22.x LTS via NodeSource",
+      "optional": false,
+      "source_content": "deb [arch=amd64 signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main",
+      "source_file": "/etc/apt/sources.list.d/nodesource.list",
+      "source_format": "one-line"
+    },
+    {
+      "category": "browser",
+      "id": "google-chrome",
+      "key": "google.gpg",
+      "key_dest": "/etc/apt/keyrings/google.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/google.gpg",
+      "name": "Google Chrome (stable)",
+      "nodes": [
+        "hetzner"
+      ],
+      "note": "Google Chrome Stable",
+      "optional": true,
+      "source_content": "deb [arch=amd64 signed-by=/etc/apt/keyrings/google.gpg] https://dl.google.com/linux/chrome/deb/ stable main",
+      "source_file": "/etc/apt/sources.list.d/google-chrome.list",
+      "source_format": "one-line"
+    },
+    {
+      "category": "gaming",
+      "id": "steam",
+      "key": "steam.gpg",
+      "key_dest": "/usr/share/keyrings/steam.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/steam.gpg",
+      "name": "Steam (stable)",
+      "nodes": [
+        "hetzner",
+        "zombie-pc"
+      ],
+      "note": "Steam Launcher (Valve)",
+      "optional": true,
+      "source_content": "deb [arch=amd64,i386 signed-by=/usr/share/keyrings/steam.gpg] https://repo.steampowered.com/steam/ stable steam",
+      "source_file": "/etc/apt/sources.list.d/steam-stable.list",
+      "source_format": "one-line"
+    },
+    {
+      "category": "browser",
+      "id": "mozilla-firefox",
+      "key": "org.kde.neon.packages.mozilla.org.asc",
+      "key_dest": "/etc/apt/keyrings/org.kde.neon.packages.mozilla.org.asc",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/org.kde.neon.packages.mozilla.org.asc",
+      "name": "Mozilla Firefox (KDE neon)",
+      "nodes": [
+        "hetzner",
+        "zombie-pc"
+      ],
+      "note": "Mozilla Firefox offizielle APT-Quelle",
+      "optional": true,
+      "source_content": "Types: deb\nURIs: https://packages.mozilla.org/apt\nSuites: mozilla\nComponents: main\nSigned-By: /etc/apt/keyrings/org.kde.neon.packages.mozilla.org.asc",
+      "source_file": "/etc/apt/sources.list.d/org.kde.neon.packages.mozilla.org.sources",
+      "source_format": "deb822"
+    },
+    {
+      "category": "gpu",
+      "id": "rocm",
+      "key": "rocm.gpg",
+      "key_dest": "/etc/apt/keyrings/rocm.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/rocm.gpg",
+      "name": "AMD ROCm GPU Compute",
+      "nodes": [
+        "zombie-pc"
+      ],
+      "note": "AMD ROCm 7.2 GPU-Computing-Stack",
+      "optional": true,
+      "source_content": "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/7.2 noble main\ndeb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/graphics/7.2/ubuntu noble main",
+      "source_file": "/etc/apt/sources.list.d/rocm.list",
+      "source_format": "one-line"
+    },
+    {
+      "category": "dev",
+      "id": "unityhub",
+      "key": "unityhub.gpg",
+      "key_dest": "/etc/apt/keyrings/unityhub.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/unityhub.gpg",
+      "name": "Unity Hub",
+      "nodes": [
+        "zombie-pc"
+      ],
+      "note": "Unity Hub (Game Engine)",
+      "optional": true,
+      "source_content": "deb [arch=amd64 signed-by=/etc/apt/keyrings/unityhub.gpg] https://hub.unity3d.com/linux/repos/deb/ stable main",
+      "source_file": "/etc/apt/sources.list.d/unityhub.list",
+      "source_format": "one-line"
+    },
+    {
+      "category": "tools",
+      "id": "antigravity",
+      "key": "antigravity-repo-key.gpg",
+      "key_dest": "/etc/apt/keyrings/antigravity-repo-key.gpg",
+      "key_url": "https://repo.ailinux.me/mirror/shared_keys/antigravity-repo-key.gpg",
+      "name": "Antigravity (Google Cloud)",
+      "nodes": [
+        "zombie-pc"
+      ],
+      "note": "Antigravity Auto-Updater (Google Cloud Artifact Registry)",
+      "optional": true,
+      "source_content": "deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main",
+      "source_file": "/etc/apt/sources.list.d/antigravity.list",
+      "source_format": "one-line"
+    }
+  ],
+  "version": "2.0"
+}

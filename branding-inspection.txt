@@ -1,0 +1,576 @@
+===== current branding.desc =====
+---
+componentName: ailinux
+welcomeStyleCalamares: true
+strings:
+  productName:         AILinuX
+  shortProductName:    AILinuX
+  version:             26.04 LTS
+  shortVersion:        26.04
+  versionedName:       AILinuX 26.04 LTS
+  shortVersionedName:  AILinuX 26.04
+  bootloaderEntryName: AILinuX
+  productUrl:          https://ailinux.me
+  supportUrl:          https://ailinux.me
+  knownIssuesUrl:      https://github.com/derleiti
+  releaseNotesUrl:     https://ailinux.me
+images:
+  productLogo:         "ailinux-logo.svg"
+  productIcon:         "ailinux-logo.svg"
+  productWelcome:      "ailinux-logo.svg"
+slideshow:             "show.qml"
+style:
+  sidebarBackground:   "#111827"
+  sidebarText:         "#f9fafb"
+  sidebarTextSelect:   "#38bdf8"
+
+===== current show.qml =====
+import QtQuick 2.15
+
+Rectangle {
+    color: "#111827"
+    anchors.fill: parent
+    Text {
+        anchors.centerIn: parent
+        color: "#f9fafb"
+        font.pixelSize: 34
+        text: "AILinuX 26.04\nAI-vernetztes Linux. Deine Freiheit bleibt."
+        horizontalAlignment: Text.AlignHCenter
+    }
+}
+
+===== branding assets =====
+ailinux-logo.svg	636
+branding.desc	748
+show.qml	305
+===== website response =====
+200 https://ailinux.me/ text/html; charset=UTF-8
+===== stylesheets =====
+https://ailinux.me/wp-content/plugins/nova-ai-frontend/assets/nova-ai.css?ver=1781884077
+https://ailinux.me/wp-content/plugins/add-to-any/addtoany.min.css?ver=1.16
+https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/dist/style.css?ver=1785523524
+https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/csspp/themes/ailinux-dark.css?ver=1765507108
+https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/css/ai-panel-fixes.css?ver=1765507108
+https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/css/nova-plugin-bridge.css?ver=1773375213
+https://ailinux.me/wp-content/uploads/ailx/consent.css?ver=1773139750
+https://ailinux.me/wp-content/wp-cloudflare-super-page-cache/ailinux.me/fonts/eab8b1012d89adde88d2c8e87ab6e2aa.css
+===== image assets =====
+https://ailinux.me/wp-content/uploads/2026/04/cropped-7953-2.jpg
+https://ailinux.me/wp-content/uploads/2026/04/cropped-7953-2-300x285.jpg
+https://ailinux.me/wp-content/uploads/2026/04/cropped-7953-2-1024x974.jpg
+https://ailinux.me/wp-content/uploads/2026/04/cropped-7953-2-768x730.jpg
+CSS_OK	27697	https://ailinux.me/wp-content/plugins/nova-ai-frontend/assets/nova-ai.css?ver=1781884077
+CSS_OK	1604	https://ailinux.me/wp-content/plugins/add-to-any/addtoany.min.css?ver=1.16
+CSS_OK	45662	https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/dist/style.css?ver=1785523524
+CSS_OK	6809	https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/csspp/themes/ailinux-dark.css?ver=1765507108
+CSS_OK	5668	https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/css/ai-panel-fixes.css?ver=1765507108
+CSS_OK	18170	https://ailinux.me/wp-content/themes/ailinux-nova-dark-dev/css/nova-plugin-bridge.css?ver=1773375213
+CSS_OK	40	https://ailinux.me/wp-content/uploads/ailx/consent.css?ver=1773139750
+CSS_OK	10668	https://ailinux.me/wp-content/wp-cloudflare-super-page-cache/ailinux.me/fonts/eab8b1012d89adde88d2c8e87ab6e2aa.css
+===== colors =====
+#000
+#0000
+#000000
+#00000026
+#00000040
+#00000047
+#0000004d
+#00000059
+#00000080
+#00009a
+#0000cc
+#0003
+#0006
+#001f25
+#002b36
+#004a59
+#005a87
+#006ba1
+#007700
+#007cba
+#0080ff99
+#00d084
+#020381
+#0284c7
+#038
+#04194e
+#0693e3
+#06b6d4
+#073642
+#086530
+#0891b2
+#0969da
+#0a0a0a
+#0a7c3e
+#0d0d0d
+#0d1117
+#0d2b1a
+#0e1116
+#0e1116d9
+#0f141b
+#108010
+#10a37f
+#111
+#128100
+#131822
+#131822b3
+#131822cc
+#131822d9
+#141922d9
+#160
+#161b22
+#176030
+#1a1a1a
+#1a212ee6
+#1a6fa8
+#1a7f37
+#1b2330
+#1e1f1a
+#1e1f29
+#1e2127
+#1e73be
+#1f2328
+#21262d
+#222222
+#22d3ee
+#238636
+#242933
+#243146
+#24b27f
+#263040
+#26304066
+#268bd2
+#272822
+#282a36
+#282c34
+#2874fc
+#2a2a2a
+#2a3342
+#2a3441
+#2a4a54
+#2c1e0f
+#2d6a9f
+#2e3440
+#2ea043
+#2f3a4e
+#2f7df4
+#2fb1ff
+#30363d
+#313131
+#31cdcf
+#330968
+#334155
+#34e2e4
+#383a59
+#3a3ab0
+#3aa0ff
+#3aa0ff1f
+#3aa0ff33
+#3b4252
+#3b82f6
+#3b82f626
+#3e3d32
+#3e4451
+#3fb950
+#40464d
+#444
+#444444
+#44d19a
+#44d19a1f
+#44d19a26
+#4721fb
+#4a7a5e
+#4a9fdf
+#4b5263
+#4b5565
+#4c566a
+#5050d0
+#50fa7b
+#57606a
+#586e75
+#58a6ff
+#5a5a5a40
+#5a8a00
+#5c6370
+#60b4ff
+#61afef
+#6272a4
+#64748b
+#657b83
+#666
+#666666
+#66d9e8
+#67a671
+#67e8f9
+#6aaec0
+#6b7280
+#6d28d9
+#75715e
+#7a00df
+#7bd7ff
+#7bdcb5
+#7c3aed
+#7d6b57
+#81d742
+#8220
+#8222
+#8230
+#839496
+#859900
+#88c0d0
+#89c80d
+#8b5cf6
+#8b949e
+#8ed1fc
+#9199aa
+#93a1a1
+#94a3b8
+#98c379
+#999
+#999999
+#9b51e0
+#9ecbff
+#a34e00
+#a3be8c
+#a6e22e
+#a78bfa
+#a871f5
+#a8d8bc
+#a9b3c0
+#ab1dfe
+#abb2bf
+#abb8c3
+#b0bed4
+#b45309
+#b52a2a
+#b83535
+#bd93f9
+#be123c
+#bf616a
+#c01010
+#c45c00
+#c4b5fd
+#c9a227
+#cbd5e1
+#cc0000
+#ccc
+#cccccc
+#cf222e
+#cf2e2e
+#cfc6a5
+#d0d7de
+#d4c8b8
+#d7dee9
+#d8f0e4
+#d97706
+#dad0ec
+#dc322f
+#ddd
+#e06c75
+#e0e0e0
+#e11d48
+#e2e8f0
+#e3b341
+#e3e8f1
+#e5e5e5
+#e5e9f0
+#e6edf3
+#e8edf2
+#eaeef2
+#ececec
+#eceff4
+#eee
+#eee8d5
+#ef4444
+#ef444414
+#f0ebe3
+#f0f0f0
+#f0f4ff
+#f0faf4
+#f1f5f9
+#f43f5e
+#f43f5e14
+#f59e0b
+#f5efdc
+#f5f7fb
+#f6f8fa
+#f6f8fb
+#f78166
+#f78da7
+#f87171
+#f8f8f2
+#f92672
+#f9f9f9
+#faaca8
+#facc15
+#faf7f2
+#fafae1
+#fb7185
+#fbbf24
+#fcb900
+#fcd34d
+#fda4af
+#fdd79a
+#fdf6e3
+#ff5555
+#ff6900
+#ffcd2a
+#fff
+#ffffff
+#ffffff05
+#ffffff0a
+#ffffff0d
+#ffffff14
+===== fonts =====
+'Inter'
+'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif
+inherit
+monospace
+ui-monospace,SFMono-Regular,Menlo,Consolas,Liberation Mono,monospace
+var(--font-sans)
+var(--nova-font)
+var(--nova-font, 'Inter', sans-serif)
+var(--nova-font-mono)
+var(--wp--preset--font-family--inter) !important
+var(--wp--preset--font-family--jetbrains-mono) !important
+===== css variables =====
+--accent-active: var(--accent-blue)
+--accent-active: var(--accent-green)
+--accent-blue: #0284c7
+--accent-blue: #06b6d4
+--accent-blue: #2f7df4
+--accent-blue: #3aa0ff
+--accent-blue: #7c3aed
+--accent-blue: #8b5cf6
+--accent-blue: #d97706
+--accent-blue: #e11d48
+--accent-blue: #f43f5e
+--accent-blue: #f59e0b
+--accent-green: #0891b2
+--accent-green: #22d3ee
+--accent-green: #24b27f
+--accent-green: #44d19a
+--accent-green: #6d28d9
+--accent-green: #a78bfa
+--accent-green: #b45309
+--accent-green: #be123c
+--accent-green: #fb7185
+--accent-green: #fbbf24
+--bg-0: #0e1116
+--bg-0: #0e1116 !important
+--bg-0: #f5f7fb
+--bg-0: #ffffff !important
+--bg-1: #000000 !important
+--bg-1: #131822
+--bg-1: #131822 !important
+--bg-1: #ffffff
+--bg-2: #1b2330
+--bg-2: #1b2330 !important
+--bg-2: #81d742 !important
+--bg-2: #f0f4ff
+--border-thin: 1px solid rgba(255, 255, 255, .05)
+--btn-text: #ffffff
+--container-max: 1280px
+--container-pad-desktop: 56px
+--container-pad-mobile: 24px
+--container-pad-tablet: 40px
+--content-max: 68ch
+--content-max: 72ch
+--focus: #06b6d4
+--focus: #2fb1ff
+--focus: #67e8f9
+--focus: #7bd7ff
+--focus: #8b5cf6
+--focus: #c4b5fd
+--focus: #f43f5e
+--focus: #f59e0b
+--focus: #fcd34d
+--focus: #fda4af
+--font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, monospace
+--font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, monospace
+--font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+--font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif
+--gap-lg: var(--space-8)
+--gap-md: var(--space-6)
+--gap-sm: var(--space-3)
+--gap-xl: var(--space-12)
+--gap-xs: var(--space-2)
+--gap-xxl: var(--space-14)
+--header-bg: rgba(14, 17, 22, .92)
+--header-bg: rgba(245, 247, 251, .95)
+--input-bg: #ffffff
+--input-bg: rgba(19, 24, 34, .85)
+--leading: 1.7
+--lighting-ambient: 0.1
+--line: #263040
+--line: #d7dee9
+--muted: #1e73be !important
+--muted: #4b5565
+--muted: #a9b3c0
+--nova-accent: #0000cc
+--nova-accent: #0969da
+--nova-accent: #0a7c3e
+--nova-accent: #268bd2
+--nova-accent: #5050d0
+--nova-accent: #58a6ff
+--nova-accent: #61afef
+--nova-accent: #66d9e8
+--nova-accent: #88c0d0
+--nova-accent: #bd93f9
+--nova-accent: #c45c00
+--nova-accent: var(--accent, #10a37f)
+--nova-accent: var(--accent-blue, #3aa0ff)
+--nova-accent2: #007700
+--nova-accent2: #108010
+--nova-accent2: #1a7f37
+--nova-accent2: #2d6a9f
+--nova-accent2: #3fb950
+--nova-accent2: #50fa7b
+--nova-accent2: #5a8a00
+--nova-accent2: #859900
+--nova-accent2: #98c379
+--nova-accent2: #a3be8c
+--nova-accent2: #a6e22e
+--nova-accent2: var(--accent-green, #44d19a)
+--nova-accent3: #b52a2a
+--nova-accent3: #b83535
+--nova-accent3: #bf616a
+--nova-accent3: #c01010
+--nova-accent3: #cc0000
+--nova-accent3: #cf222e
+--nova-accent3: #dc322f
+--nova-accent3: #e06c75
+--nova-accent3: #f78166
+--nova-accent3: #f92672
+--nova-accent3: #ff5555
+--nova-accent3: var(--accent-red, #f87171)
+--nova-bg: #002b36
+--nova-bg: #0d1117
+--nova-bg: #272822
+--nova-bg: #282a36
+--nova-bg: #282c34
+--nova-bg: #2e3440
+--nova-bg: #f0faf4
+--nova-bg: #f6f8fa
+--nova-bg: #f9f9f9
+--nova-bg: #faf7f2
+--nova-bg: #fdf6e3
+--nova-bg: #ffffff
+--nova-bg: var(--bg-0, #0e1116)
+--nova-bg-0: var(--bg-0, #0d0d0d)
+--nova-bg-0: var(--bg-0, #f5f7fb)
+--nova-bg-1: var(--bg-1, #131822)
+--nova-bg-1: var(--bg-1, #ffffff)
+--nova-bg-2: var(--bg-2, #1a1a1a)
+--nova-bg-2: var(--bg-2, #f0f4ff)
+--nova-bg2: #001f25
+--nova-bg2: #161b22
+--nova-bg2: #1e1f1a
+--nova-bg2: #1e1f29
+--nova-bg2: #1e2127
+--nova-bg2: #242933
+--nova-bg2: #eee8d5
+--nova-bg2: #f0f0f0
+--nova-bg2: #ffffff
+--nova-bg2: var(--bg-1, #131822)
+--nova-bg3: #073642
+--nova-bg3: #21262d
+--nova-bg3: #383a59
+--nova-bg3: #3b4252
+--nova-bg3: #3e3d32
+--nova-bg3: #3e4451
+--nova-bg3: #d8f0e4
+--nova-bg3: #e0e0e0
+--nova-bg3: #eaeef2
+--nova-bg3: #ececec
+--nova-bg3: #f0ebe3
+--nova-bg3: #f5efdc
+--nova-bg3: var(--bg-2, #1b2330)
+--nova-border: #2a4a54
+--nova-border: #30363d
+--nova-border: #4b5263
+--nova-border: #4c566a
+--nova-border: #6272a4
+--nova-border: #666
+--nova-border: #75715e
+--nova-border: #999999
+--nova-border: #a8d8bc
+--nova-border: #cccccc
+--nova-border: #cfc6a5
+--nova-border: #d0d7de
+--nova-border: #d4c8b8
+--nova-border: var(--border, #2a2a2a)
+--nova-border: var(--border, #2a3441)
+--nova-border: var(--border, #e2e8f0)
+--nova-btn: #0000cc
+--nova-btn: #0a7c3e
+--nova-btn: #1a7f37
+--nova-btn: #238636
+--nova-btn: #268bd2
+--nova-btn: #5050d0
+--nova-btn: #61afef
+--nova-btn: #88c0d0
+--nova-btn: #a6e22e
+--nova-btn: #bd93f9
+--nova-btn: #c45c00
+--nova-btn: var(--accent-blue, #3aa0ff)
+--nova-btn-hover: #00009a
+--nova-btn-hover: #086530
+--nova-btn-hover: #176030
+--nova-btn-hover: #1a6fa8
+--nova-btn-hover: #2ea043
+--nova-btn-hover: #3a3ab0
+--nova-btn-hover: #4a9fdf
+--nova-btn-hover: #6aaec0
+--nova-btn-hover: #89c80d
+--nova-btn-hover: #a34e00
+--nova-btn-hover: #a871f5
+--nova-btn-hover: var(--accent-green, #44d19a)
+--nova-btn-text: #272822
+--nova-btn-text: #282a36
+--nova-btn-text: #282c34
+--nova-btn-text: #2e3440
+--nova-btn-text: #fdf6e3
+--nova-btn-text: #fff
+--nova-btn-text: #ffffff
+--nova-btn-text: var(--bg-0, #0e1116)
+--nova-font: 'Inter','Segoe UI',system-ui,sans-serif
+--nova-font-mono: 'JetBrains Mono','Fira Code','Consolas',monospace
+--nova-fs-base: 18px
+--nova-fs-base: clamp(13px,1.2vw,16px)
+--nova-fs-lg: 24px
+--nova-fs-lg: clamp(16px,1.6vw,22px)
+--nova-fs-sm: 14px
+--nova-fs-sm: clamp(11px,1vw,13px)
+--nova-fs-xl: 44px
+--nova-fs-xl: clamp(22px,2.5vw,36px)
+--nova-gap: clamp(8px,1.5vw,20px)
+--nova-input-bg: #0d1117
+--nova-input-bg: #fdf6e3
+--nova-input-bg: #fff
+--nova-input-bg: var(--bg-1, #131822)
+--nova-input-border: #30363d
+--nova-input-border: #999
+--nova-input-border: #a8d8bc
+--nova-input-border: #ccc
+--nova-input-border: #cfc6a5
+--nova-input-border: #d0d7de
+--nova-input-border: #d4c8b8
+--nova-input-border: var(--border, #2a3441)
+--nova-max-width: clamp(360px,95vw,1400px)
+--nova-radius: 12px
+--nova-radius-sm: 8px
+--nova-shadow: 0 1px 6px rgba(0,0,0,0.1)
+--nova-shadow: 0 2px 10px rgba(0,0,0,0.08)
+--nova-shadow: 0 2px 12px rgba(0,0,0,0.08)
+--nova-shadow: 0 2px 12px rgba(0,0,0,0.1)
+--nova-shadow: 0 2px 8px rgba(0,0,0,0.2)
+--nova-shadow: 0 4px 24px rgba(0,0,0,0.3)
+--nova-shadow: 0 4px 24px rgba(0,0,0,0.4)
+--nova-surface: var(--surface, #1b2330)
+--nova-surface: var(--surface, #ffffff)
+--nova-text: #000000
+--nova-text: #0d2b1a
+--nova-text: #1f2328
+--nova-text: #222222
+--nova-text: #2c1e0f

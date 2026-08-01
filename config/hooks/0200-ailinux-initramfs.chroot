@@ -1,0 +1,30 @@
+#!/bin/sh
+set -eu
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+update_initramfs=/usr/sbin/update-initramfs.orig.initramfs-tools
+test -x "$update_initramfs" || {
+    echo "Missing real initramfs-tools update-initramfs binary" >&2
+    exit 1
+}
+
+found=0
+for kernel_image in /boot/vmlinuz-*-ailinux; do
+    test -e "$kernel_image" || continue
+    version=${kernel_image#/boot/vmlinuz-}
+    found=1
+    rm -f "/boot/initrd.img-$version"
+    "$update_initramfs" -c -k "$version"
+    test -s "/boot/initrd.img-$version" || {
+        echo "Initramfs generation failed for $version" >&2
+        exit 1
+    }
+done
+
+# The .list.chroot archive is build-only; the canonical final source is ailinux-mirror.list.
+rm -f /etc/apt/sources.list.d/ailinux-mirrors.list
+
+test "$found" -eq 1 || {
+    echo "No AILinuX kernel found for initramfs generation" >&2
+    exit 1
+}

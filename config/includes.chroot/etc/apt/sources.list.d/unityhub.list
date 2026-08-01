@@ -1,0 +1,1 @@
+deb [arch=amd64 signed-by=/etc/apt/keyrings/unityhub.gpg] https://hub.unity3d.com/linux/repos/deb/ stable main

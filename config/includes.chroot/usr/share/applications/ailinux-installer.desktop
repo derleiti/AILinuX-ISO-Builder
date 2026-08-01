@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=AILinuX installieren
+GenericName=System Installer
+Comment=AILinuX 26.04 auf diesem Computer installieren
+Exec=/usr/local/bin/ailinux-installer
+Icon=system-software-install
+Terminal=false
+Categories=System;
+Keywords=install;installer;calamares;ailinux;

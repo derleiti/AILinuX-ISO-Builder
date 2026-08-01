@@ -1,0 +1,31 @@
+# live-build working directories
+/.build/
+/binary/
+/cache/
+/chroot/
+/local/
+/.downloads/
+
+# Generated output
+/output/*.iso
+/output/*.log
+/output/*.sha256
+
+# Generated metadata
+/binary.contents
+/binary.packages
+/chroot.headers
+/chroot.packages.*
+/branding-inspection.txt
+/guest-*-diagnostics.log
+
+# Build state
+/*.exit
+/.final-iso
+/.autologin-final-iso
+/.last-installer-branding-backup
+
+# Backups
+/backups/
+*.bak
+*.bak.*

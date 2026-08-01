@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+install -d -m 0755 /etc/apt/apt.conf.d
+printf '%s\n' \
+    'Acquire::Retries "1";' \
+    'Acquire::https::Pipeline-Depth "0";' \
+    'Acquire::https::No-Cache "true";' \
+    'Acquire::https::Timeout "20";' \
+    > /etc/apt/apt.conf.d/99-ailinux-build-network

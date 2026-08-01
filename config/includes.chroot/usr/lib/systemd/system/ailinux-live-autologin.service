@@ -1,0 +1,9 @@
+[Unit]
+Description=Configure passwordless AILinuX live-session autologin
+ConditionKernelCommandLine=boot=casper
+Before=sddm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ailinux-live-autologin
+RemainAfterExit=yes

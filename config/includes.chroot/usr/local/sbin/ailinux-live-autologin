@@ -1,0 +1,52 @@
+#!/bin/sh
+set -eu
+
+live_user=ailinux
+wayland_session=plasma.desktop
+
+if ! id "$live_user" >/dev/null 2>&1; then
+    echo "Live user $live_user does not exist; skipping autologin setup." >&2
+    exit 0
+fi
+
+if [ ! -r "/usr/share/wayland-sessions/$wayland_session" ]; then
+    echo "Required Plasma Wayland session is missing: $wayland_session" >&2
+    exit 1
+fi
+
+mkdir -p /etc/sddm.conf.d /etc/sudoers.d
+
+# live-config generates /etc/sddm.conf with an empty Session= value.
+# Replace it after live-config and explicitly select Plasma Wayland.
+cat > /etc/sddm.conf <<CONF
+[General]
+DisplayServer=wayland
+
+[Autologin]
+Relogin=false
+Session=$wayland_session
+User=$live_user
+CONF
+
+cat > /etc/sddm.conf.d/99-ailinux-live-autologin.conf <<CONF
+[General]
+DisplayServer=wayland
+
+[Autologin]
+Relogin=false
+Session=$wayland_session
+User=$live_user
+CONF
+
+passwd -d "$live_user"
+printf '%s\n' "$live_user ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/99-ailinux-live
+chmod 0440 /etc/sudoers.d/99-ailinux-live
+
+install -d -m 0700 -o "$live_user" -g "$live_user" "/home/$live_user/.config"
+cat > "/home/$live_user/.config/kscreenlockerrc" <<LOCK
+[Daemon]
+Autolock=false
+LockOnResume=false
+LOCK
+chown "$live_user:$live_user" "/home/$live_user/.config/kscreenlockerrc"
+chmod 0600 "/home/$live_user/.config/kscreenlockerrc"

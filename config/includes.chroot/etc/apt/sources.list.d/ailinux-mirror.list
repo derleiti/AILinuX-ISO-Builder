@@ -1,0 +1,25 @@
+# AILinuX mirror repositories
+# Generated from https://repo.ailinux.me/mirror/add-ailinux-repo.sh
+# Codename: resolute
+
+# AILinux Local (repo.ailinux.me)
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.ailinux.me resolute main
+
+# Ubuntu Base (archive.ubuntu.com/ubuntu)
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu resolute main restricted universe multiverse
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu resolute-updates main restricted universe multiverse
+
+# Ubuntu Security (security.ubuntu.com/ubuntu)
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/security.ubuntu.com/ubuntu resolute-security main restricted universe multiverse
+
+# NodeSource 22.x (deb.nodesource.com/node_22.x)
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/deb.nodesource.com/node_22.x nodistro main
+
+# Google Chrome (dl.google.com/linux/chrome/deb)
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/dl.google.com/linux/chrome/deb stable main
+
+# WineHQ (dl.winehq.org/wine-builds/ubuntu)
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/dl.winehq.org/wine-builds/ubuntu resolute main
+
+# Steam (repo.steampowered.com/steam)
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.steampowered.com/steam stable steam

@@ -1,0 +1,9 @@
+[Unit]
+Description=Generate unique SSH host keys for the live system
+ConditionPathExists=/usr/bin/ssh-keygen
+Before=ssh.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ssh-keygen -A
+RemainAfterExit=yes

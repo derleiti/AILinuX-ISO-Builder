@@ -1,0 +1,13 @@
+PRETTY_NAME="AILinuX 26.04 LTS"
+NAME="AILinuX"
+VERSION_ID="26.04"
+VERSION="26.04 LTS (Resolute)"
+VERSION_CODENAME=resolute
+ID=ailinux
+ID_LIKE="ubuntu debian"
+HOME_URL="https://ailinux.me"
+SUPPORT_URL="https://ailinux.me"
+BUG_REPORT_URL="https://github.com/derleiti"
+PRIVACY_POLICY_URL="https://ailinux.me"
+UBUNTU_CODENAME=resolute
+LOGO=ailinux-logo

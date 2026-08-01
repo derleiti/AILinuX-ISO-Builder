@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+chmod 0755 /usr/local/bin/ailinux-installer
+chmod 0755 /etc/skel/Desktop/ailinux-installer.desktop
+chmod 0755 /usr/local/sbin/ailinux-live-autologin
+
+if command -v update-alternatives >/dev/null 2>&1; then
+    update-alternatives --set x-session-manager /usr/bin/startplasma-wayland 2>/dev/null || true
+fi
+
+systemctl enable NetworkManager.service
+systemctl enable sddm.service
+systemctl enable ssh.service
+
+rm -f /etc/machine-id
+touch /etc/machine-id

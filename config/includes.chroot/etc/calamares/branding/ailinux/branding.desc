@@ -1,0 +1,44 @@
+---
+componentName: ailinux
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 1120px,720px
+windowPlacement: center
+sidebar: widget,left
+navigation: widget,bottom
+
+strings:
+  productName:         AILinuX
+  shortProductName:    AILinuX
+  version:             26.04 LTS
+  shortVersion:        26.04
+  versionedName:       AILinuX 26.04 LTS
+  shortVersionedName:  AILinuX 26.04
+  bootloaderEntryName: AILinuX
+  productUrl:          https://ailinux.me
+  supportUrl:          https://ailinux.me
+  knownIssuesUrl:      https://github.com/derleiti
+  releaseNotesUrl:     https://ailinux.me/news
+  donateUrl:           ""
+
+images:
+  productBanner:       "ailinux-banner.svg"
+  productLogo:         "ailinux-logo.svg"
+  productIcon:         "ailinux-logo.svg"
+  productWallpaper:    "installer-wallpaper.svg"
+  productWelcome:      "ailinux-banner.svg"
+
+style:
+  SidebarBackground:        "#131822"
+  SidebarText:              "#a9b3c0"
+  SidebarTextCurrent:       "#0e1116"
+  SidebarBackgroundCurrent: "#3aa0ff"
+
+slideshow: "show.qml"
+slideshowAPI: 2
+
+uploadServer:
+  type: none
+  url: ""
+  sizeLimit: -1

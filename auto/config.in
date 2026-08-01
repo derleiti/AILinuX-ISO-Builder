@@ -1,0 +1,42 @@
+#!/bin/sh
+set -eu
+
+project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+kernel_env="$project_dir/config/ailinux-kernel.env"
+test -s "$kernel_env" || {
+    echo "Missing kernel selection: $kernel_env" >&2
+    exit 1
+}
+. "$kernel_env"
+
+lb config noauto \
+    --mode ubuntu \
+    --distribution resolute \
+    --architectures amd64 \
+    --archive-areas "main restricted universe multiverse" \
+    --mirror-bootstrap "https://archive.ubuntu.com/ubuntu" \
+    --parent-mirror-bootstrap "https://archive.ubuntu.com/ubuntu" \
+    --parent-mirror-chroot "https://archive.ubuntu.com/ubuntu" \
+    --parent-mirror-chroot-security "https://security.ubuntu.com/ubuntu" \
+    --parent-mirror-chroot-volatile "https://archive.ubuntu.com/ubuntu" \
+    --parent-mirror-binary "https://archive.ubuntu.com/ubuntu" \
+    --parent-mirror-binary-security "https://security.ubuntu.com/ubuntu" \
+    --parent-mirror-binary-volatile "https://archive.ubuntu.com/ubuntu" \
+    --mirror-chroot "https://archive.ubuntu.com/ubuntu" \
+    --mirror-chroot-security "https://security.ubuntu.com/ubuntu" \
+    --mirror-chroot-volatile "https://archive.ubuntu.com/ubuntu" \
+    --mirror-binary "https://archive.ubuntu.com/ubuntu" \
+    --mirror-binary-security "https://security.ubuntu.com/ubuntu" \
+    --mirror-binary-volatile "https://archive.ubuntu.com/ubuntu" \
+    --linux-packages "linux-image" \
+    --linux-flavours "$AILINUX_KERNEL_FLAVOUR" \
+    --binary-images iso-hybrid \
+    --debian-installer false \
+    --system live \
+    --bootloader grub2 \
+    --memtest none \
+    --iso-application "AILinuX 26.04" \
+    --iso-publisher "AILinuX <admin@ailinux.me>" \
+    --iso-volume "AILINUX_2604" \
+    --bootappend-live "boot=live components live-media=/dev/disk/by-label/AILINUX_2604 live-media-path=casper quiet splash console=tty0 console=ttyS0,115200n8 username=ailinux hostname=ailinux locales=de_DE.UTF-8 keyboard-layouts=de timezone=Europe/Berlin" \
+    "${@}"
