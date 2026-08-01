@@ -30,6 +30,10 @@ config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 config/includes.chroot/etc/skel/.config/kdeglobals
+config/includes.chroot/etc/skel/.config/kcminputrc
+config/includes.chroot/etc/skel/.config/ksplashrc
+config/includes.chroot/etc/skel/.config/kwinrc
+config/includes.chroot/etc/skel/.config/plasmarc
 config/includes.chroot/etc/skel/.config/kdedefaults/kcminputrc
 config/includes.chroot/etc/skel/.config/kdedefaults/kdeglobals
 config/includes.chroot/etc/skel/.config/kdedefaults/ksplashrc
@@ -49,7 +53,9 @@ scripts/prepare-offline-build.sh
 scripts/resolve-latest-kernel.sh
 scripts/sync-repositories.sh
 scripts/finalize-binary-grub.py
+scripts/verify-installed-system.sh
 config/hooks/0150-remove-kubuntu.chroot
+config/hooks/0140-ailinux-grub-titles.chroot
 config/hooks/0200-ailinux-initramfs.chroot
 config/third-party-repos.json
 config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list
@@ -79,10 +85,12 @@ for script in \
     scripts/resolve-latest-kernel.sh \
     scripts/sync-repositories.sh \
     scripts/smoke-test-iso.sh \
+    scripts/verify-installed-system.sh \
     scripts/validate-project.sh \
     config/hooks/0050-apt-network.chroot_early \
     config/hooks/0100-ailinux-config.chroot \
     config/hooks/0125-verify-native-firefox.chroot \
+    config/hooks/0140-ailinux-grub-titles.chroot \
     config/hooks/live/0100-ailinux-config.hook.chroot \
     config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
@@ -207,11 +215,19 @@ grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-aili
 grep -Fq 'live-media=/dev/disk/by-label/AILINUX_2604 live-media-path=casper' auto/config.in
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
-# Seed Oxygen through Plasma's per-user kdedefaults mechanism. These files are
-# copied from /etc/skel only when a user is created, so choosing another Global
-# Theme later replaces them normally; no login-time service may force Oxygen.
+# Seed Oxygen through normal per-user configuration plus Plasma's reset
+# defaults. These files are copied from /etc/skel only when a user is created,
+# so choosing another Global Theme later replaces them normally; no login-time
+# service may force Oxygen.
 oxygen_skel=config/includes.chroot/etc/skel/.config
 grep -Fqx 'LookAndFeelPackage=org.kde.oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kcminputrc"
+grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/ksplashrc"
+grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kwinrc"
+grep -Fqx 'name=oxygen' "$oxygen_skel/plasmarc"
 grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
 grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
 grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
@@ -332,6 +348,8 @@ grep -Fq 'GRUB_TIMEOUT=10' config/includes.chroot/etc/default/grub.d/99-ailinux.
 grep -Fq 'GRUB_DISABLE_SUBMENU=y' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 grep -Fq 'GRUB_DISABLE_RECOVERY=false' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 grep -Fq 'GRUB_RECOVERY_TITLE="Safe Mode"' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
+grep -Fq 'gettext_printf "%s %s"' config/hooks/0140-ailinux-grub-titles.chroot
+grep -Fq 'gettext_printf "%s %s (%s)"' config/hooks/0140-ailinux-grub-titles.chroot
 
 # Calamares' partition module contains custom-painted item delegates. Broad
 # widget/view rules can make their text unreadable, even when other pages look

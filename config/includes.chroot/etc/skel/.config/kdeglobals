@@ -1,2 +1,9 @@
+[General]
+ColorScheme=Oxygen
+
+[Icons]
+Theme=oxygen
+
 [KDE]
 LookAndFeelPackage=org.kde.oxygen
+widgetStyle=oxygen

@@ -7,7 +7,7 @@ the AILinuX package suite, and the Calamares installer.
 ## Build
 
 For a complete clean build from the project root, including validation,
-checksum verification and a BIOS boot smoke test:
+checksum verification and BIOS plus UEFI boot smoke tests:
 
 ```bash
 ./create.sh
@@ -61,11 +61,17 @@ It creates a reusable Resolute build root below
 
 ```bash
 ./scripts/validate-project.sh
-./scripts/smoke-test-iso.sh
+AILINUX_QEMU_MODE=bios ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
+AILINUX_QEMU_MODE=uefi ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
+./scripts/verify-installed-system.sh /mnt/ailinux USERNAME
 ```
 
-The smoke test boots the ISO with QEMU in BIOS mode, without touching a disk.
-Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
+The smoke tests boot the ISO without touching a disk and accept only the
+explicit `AILINUX_GRAPHICAL_READY` signal after SDDM is ready. Use
+`AILINUX_QEMU_TIMEOUT=180` to change their timeout. The installed-system audit
+is read-only and checks the mounted Calamares target, including its user,
+Desktop, sudoers policy, kernels, native Firefox, Oxygen defaults and generated
+GRUB menu.
 
 ## Design
 
@@ -78,12 +84,24 @@ Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
   transition wrapper); its source, key and priority pin are active through
   `config/archives` before live-build resolves packages, and a chroot hook
   aborts the build if the transition package is selected
+- Oxygen is the initial Plasma 6 global look-and-feel for the live account and
+  every newly installed user; it is seeded through `/etc/skel`, so users can
+  change it normally and it is not forced again on later logins
 - Calamares graphical installer for physical desktop and server-class PCs
+- Calamares' automatic erase layout creates the required UEFI system partition
+  on UEFI machines, one ext4 root filesystem and a swap file instead of an
+  oversized swap partition; the named cleanup job is loaded as
+  `shellprocess@cleanup`
 - Calamares users are members of Ubuntu's `sudo` administrator group; the
   installer also writes a mode-0440 sudoers drop-in and checks the complete
   installed policy with `visudo` before installation ends
-- Installed GRUB always shows a 10-second AILinuX menu with each kernel and its
-  corresponding recovery (safe-mode) entry at the top level
+- Live and installed GRUB show AILinuX plus the concrete kernel version; the
+  installed 10-second menu keeps every normal and corresponding `Safe Mode`
+  entry at the top level
+- Live-only installer and web shortcuts are deleted from the target user's
+  Desktop and `/etc/skel` before Calamares finishes
+- Reboot still ejects optical live media but no longer waits indefinitely for
+  an invisible ENTER keypress in QEMU/KVM
 - A generated AILinuX logo is installed in the hicolor icon theme at six
   raster sizes and selected through `LOGO=ailinux-logo` in KDE System Information
 - Official Ubuntu bootstrap with signed AILinuX mirrors for all image packages

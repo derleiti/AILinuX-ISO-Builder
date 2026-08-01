@@ -1,0 +1,43 @@
+#!/bin/sh
+set -eu
+
+# Keep Ubuntu's proven kernel/root-device generation logic, but make every
+# installed kernel entry carry the AILinuX name and the concrete version.  The
+# script is a dpkg conffile, so this small local customization is preserved and
+# reported normally by future grub2-common package upgrades.
+grub_linux=/etc/grub.d/10_linux
+test -f "$grub_linux"
+
+python3 - "$grub_linux" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+replacements = (
+    (
+        'title="$(gettext_printf "%s, with Linux %s (%s)" "${os}" "${version}" "$(gettext "${GRUB_RECOVERY_TITLE}")")"',
+        'title="$(gettext_printf "%s %s (%s)" "${os}" "${version}" "$(gettext "${GRUB_RECOVERY_TITLE}")")"',
+    ),
+    (
+        'title="$(gettext_printf "%s, with Linux %s" "${os}" "${version}")"',
+        'title="$(gettext_printf "%s %s" "${os}" "${version}")"',
+    ),
+)
+
+for old, new in replacements:
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(
+            f"Expected exactly one GRUB title template in {path}, found {count}: {old}"
+        )
+    text = text.replace(old, new)
+
+path.write_text(text, encoding="utf-8")
+PY
+
+chmod 0755 "$grub_linux"
+sh -n "$grub_linux"
+grep -Fq 'gettext_printf "%s %s"' "$grub_linux"
+grep -Fq 'gettext_printf "%s %s (%s)"' "$grub_linux"
+
