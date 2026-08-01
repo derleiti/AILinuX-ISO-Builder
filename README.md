@@ -75,7 +75,9 @@ Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
 - Kubuntu libraries and Plymouth branding are purged after package installation;
   the image uses Ubuntu/BGRT Plymouth fallbacks
 - Firefox from Mozilla's APT repository (native package, not the Ubuntu Snap
-  transition wrapper)
+  transition wrapper); its source, key and priority pin are active through
+  `config/archives` before live-build resolves packages, and a chroot hook
+  aborts the build if the transition package is selected
 - Calamares graphical installer for physical desktop and server-class PCs
 - Calamares users are members of Ubuntu's `sudo` administrator group; the
   installer also writes a mode-0440 sudoers drop-in and checks the complete

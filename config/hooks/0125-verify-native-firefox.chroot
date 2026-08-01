@@ -1,0 +1,39 @@
+#!/bin/sh
+set -eu
+
+package=firefox
+version=$(dpkg-query -W -f='${Version}' "$package")
+maintainer=$(dpkg-query -W -f='${Maintainer}' "$package")
+
+case "$version" in
+    *snap*)
+        echo "Ubuntu Firefox Snap transition package was selected: $version" >&2
+        exit 1
+        ;;
+esac
+
+case "$maintainer" in
+    Mozilla*) ;;
+    *)
+        echo "Firefox is not the native Mozilla package: $maintainer" >&2
+        exit 1
+        ;;
+esac
+
+test -x /usr/lib/firefox/firefox-bin || {
+    echo "Native Firefox binary is missing from the image." >&2
+    exit 1
+}
+
+candidate=$(apt-cache policy "$package" | awk '/Candidate:/ { print $2; exit }')
+test "$candidate" = "$version" || {
+    echo "Installed Firefox $version differs from APT candidate $candidate." >&2
+    exit 1
+}
+
+apt-cache policy "$package" | grep -Fq 'packages.mozilla.org' || {
+    echo "Mozilla APT origin is absent from Firefox policy." >&2
+    exit 1
+}
+
+echo "Native Mozilla Firefox verified: $version"

@@ -14,6 +14,9 @@ config/offline-packages.sha256
 config/package-lists/desktop.list.chroot
 config/package-lists/ailinux.list.chroot
 config/archives/ailinux-mirrors.list.chroot
+config/archives/mozilla.list.chroot
+config/archives/mozilla.key.chroot
+config/archives/mozilla.pref.chroot
 config/includes.chroot/etc/calamares/settings.conf
 config/includes.chroot/etc/calamares/modules/partition.conf
 config/includes.chroot/etc/calamares/modules/bootloader.conf
@@ -71,6 +74,7 @@ for script in \
     scripts/validate-project.sh \
     config/hooks/0050-apt-network.chroot_early \
     config/hooks/0100-ailinux-config.chroot \
+    config/hooks/0125-verify-native-firefox.chroot \
     config/hooks/live/0100-ailinux-config.hook.chroot \
     config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
@@ -234,7 +238,18 @@ grep -Fq 'SidebarBackground:' config/includes.chroot/etc/calamares/branding/aili
 grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
 grep -Fq 'restartNowMode: user-checked' config/includes.chroot/etc/calamares/modules/finished.conf
 grep -Fq 'restartNowCommand: "systemctl -i reboot"' config/includes.chroot/etc/calamares/modules/finished.conf
-grep -Fq -- '- cleanup' config/includes.chroot/etc/calamares/settings.conf
+awk '
+    $1 == "-" && $2 == "id:" { instance_id = $3 }
+    instance_id == "cleanup" && $1 == "module:" && $2 == "shellprocess" { found = 1 }
+    END { exit(found ? 0 : 1) }
+' config/includes.chroot/etc/calamares/settings.conf
+grep -Eq '^[[:space:]]*-[[:space:]]+shellprocess@cleanup[[:space:]]*$' \
+    config/includes.chroot/etc/calamares/settings.conf
+if grep -Eq '^[[:space:]]*-[[:space:]]+cleanup[[:space:]]*$' \
+    config/includes.chroot/etc/calamares/settings.conf; then
+    echo "Calamares cleanup must use its full instance key: shellprocess@cleanup" >&2
+    exit 1
+fi
 grep -Fq 'config:   users.conf' config/includes.chroot/etc/calamares/settings.conf
 grep -Fq 'sudoersGroup: sudo' config/includes.chroot/etc/calamares/modules/users.conf
 grep -Fq 'sudoersConfigureWithGroup: true' config/includes.chroot/etc/calamares/modules/users.conf
@@ -246,6 +261,26 @@ grep -Fq '/etc/sudoers.d/90-ailinux-installer-user' config/includes.chroot/usr/l
 grep -Fq "printf '%s ALL=(ALL:ALL) ALL" config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fq 'install -o root -g root -m 0440' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fq 'visudo -cf /etc/sudoers' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+
+# Firefox must resolve from Mozilla while live-build installs packages. Files in
+# includes.chroot arrive too late for dependency resolution, so the source, key
+# and pin are deliberately duplicated under config/archives.
+grep -Fxq 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/mozilla.gpg] https://packages.mozilla.org/apt mozilla main' \
+    config/archives/mozilla.list.chroot
+cmp -s config/archives/mozilla.pref.chroot \
+    config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
+grep -Fxq 'Package: firefox*' config/archives/mozilla.pref.chroot
+grep -Fxq 'Pin: origin packages.mozilla.org' config/archives/mozilla.pref.chroot
+grep -Fxq 'Pin-Priority: 1001' config/archives/mozilla.pref.chroot
+test "$(sha256sum config/archives/mozilla.key.chroot | awk '{ print $1 }')" = \
+    'a22e1a7885381e4005b61884a5205892c39d15f5c262555e38b4fe5402ca8895'
+gpg --batch --show-keys --with-colons config/archives/mozilla.key.chroot 2>/dev/null | \
+    grep -Fq 'fpr:::::::::35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3:'
+grep -Fq '*snap*)' config/hooks/0125-verify-native-firefox.chroot
+grep -Fq "maintainer=\$(dpkg-query -W -f='\${Maintainer}'" \
+    config/hooks/0125-verify-native-firefox.chroot
+grep -Fq '/usr/lib/firefox/firefox-bin' config/hooks/0125-verify-native-firefox.chroot
+grep -Fq 'packages.mozilla.org' config/hooks/0125-verify-native-firefox.chroot
 grep -Fq 'Pin-Priority: 1001' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 grep -Fq '#mainApp QLabel' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq 'color: #7cff00;' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss

@@ -45,7 +45,8 @@ test -L "$latest_iso" || {
 test -s "$latest_iso"
 (cd "$project_dir/output" && sha256sum --check "$(basename "$latest_iso.sha256")")
 
-AILINUX_ISO="$latest_iso" ./scripts/smoke-test-iso.sh
+AILINUX_QEMU_MODE=bios ./scripts/smoke-test-iso.sh "$latest_iso"
+AILINUX_QEMU_MODE=uefi ./scripts/smoke-test-iso.sh "$latest_iso"
 
 echo "Verified ISO: $(readlink -f "$latest_iso")"
 echo "Checksum: $latest_iso.sha256"
