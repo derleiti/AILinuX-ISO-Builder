@@ -4,6 +4,18 @@ set -eu
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd "$project_dir"
 
+# A clean build must remain possible while repo.ailinux.me is unavailable.
+# Set AILINUX_OFFLINE=0 explicitly to refresh kernel/repository metadata online.
+AILINUX_OFFLINE=${AILINUX_OFFLINE:-1}
+case "$AILINUX_OFFLINE" in
+    0|1) ;;
+    *)
+        echo "AILINUX_OFFLINE must be 0 or 1." >&2
+        exit 1
+        ;;
+esac
+export AILINUX_OFFLINE
+
 if [ -e .build.lock ]; then
     echo "Build already active: $project_dir/.build.lock" >&2
     exit 1
@@ -12,6 +24,11 @@ fi
 echo "AILinuX clean ISO build"
 echo "Project: $project_dir"
 echo "Mode: clean live-build tree and package cache"
+if [ "$AILINUX_OFFLINE" = "1" ]; then
+    echo "Repository mode: local AILinuX packages; official Ubuntu mirrors"
+else
+    echo "Repository mode: refresh AILinuX metadata online"
+fi
 
 ./scripts/validate-project.sh
 

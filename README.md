@@ -18,6 +18,25 @@ binary tree and downloaded image-package cache before rebuilding. Only the
 isolated Resolute builder environment below `~/.cache/ailinux-distro-builder/`
 is reused.
 
+By default, `create.sh` uses repository-offline mode so an outage of
+`repo.ailinux.me` does not block a clean build. It validates the checked-in
+kernel and repository metadata, stages the SHA-256 allow-listed `copa` and
+selected `linux-image-*-ailinux` packages from live-build's local cache into
+`config/packages.chroot`, and uses the official Ubuntu archive directly. The
+temporary packages and disabled AILinuX build archive are restored by a trap on
+success, failure or interruption. To deliberately refresh AILinuX metadata
+from the server, opt in explicitly:
+
+```bash
+AILINUX_OFFLINE=0 ./create.sh
+```
+
+The default cache locations are `cache/packages.chroot`,
+`cache/packages_chroot`, `cache/packages.binary` and `cache/packages_binary`.
+Set `AILINUX_OFFLINE_PACKAGE_CACHE` to prepend one additional local cache
+directory. A new trusted package version must first be added to
+`config/offline-packages.sha256`.
+
 For a direct host build with preinstalled dependencies:
 
 ```bash

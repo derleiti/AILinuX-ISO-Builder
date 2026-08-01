@@ -4,6 +4,35 @@ set -eu
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 packages_url=${AILINUX_KERNEL_PACKAGES_URL:-"https://repo.ailinux.me/mirror/repo.ailinux.me/dists/resolute/main/binary-amd64/Packages.gz"}
 out_file="$project_dir/config/ailinux-kernel.env"
+offline=${AILINUX_OFFLINE:-0}
+
+case "$offline" in
+    0|1) ;;
+    *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;;
+esac
+
+if [ "$offline" = "1" ]; then
+    test -s "$out_file" || {
+        echo "Offline kernel metadata is missing: $out_file" >&2
+        exit 1
+    }
+    # shellcheck disable=SC1090
+    . "$out_file"
+    case "${AILINUX_KERNEL_PACKAGE:-}" in
+        linux-image-*-ailinux) ;;
+        *) echo "Invalid cached AILinuX kernel package." >&2; exit 1 ;;
+    esac
+    test "linux-image-${AILINUX_KERNEL_FLAVOUR:-}" = "$AILINUX_KERNEL_PACKAGE" || {
+        echo "Cached AILinuX kernel package/flavour mismatch." >&2
+        exit 1
+    }
+    test -n "${AILINUX_KERNEL_VERSION:-}" || {
+        echo "Cached AILinuX kernel version is empty." >&2
+        exit 1
+    }
+    echo "Offline kernel selection: $AILINUX_KERNEL_PACKAGE ($AILINUX_KERNEL_VERSION)"
+    exit 0
+fi
 
 for tool in curl gzip awk dpkg mktemp; do
     command -v "$tool" >/dev/null 2>&1 || {

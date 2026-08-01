@@ -6,7 +6,8 @@ cache_dir=${AILINUX_BUILDER_CACHE:-"$HOME/.cache/ailinux-distro-builder"}
 rootfs="$cache_dir/resolute-rootfs"
 debootstrap_root="$cache_dir/debootstrap-package"
 bootstrap_marker="$rootfs/.ailinux-builder-ready"
-mirror="https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu"
+mirror="https://archive.ubuntu.com/ubuntu"
+ubuntu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
 
 command -v unshare >/dev/null 2>&1 || {
     echo "unshare is required for the rootless builder." >&2
@@ -18,6 +19,10 @@ command -v apt-get >/dev/null 2>&1 || {
 }
 command -v dpkg-deb >/dev/null 2>&1 || {
     echo "dpkg-deb is required to unpack debootstrap." >&2
+    exit 1
+}
+test -r "$ubuntu_keyring" || {
+    echo "Ubuntu archive keyring is required: $ubuntu_keyring" >&2
     exit 1
 }
 
@@ -53,7 +58,7 @@ if [ ! -e "$bootstrap_marker" ]; then
         "$debootstrap_root/usr/sbin/debootstrap" \
         --arch=amd64 \
         --variant=minbase \
-        --keyring=/usr/share/keyrings/ailinux-archive-keyring.gpg \
+        --keyring="$ubuntu_keyring" \
         resolute \
         "$rootfs" \
         "$mirror"
@@ -77,9 +82,9 @@ unshare --user --map-root-user --map-auto --mount --pid --fork --mount-proc \
             "$project_dir/config/archives/ailinux.key.chroot" \
             "$rootfs/usr/share/keyrings/ailinux-archive-keyring.gpg"
         printf "%s\n" \
-            "deb [signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu resolute main restricted universe multiverse" \
-            "deb [signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu resolute-updates main restricted universe multiverse" \
-            "deb [signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/security.ubuntu.com/ubuntu resolute-security main restricted universe multiverse" \
+            "deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu resolute main restricted universe multiverse" \
+            "deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu resolute-updates main restricted universe multiverse" \
+            "deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu resolute-security main restricted universe multiverse" \
             > "$rootfs/etc/apt/sources.list"
 
         cleanup() {

@@ -7,6 +7,54 @@ base_url=${AILINUX_REPO_BASE:-https://repo.ailinux.me/mirror}
 include_root="$project_dir/config/includes.chroot"
 source_dir="$include_root/etc/apt/sources.list.d"
 manifest_copy="$project_dir/config/third-party-repos.json"
+offline=${AILINUX_OFFLINE:-0}
+
+case "$offline" in
+    0|1) ;;
+    *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;;
+esac
+
+if [ "$offline" = "1" ]; then
+    command -v python3 >/dev/null 2>&1 || {
+        echo "python3 is required to validate cached repository metadata." >&2
+        exit 1
+    }
+    python3 - "$manifest_copy" "$include_root" <<'PY'
+import json
+import pathlib
+import sys
+
+manifest_path = pathlib.Path(sys.argv[1])
+include_root = pathlib.Path(sys.argv[2])
+if not manifest_path.is_file():
+    raise SystemExit(f"Missing cached repository manifest: {manifest_path}")
+
+data = json.loads(manifest_path.read_text(encoding="utf-8"))
+repos = data.get("repos")
+if not isinstance(repos, list) or not repos:
+    raise SystemExit("Cached third-party repository manifest is empty")
+
+for repo in repos:
+    source_file = include_root / repo["source_file"].lstrip("/")
+    key_file = include_root / repo["key_dest"].lstrip("/")
+    if not source_file.is_file():
+        raise SystemExit(f"Missing cached repository source: {source_file}")
+    expected = repo["source_content"].strip()
+    actual = source_file.read_text(encoding="utf-8").strip()
+    if actual != expected:
+        raise SystemExit(f"Cached repository source differs from manifest: {source_file}")
+    if not key_file.is_file() or key_file.stat().st_size == 0:
+        raise SystemExit(f"Missing cached repository key: {key_file}")
+
+print(f"Offline repository metadata validated: {len(repos)} repositories")
+PY
+    test -s "$source_dir/ailinux-mirror.list" || {
+        echo "Cached AILinuX mirror source list is missing." >&2
+        exit 1
+    }
+    echo "Using existing checked repository configuration without network refresh."
+    exit 0
+fi
 
 for tool in bash curl python3 mktemp; do
     command -v "$tool" >/dev/null 2>&1 || {

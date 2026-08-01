@@ -24,6 +24,7 @@
 /.final-iso
 /.autologin-final-iso
 /.last-installer-branding-backup
+/.offline-build-state/
 
 # Backups
 /backups/

@@ -3,6 +3,12 @@ set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
+offline=${AILINUX_OFFLINE:-0}
+
+case "$offline" in
+    0|1) ;;
+    *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;;
+esac
 
 for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg python3; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -17,7 +23,20 @@ if [ -e .build.lock ]; then
 fi
 
 touch .build.lock
-trap 'rm -f .build.lock' EXIT HUP INT TERM
+cleanup_build() {
+    status=$?
+    trap - EXIT HUP INT TERM
+    cleanup_status=0
+    if [ -d "$project_dir/.offline-build-state" ]; then
+        ./scripts/prepare-offline-build.sh cleanup || cleanup_status=$?
+    fi
+    rm -f .build.lock
+    if [ "$status" -eq 0 ] && [ "$cleanup_status" -ne 0 ]; then
+        status=$cleanup_status
+    fi
+    exit "$status"
+}
+trap cleanup_build EXIT HUP INT TERM
 
 ./scripts/resolve-latest-kernel.sh
 if [ ! -s config/archives/ailinux.key.chroot ]; then
@@ -26,6 +45,11 @@ fi
 ./scripts/sync-repositories.sh
 ./scripts/validate-project.sh
 install -m 0755 auto/config.in auto/config
+
+if [ "$offline" = "1" ] && [ "${AILINUX_RESUME_BINARY:-0}" != "1" ]; then
+    ./scripts/prepare-offline-build.sh stage
+    ./scripts/prepare-offline-build.sh mask-archive
+fi
 
 mkdir -p output
 owner=$(stat -c '%u:%g' "$project_dir")

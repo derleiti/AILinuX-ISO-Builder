@@ -10,6 +10,7 @@ assets/branding/ailinux-system-logo-source.png
 assets/branding/ailinux-system-logo.png
 auto/config.in
 config/ailinux-kernel.env
+config/offline-packages.sha256
 config/package-lists/desktop.list.chroot
 config/package-lists/ailinux.list.chroot
 config/archives/ailinux-mirrors.list.chroot
@@ -33,6 +34,7 @@ config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 config/binary_grub/grub.cfg
 scripts/prepare-keyrings.sh
+scripts/prepare-offline-build.sh
 scripts/resolve-latest-kernel.sh
 scripts/sync-repositories.sh
 scripts/finalize-binary-grub.py
@@ -62,6 +64,7 @@ for script in \
     scripts/patch-live-build-squashfs.sh \
     scripts/patch-live-build-iso.sh \
     scripts/prepare-keyrings.sh \
+    scripts/prepare-offline-build.sh \
     scripts/resolve-latest-kernel.sh \
     scripts/sync-repositories.sh \
     scripts/smoke-test-iso.sh \
@@ -79,6 +82,30 @@ do
 done
 python3 -c 'compile(open("scripts/finalize-binary-grub.py", encoding="utf-8").read(), "scripts/finalize-binary-grub.py", "exec")'
 python3 scripts/finalize-binary-grub.py --self-test >/dev/null
+
+# `create.sh` defaults to the repo-offline path. It may still download Ubuntu
+# packages from the official archive, but it must not contact repo.ailinux.me.
+grep -Fq 'AILINUX_OFFLINE=${AILINUX_OFFLINE:-1}' create.sh
+grep -Fq 'export AILINUX_OFFLINE' create.sh
+grep -Fq 'mirror="https://archive.ubuntu.com/ubuntu"' scripts/build-rootless.sh
+grep -Fq 'https://security.ubuntu.com/ubuntu resolute-security' scripts/build-rootless.sh
+if grep -Fq 'repo.ailinux.me/mirror/archive.ubuntu.com' scripts/build-rootless.sh; then
+    echo "The rootless builder must use the official Ubuntu archive directly." >&2
+    exit 1
+fi
+grep -Fq 'if [ "$offline" = "1" ]; then' scripts/resolve-latest-kernel.sh
+grep -Fq 'Using existing checked repository configuration without network refresh.' scripts/sync-repositories.sh
+grep -Fq 'prepare-offline-build.sh stage' scripts/build.sh
+grep -Fq 'prepare-offline-build.sh mask-archive' scripts/build.sh
+grep -Fq 'prepare-offline-build.sh cleanup' scripts/build.sh
+
+awk '
+    NF != 2 || $1 !~ /^[0-9a-f]{64}$/ || $2 !~ /_(amd64|all)\.deb$/ { exit 1 }
+    { count++ }
+    END { if (count < 2) exit 1 }
+' config/offline-packages.sha256
+grep -Eq '  copa_[^ ]+_(amd64|all)\.deb$' config/offline-packages.sha256
+grep -Eq '  linux-image-[^ ]+-ailinux_[^ ]+_amd64\.deb$' config/offline-packages.sha256
 
 grep -q 'distribution resolute' auto/config.in
 grep -q -- '--bootloader grub2' auto/config.in
