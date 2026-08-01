@@ -35,11 +35,32 @@ mkdir -p "$cache_dir"
 
 if [ ! -x "$debootstrap_root/usr/sbin/debootstrap" ]; then
     package_dir="$cache_dir/packages"
-    mkdir -p "$package_dir" "$debootstrap_root"
+    official_apt="$cache_dir/official-apt"
+    official_lists="$official_apt/lists"
+    official_archives="$official_apt/archives"
+    official_sources="$official_apt/sources.list"
+    mkdir -p \
+        "$package_dir" \
+        "$debootstrap_root" \
+        "$official_lists/partial" \
+        "$official_archives/partial"
+    printf '%s\n' \
+        "deb [signed-by=$ubuntu_keyring] $mirror resolute main universe" \
+        > "$official_sources"
+    apt_get_official() {
+        apt-get \
+            -o "Dir::Etc::sourcelist=$official_sources" \
+            -o "Dir::Etc::sourceparts=-" \
+            -o "Dir::State::lists=$official_lists" \
+            -o "Dir::Cache::archives=$official_archives" \
+            -o "APT::Get::List-Cleanup=0" \
+            "$@"
+    }
+    apt_get_official update
     (
         cd "$package_dir"
         rm -f debootstrap_*.deb
-        apt-get download debootstrap
+        apt_get_official download debootstrap
         package=$(find . -maxdepth 1 -type f -name 'debootstrap_*.deb' -print -quit)
         test -n "$package"
         dpkg-deb -x "$package" "$debootstrap_root"
