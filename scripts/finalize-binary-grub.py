@@ -32,6 +32,33 @@ KERNEL_PATH_RE = re.compile(r"/casper/vmlinuz-(?P<version>[^\s'\"]+)")
 VERSION_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+~-]*")
 
 
+SEARCH_MARKER = "# AILINUX_SEARCH_ROOT"
+SEARCH_BLOCK = (
+    SEARCH_MARKER + "\n"
+    "# Ventoy und aehnliche Loader starten ihr eigenes GRUB, in dem $root nicht\n"
+    "# auf dieses Medium zeigt. Ohne diese Suche findet 'linux /casper/...' die\n"
+    "# Datei nicht und GRUB meldet 'you need to load the kernel first'.\n"
+    "# Schlaegt die Suche fehl, bleibt $root unveraendert - der direkte\n"
+    "# Medienboot funktioniert dadurch unveraendert weiter.\n"
+    "search --no-floppy --set=root --label AILINUX_2604\n"
+    "if [ ! -e /.disk/info ]; then\n"
+    "    search --no-floppy --set=root --file /.disk/info\n"
+    "fi\n"
+    "\n"
+)
+
+
+def ensure_search_root(text: str) -> str:
+    """Make the medium locate itself before any menuentry runs."""
+
+    if SEARCH_MARKER in text:
+        return text
+    match = re.search(r"^[ \t]*menuentry[ \t]", text, re.MULTILINE)
+    if not match:
+        raise ValueError("No menuentry found to anchor the root search")
+    return text[: match.start()] + SEARCH_BLOCK + text[match.start() :]
+
+
 @dataclass
 class MenuBlock:
     text: str
@@ -186,7 +213,7 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
             continue
         output.append(segment.text if isinstance(segment, MenuBlock) else segment)
 
-    result = "".join(output)
+    result = ensure_search_root("".join(output))
     if "Debian GNU/Linux - live" in result:
         raise ValueError("A generic Debian live title remains after finalization")
     return result, kernel_order
