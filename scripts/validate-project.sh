@@ -203,7 +203,10 @@ test "$third_party_count" -ge 11 || {
     echo "Incomplete third-party repository manifest: $third_party_count" >&2
     exit 1
 }
-test "$(find config/includes.chroot/etc/apt/sources.list.d -maxdepth 1 -type f | wc -l)" -ge 12 || {
+# 11 statt 12: mozilla-firefox aus dem Manifest wird bewusst nicht als
+# .sources ausgerollt, weil config/archives/mozilla.list.chroot dieselbe
+# Quelle bereits vor der Paketinstallation bereitstellt.
+test "$(find config/includes.chroot/etc/apt/sources.list.d -maxdepth 1 -type f | wc -l)" -ge 11 || {
     echo "Repository include tree is incomplete." >&2
     exit 1
 }

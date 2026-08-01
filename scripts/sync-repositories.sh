@@ -35,6 +35,11 @@ if not isinstance(repos, list) or not repos:
     raise SystemExit("Cached third-party repository manifest is empty")
 
 for repo in repos:
+    # mozilla-firefox (KDE-neon-Erbe) beschreibt dieselbe Quelle wie
+    # config/archives/mozilla.list.chroot, aber mit abweichendem Signed-By.
+    # Beide zusammen machen die gesamte apt-Sourceliste unlesbar.
+    if repo["id"] == "mozilla-firefox":
+        continue
     source_file = include_root / repo["source_file"].lstrip("/")
     key_file = include_root / repo["key_dest"].lstrip("/")
     if not source_file.is_file():
@@ -132,6 +137,11 @@ if not repos:
     raise SystemExit("Third-party repository manifest is empty")
 
 for repo in repos:
+    # mozilla-firefox (KDE-neon-Erbe) beschreibt dieselbe Quelle wie
+    # config/archives/mozilla.list.chroot, aber mit abweichendem Signed-By.
+    # Beide zusammen machen die gesamte apt-Sourceliste unlesbar.
+    if repo["id"] == "mozilla-firefox":
+        continue
     source_file = include_root / repo["source_file"].lstrip("/")
     key_file = include_root / repo["key_dest"].lstrip("/")
     source_file.parent.mkdir(parents=True, exist_ok=True)
