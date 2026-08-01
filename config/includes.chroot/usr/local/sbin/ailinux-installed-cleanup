@@ -1,6 +1,39 @@
 #!/bin/sh
 set -eu
 
+installed_user=${1:-}
+
+# Calamares normally assigns defaultGroups while creating the account. Repeat
+# the critical administrator-group assignment at the end of installation so a
+# packaging/default mismatch cannot leave the freshly-created user powerless.
+# Ubuntu's sudoers file already authorizes %sudo; validate that policy rather
+# than inserting an individual user line into /etc/sudoers.
+case "$installed_user" in
+    ''|root|*[!a-zA-Z0-9_.-]*)
+        echo "Invalid installed user supplied by Calamares: $installed_user" >&2
+        exit 1
+        ;;
+esac
+
+if ! id "$installed_user" >/dev/null 2>&1; then
+    echo "Calamares user does not exist in target system: $installed_user" >&2
+    exit 1
+fi
+
+usermod -aG sudo "$installed_user"
+
+if ! id -nG "$installed_user" | tr ' ' '\n' | grep -Fxq sudo; then
+    echo "Failed to add $installed_user to the sudo group." >&2
+    exit 1
+fi
+
+if ! grep -Eq '^[[:space:]]*%sudo[[:space:]]+ALL=' /etc/sudoers; then
+    echo "The sudo group is not authorized in /etc/sudoers." >&2
+    exit 1
+fi
+
+visudo -cf /etc/sudoers
+
 # The installer launcher and distribution-provided web links belong only to
 # the live session. Users created by Calamares have already received /etc/skel
 # when this target-side job runs, so clean both the skeleton and home folders.

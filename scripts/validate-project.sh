@@ -18,8 +18,10 @@ config/includes.chroot/etc/calamares/modules/mount.conf
 config/includes.chroot/etc/calamares/modules/fstab.conf
 config/includes.chroot/etc/calamares/modules/welcome.conf
 config/includes.chroot/etc/calamares/modules/cleanup.conf
+config/includes.chroot/etc/calamares/modules/users.conf
 config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
+config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
 config/includes.chroot/etc/NetworkManager/conf.d/10-globally-managed-devices.conf
 config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
@@ -162,9 +164,22 @@ grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux
 grep -Fq 'restartNowMode: user-checked' config/includes.chroot/etc/calamares/modules/finished.conf
 grep -Fq 'restartNowCommand: "systemctl -i reboot"' config/includes.chroot/etc/calamares/modules/finished.conf
 grep -Fq -- '- cleanup' config/includes.chroot/etc/calamares/settings.conf
+grep -Fq 'config:   users.conf' config/includes.chroot/etc/calamares/settings.conf
+grep -Fq 'sudoersGroup: sudo' config/includes.chroot/etc/calamares/modules/users.conf
+grep -Fq 'sudoersConfigureWithGroup: true' config/includes.chroot/etc/calamares/modules/users.conf
+grep -Eq '^[[:space:]]*- sudo$' config/includes.chroot/etc/calamares/modules/users.conf
+grep -Fq '${USER}' config/includes.chroot/etc/calamares/modules/cleanup.conf
+grep -Fq 'usermod -aG sudo' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq 'visudo -cf /etc/sudoers' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fq 'Pin-Priority: 1001' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 grep -Fq '#mainApp QLabel' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq 'color: #7cff00;' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq 'GRUB_DISTRIBUTOR="AILinuX"' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
+grep -Fq 'GRUB_TIMEOUT_STYLE=menu' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
+grep -Fq 'GRUB_TIMEOUT=10' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
+grep -Fq 'GRUB_DISABLE_SUBMENU=y' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
+grep -Fq 'GRUB_DISABLE_RECOVERY=false' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
+grep -Fq 'GRUB_RECOVERY_TITLE="Safe Mode"' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 
 # Calamares' partition module contains custom-painted item delegates. Broad
 # widget/view rules can make their text unreadable, even when other pages look

@@ -56,6 +56,10 @@ Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
 - Firefox from Mozilla's APT repository (native package, not the Ubuntu Snap
   transition wrapper)
 - Calamares graphical installer for physical desktop and server-class PCs
+- Calamares users are members of Ubuntu's `sudo` administrator group; the
+  installed sudoers policy is checked with `visudo` before installation ends
+- Installed GRUB always shows a 10-second AILinuX menu with each kernel and its
+  corresponding recovery (safe-mode) entry at the top level
 - Official Ubuntu bootstrap with signed AILinuX mirrors for all image packages
 - All current AILinuX packages from `repo.ailinux.me`
 - Active third-party repositories from the reference AILinuX workstation
@@ -68,6 +72,3 @@ configuration in the ISO.
 `ailinux-libxml2-compat` is rebuilt locally from its verified package metadata
 because the current AILinuX repository index lists it while the tiny
 metadata-only `.deb` is absent from the pool.
-=======
-# AILinuX-ISO-Builder
-Bulds an actual AILinuX ISO
