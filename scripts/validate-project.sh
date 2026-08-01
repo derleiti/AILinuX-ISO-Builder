@@ -137,6 +137,7 @@ grep -Fq 'userSwapChoices: [ file ]' config/includes.chroot/etc/calamares/module
 grep -Fq 'initialSwapChoice: file' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'mountPoint: "/"' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'filesystem: "ext4"' config/includes.chroot/etc/calamares/modules/partition.conf
+grep -Fq 'directory: "efi"' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'size: 100%' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'mountPoint: /proc' config/includes.chroot/etc/calamares/modules/mount.conf
 grep -Fq 'mountPoint: /sys' config/includes.chroot/etc/calamares/modules/mount.conf
