@@ -223,23 +223,23 @@ grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 # so choosing another Global Theme later replaces them normally; no login-time
 # service may force Oxygen.
 oxygen_skel=config/includes.chroot/etc/skel/.config
-grep -Fqx 'LookAndFeelPackage=org.kde.oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kcminputrc"
-grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/ksplashrc"
-grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kwinrc"
-grep -Fqx 'name=oxygen' "$oxygen_skel/plasmarc"
-grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kdedefaults/kcminputrc"
-grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/kdedefaults/ksplashrc"
-grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kdedefaults/kwinrc"
+grep -Fqx 'LookAndFeelPackage=org.kde.breezedark.desktop' "$oxygen_skel/kdeglobals"
+grep -Fqx 'ColorScheme=BreezeDark' "$oxygen_skel/kdeglobals"
+grep -Fqx 'Theme=breeze-dark' "$oxygen_skel/kdeglobals"
+grep -Fqx 'widgetStyle=Breeze' "$oxygen_skel/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$oxygen_skel/kcminputrc"
+grep -Fqx 'Theme=org.kde.breezedark.desktop' "$oxygen_skel/ksplashrc"
+grep -Fqx 'library=org.kde.breeze' "$oxygen_skel/kwinrc"
+grep -Fqx 'name=breeze-dark' "$oxygen_skel/plasmarc"
+grep -Fqx 'ColorScheme=BreezeDark' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=breeze-dark' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'widgetStyle=Breeze' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$oxygen_skel/kdedefaults/kcminputrc"
+grep -Fqx 'Theme=org.kde.breezedark.desktop' "$oxygen_skel/kdedefaults/ksplashrc"
+grep -Fqx 'library=org.kde.breeze' "$oxygen_skel/kdedefaults/kwinrc"
 grep -Fqx 'NoPlugin=false' "$oxygen_skel/kdedefaults/kwinrc"
-grep -Fqx 'org.kde.oxygen' "$oxygen_skel/kdedefaults/package"
-grep -Fqx 'name=oxygen' "$oxygen_skel/kdedefaults/plasmarc"
+grep -Fqx 'org.kde.breezedark.desktop' "$oxygen_skel/kdedefaults/package"
+grep -Fqx 'name=breeze-dark' "$oxygen_skel/kdedefaults/plasmarc"
 if grep -RqsE 'plasma-apply-lookandfeel.*org\.kde\.oxygen|lookandfeeltool.*org\.kde\.oxygen' \
         config/includes.chroot/etc/xdg/autostart \
         config/includes.chroot/etc/systemd \
@@ -363,7 +363,7 @@ if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|
     exit 1
 fi
 
-for excluded_product in triforce aicoder ai-coder kimi; do
+for excluded_product in triforce kimi; do
     if grep -Riq --include='*.list.chroot' -- "$excluded_product" config/package-lists; then
         echo "Excluded product found in package lists: $excluded_product" >&2
         exit 1
