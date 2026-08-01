@@ -34,6 +34,8 @@ config/binary_grub/grub.cfg
 scripts/prepare-keyrings.sh
 scripts/resolve-latest-kernel.sh
 scripts/sync-repositories.sh
+scripts/finalize-binary-grub.py
+config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0200-ailinux-initramfs.chroot
 config/third-party-repos.json
 config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list
@@ -66,6 +68,7 @@ for script in \
     config/hooks/0050-apt-network.chroot_early \
     config/hooks/0100-ailinux-config.chroot \
     config/hooks/live/0100-ailinux-config.hook.chroot \
+    config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
     config/includes.chroot/usr/local/bin/ailinux-installer \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
@@ -73,6 +76,8 @@ for script in \
 do
     sh -n "$script"
 done
+python3 -c 'compile(open("scripts/finalize-binary-grub.py", encoding="utf-8").read(), "scripts/finalize-binary-grub.py", "exec")'
+python3 scripts/finalize-binary-grub.py --self-test >/dev/null
 
 grep -q 'distribution resolute' auto/config.in
 grep -q -- '--bootloader grub2' auto/config.in
@@ -89,6 +94,17 @@ if grep -Rqs '^kubuntu-desktop$' config/package-lists; then
     echo "Kubuntu desktop meta-package is forbidden; use Ubuntu Server plus explicit Plasma packages." >&2
     exit 1
 fi
+for forbidden_kubuntu_package in \
+    libkubuntu1 \
+    plymouth-theme-kubuntu-logo \
+    plymouth-theme-kubuntu-text
+do
+    grep -Fq "$forbidden_kubuntu_package" config/hooks/0150-remove-kubuntu.chroot
+done
+grep -Fq '/usr/share/plymouth/themes/bgrt/bgrt.plymouth' \
+    config/hooks/0150-remove-kubuntu.chroot
+grep -Fq '/usr/share/plymouth/themes/ubuntu-text/ubuntu-text.plymouth' \
+    config/hooks/0150-remove-kubuntu.chroot
 grep -q '^copa$' config/package-lists/ailinux.list.chroot
 grep -q '^python3$' config/package-lists/productivity.list.chroot
 grep -q '^set timeout=5$' config/binary_grub/grub.cfg
@@ -161,6 +177,15 @@ test -f config/includes.chroot/etc/systemd/system/getty@tty1.service.d/10-ailinu
 test -f config/includes.chroot/etc/systemd/system/serial-getty@ttyS0.service.d/10-ailinux-live-autologin.conf
 grep -Fq 'PasswordAuthentication no' config/includes.chroot/etc/ssh/sshd_config.d/90-ailinux-live-security.conf
 grep -Fq 'md5sum.txt' scripts/build.sh
+grep -Fq 'python3 ./scripts/finalize-binary-grub.py "$project_dir/binary/boot/grub/grub.cfg"' scripts/build.sh
+grep -Fq 'AILinuX {version}' scripts/finalize-binary-grub.py
+grep -Fq '(Safe Mode)' scripts/finalize-binary-grub.py
+if grep -Fq 'ailinux login:' scripts/smoke-test-iso.sh; then
+    echo "The ISO smoke test must not accept a text login prompt as graphical success." >&2
+    exit 1
+fi
+grep -Fq 'graphical.target' scripts/smoke-test-iso.sh
+grep -Fq 'sddm\.service' scripts/smoke-test-iso.sh
 
 
 # Installer integrity guards.

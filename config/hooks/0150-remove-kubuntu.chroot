@@ -1,0 +1,53 @@
+#!/bin/sh
+set -eu
+
+export DEBIAN_FRONTEND=noninteractive
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# AILinuX starts from Ubuntu Server and adds Plasma explicitly. Some KDE
+# dependency paths can still pull in Kubuntu helper/branding packages. Purge
+# the known leftovers after package installation so they cannot become the
+# installed system's Plymouth identity.
+kubuntu_packages=
+for package in \
+    libkubuntu1 \
+    plymouth-theme-kubuntu-logo \
+    plymouth-theme-kubuntu-text
+do
+    if dpkg-query -W -f='${db:Status-Abbrev}' "$package" 2>/dev/null | grep -q '^ii'; then
+        kubuntu_packages="$kubuntu_packages $package"
+    fi
+done
+
+if [ -n "$kubuntu_packages" ]; then
+    # The package names above are fixed constants, not external input.
+    # shellcheck disable=SC2086
+    apt-get purge --yes $kubuntu_packages
+fi
+
+for package in libkubuntu1 plymouth-theme-kubuntu-logo plymouth-theme-kubuntu-text; do
+    if dpkg-query -W -f='${db:Status-Abbrev}' "$package" 2>/dev/null | grep -q '^ii'; then
+        echo "Forbidden Kubuntu package remains installed: $package" >&2
+        exit 1
+    fi
+done
+
+# The Ubuntu packages register these two non-Kubuntu fallbacks. Make the
+# choice explicit after removing the higher-priority Kubuntu alternatives.
+if update-alternatives --list default.plymouth 2>/dev/null |
+        grep -Fxq /usr/share/plymouth/themes/bgrt/bgrt.plymouth; then
+    update-alternatives --set default.plymouth \
+        /usr/share/plymouth/themes/bgrt/bgrt.plymouth
+fi
+if update-alternatives --list text.plymouth 2>/dev/null |
+        grep -Fxq /usr/share/plymouth/themes/ubuntu-text/ubuntu-text.plymouth; then
+    update-alternatives --set text.plymouth \
+        /usr/share/plymouth/themes/ubuntu-text/ubuntu-text.plymouth
+fi
+
+if readlink -f /usr/share/plymouth/themes/default.plymouth 2>/dev/null |
+        grep -qi kubuntu; then
+    echo "Default Plymouth theme still points to Kubuntu." >&2
+    exit 1
+fi
+

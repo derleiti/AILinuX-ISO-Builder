@@ -62,7 +62,7 @@ if [ "$firmware_mode" = "uefi" ]; then
 fi
 
 failure_pattern='kernel panic|not syncing|unable to mount root fs|unable to find a medium containing a live file system|can.t open /root/dev/console|entered emergency mode'
-success_pattern='Reached target .*graphical.target|ailinux login:|Started .*sddm.service'
+success_pattern='Reached target .*graphical.target|Reached target .*Graphical Interface|Started .*sddm\.service|Started .*Simple Desktop Display Manager'
 
 "$@" &
 qemu_pid=$!

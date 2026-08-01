@@ -53,6 +53,8 @@ Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
 - Ubuntu 26.04 LTS (`resolute`), amd64, hybrid BIOS/UEFI ISO
 - Ubuntu Server base via `ubuntu-server`, with KDE Plasma/Wayland installed as
   explicit desktop packages instead of the Kubuntu desktop meta-package
+- Kubuntu libraries and Plymouth branding are purged after package installation;
+  the image uses Ubuntu/BGRT Plymouth fallbacks
 - Firefox from Mozilla's APT repository (native package, not the Ubuntu Snap
   transition wrapper)
 - Calamares graphical installer for physical desktop and server-class PCs

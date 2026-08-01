@@ -4,7 +4,7 @@ set -eu
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
 
-for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg; do
+for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg python3; do
     command -v "$tool" >/dev/null 2>&1 || {
         echo "Missing build dependency: $tool" >&2
         exit 1
@@ -61,6 +61,8 @@ else
     run_as_root ./auto/config
     run_logged lb build
 fi
+
+python3 ./scripts/finalize-binary-grub.py "$project_dir/binary/boot/grub/grub.cfg"
 
 generate_binary_checksums() {
     test -d "$project_dir/binary" || {
