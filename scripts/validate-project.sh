@@ -128,6 +128,14 @@ grep -q '^calamares$' config/package-lists/desktop.list.chroot
 grep -q '^ubuntu-server$' config/package-lists/desktop.list.chroot
 grep -q '^plasma-desktop$' config/package-lists/desktop.list.chroot
 grep -q '^plasma-session-wayland$' config/package-lists/desktop.list.chroot
+for oxygen_package in \
+    kde-style-oxygen-qt6 \
+    kwin-decoration-oxygen \
+    oxygen-sounds \
+    plasma-theme-oxygen
+do
+    grep -Fqx "$oxygen_package" config/package-lists/desktop.list.chroot
+done
 grep -q '^firefox$' config/package-lists/productivity.list.chroot
 if grep -Rqs '^kubuntu-desktop$' config/package-lists; then
     echo "Kubuntu desktop meta-package is forbidden; use Ubuntu Server plus explicit Plasma packages." >&2

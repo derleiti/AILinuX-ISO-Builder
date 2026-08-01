@@ -8,7 +8,9 @@ grub-pc-bin
 grub2-common
 kde-config-sddm
 kde-standard
+kde-style-oxygen-qt6
 konsole
+kwin-decoration-oxygen
 kwin-wayland
 live-boot
 live-config
@@ -18,12 +20,14 @@ network-manager
 network-manager-openvpn
 ntfs-3g
 os-prober
+oxygen-sounds
 partitionmanager
 plasma-desktop
 plasma-discover
 plasma-nm
 plasma-pa
 plasma-session-wayland
+plasma-theme-oxygen
 plasma-workspace
 pkexec
 polkitd
