@@ -30,3 +30,8 @@
 /backups/
 *.bak
 *.bak.*
+
+# Build locks and VM test images
+/.build.lock
+/.lock
+/output/*.qcow2
