@@ -70,4 +70,36 @@ find /home -mindepth 3 -maxdepth 3 -type f \
 # A server-based Plasma image must not start Kubuntu's first-run assistant.
 rm -f /usr/share/applications/org.kde.plasma-welcome.desktop
 
+# Das vorangehende packages-Modul entfernt casper, live-boot und live-tools.
+# Bis dahin ist /usr/sbin/update-initramfs eine Diversion von live-tools, die
+# nichts tut - der initramfs-Schritt des Installers bleibt deshalb wirkungslos
+# und das installierte System startet mit dem Live-initramfs weiter. Das sucht
+# ein Live-Medium, findet keins und landet in der initramfs-Shell.
+update_initramfs=/usr/sbin/update-initramfs
+if [ -x /usr/sbin/update-initramfs.orig.initramfs-tools ]; then
+    update_initramfs=/usr/sbin/update-initramfs.orig.initramfs-tools
+fi
+
+rebuilt=0
+for kernel_image in /boot/vmlinuz-*; do
+    test -e "$kernel_image" || continue
+    version=${kernel_image#/boot/vmlinuz-}
+    rm -f "/boot/initrd.img-$version"
+    "$update_initramfs" -c -k "$version"
+    test -s "/boot/initrd.img-$version" || {
+        echo "Initramfs generation failed for $version" >&2
+        exit 1
+    }
+    if lsinitramfs "/boot/initrd.img-$version" 2>/dev/null | grep -q "scripts/casper"; then
+        echo "Rebuilt initramfs for $version still contains casper" >&2
+        exit 1
+    fi
+    rebuilt=1
+done
+
+test "$rebuilt" -eq 1 || {
+    echo "No kernel found for initramfs regeneration." >&2
+    exit 1
+}
+
 exit 0
