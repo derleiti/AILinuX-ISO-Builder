@@ -1,13 +1,16 @@
 #!/bin/sh
 set -eu
 
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 installed_user=${1:-}
 
 # Calamares normally assigns defaultGroups while creating the account. Repeat
 # the critical administrator-group assignment at the end of installation so a
 # packaging/default mismatch cannot leave the freshly-created user powerless.
-# Ubuntu's sudoers file already authorizes %sudo; validate that policy rather
-# than inserting an individual user line into /etc/sudoers.
+# Ubuntu already authorizes %sudo. Calamares assigns that group, and this
+# finalizer also writes a validated drop-in so the freshly-created account is
+# visibly and explicitly authorized even if a desktop/group default changes.
 case "$installed_user" in
     ''|root|*[!a-zA-Z0-9_.-]*)
         echo "Invalid installed user supplied by Calamares: $installed_user" >&2
@@ -33,6 +36,20 @@ if ! grep -Eq '^[[:space:]]*%sudo[[:space:]]+ALL=' /etc/sudoers; then
 fi
 
 visudo -cf /etc/sudoers
+
+sudoers_file=/etc/sudoers.d/90-ailinux-installer-user
+sudoers_tmp=$(mktemp)
+cleanup_sudoers_tmp() {
+    rm -f "$sudoers_tmp"
+}
+trap cleanup_sudoers_tmp EXIT HUP INT TERM
+printf '%s ALL=(ALL:ALL) ALL\n' "$installed_user" > "$sudoers_tmp"
+chmod 0440 "$sudoers_tmp"
+visudo -cf "$sudoers_tmp"
+install -o root -g root -m 0440 "$sudoers_tmp" "$sudoers_file"
+visudo -cf /etc/sudoers
+cleanup_sudoers_tmp
+trap - EXIT HUP INT TERM
 
 # The installer launcher and distribution-provided web links belong only to
 # the live session. Users created by Calamares have already received /etc/skel

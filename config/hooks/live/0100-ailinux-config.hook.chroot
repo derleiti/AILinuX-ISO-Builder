@@ -24,6 +24,7 @@ fi
 systemctl enable NetworkManager.service
 systemctl enable sddm.service
 systemctl enable ssh.service
+systemctl enable ailinux-graphical-ready.service
 
 rm -f /etc/machine-id
 touch /etc/machine-id

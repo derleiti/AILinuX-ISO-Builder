@@ -1,0 +1,14 @@
+[Unit]
+Description=Report that the AILinuX live graphical stack is ready
+ConditionKernelCommandLine=boot=live
+Requires=sddm.service
+After=sddm.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'printf "AILINUX_GRAPHICAL_READY\n" > /dev/ttyS0'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target
+

@@ -25,6 +25,7 @@ config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
+config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
 config/includes.chroot/etc/NetworkManager/conf.d/10-globally-managed-devices.conf
 config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
 config/includes.chroot/usr/local/bin/ailinux-installer
@@ -173,6 +174,11 @@ grep -Fq 'update-icon-caches /usr/share/icons/hicolor' config/hooks/live/0100-ai
 
 test -f config/includes.chroot/usr/lib/systemd/system/ailinux-live-autologin.service
 grep -Fq 'ConditionKernelCommandLine=boot=casper' config/includes.chroot/usr/lib/systemd/system/ailinux-live-autologin.service
+grep -Fq 'ConditionKernelCommandLine=boot=live' config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
+grep -Fq 'Requires=sddm.service' config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
+grep -Fq 'AILINUX_GRAPHICAL_READY' config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
+grep -Fq 'enable ailinux-graphical-ready.service' config/hooks/0100-ailinux-config.chroot
+grep -Fq "success_pattern='AILINUX_GRAPHICAL_READY'" scripts/smoke-test-iso.sh
 test -f config/includes.chroot/etc/systemd/system/getty@tty1.service.d/10-ailinux-live-autologin.conf
 test -f config/includes.chroot/etc/systemd/system/serial-getty@ttyS0.service.d/10-ailinux-live-autologin.conf
 grep -Fq 'PasswordAuthentication no' config/includes.chroot/etc/ssh/sshd_config.d/90-ailinux-live-security.conf
@@ -184,10 +190,6 @@ if grep -Fq 'ailinux login:' scripts/smoke-test-iso.sh; then
     echo "The ISO smoke test must not accept a text login prompt as graphical success." >&2
     exit 1
 fi
-grep -Fq 'graphical.target' scripts/smoke-test-iso.sh
-grep -Fq 'sddm\.service' scripts/smoke-test-iso.sh
-
-
 # Installer integrity guards.
 grep -Fq 'efiBootLoader: "grub"' config/includes.chroot/etc/calamares/modules/bootloader.conf
 grep -Fq 'grubInstall: "grub-install"' config/includes.chroot/etc/calamares/modules/bootloader.conf
@@ -212,6 +214,10 @@ grep -Fq 'sudoersConfigureWithGroup: true' config/includes.chroot/etc/calamares/
 grep -Eq '^[[:space:]]*- sudo$' config/includes.chroot/etc/calamares/modules/users.conf
 grep -Fq '${USER}' config/includes.chroot/etc/calamares/modules/cleanup.conf
 grep -Fq 'usermod -aG sudo' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq '/etc/sudoers.d/90-ailinux-installer-user' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq "printf '%s ALL=(ALL:ALL) ALL" config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq 'install -o root -g root -m 0440' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fq 'visudo -cf /etc/sudoers' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fq 'Pin-Priority: 1001' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 grep -Fq '#mainApp QLabel' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss

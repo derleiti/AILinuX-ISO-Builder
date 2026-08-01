@@ -59,7 +59,8 @@ Use `AILINUX_QEMU_TIMEOUT=180` to change its timeout.
   transition wrapper)
 - Calamares graphical installer for physical desktop and server-class PCs
 - Calamares users are members of Ubuntu's `sudo` administrator group; the
-  installed sudoers policy is checked with `visudo` before installation ends
+  installer also writes a mode-0440 sudoers drop-in and checks the complete
+  installed policy with `visudo` before installation ends
 - Installed GRUB always shows a 10-second AILinuX menu with each kernel and its
   corresponding recovery (safe-mode) entry at the top level
 - A generated AILinuX logo is installed in the hicolor icon theme at six

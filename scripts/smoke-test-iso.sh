@@ -62,7 +62,7 @@ if [ "$firmware_mode" = "uefi" ]; then
 fi
 
 failure_pattern='kernel panic|not syncing|unable to mount root fs|unable to find a medium containing a live file system|can.t open /root/dev/console|entered emergency mode'
-success_pattern='Reached target .*graphical.target|Reached target .*Graphical Interface|Started .*sddm\.service|Started .*Simple Desktop Display Manager'
+success_pattern='AILINUX_GRAPHICAL_READY'
 
 "$@" &
 qemu_pid=$!
@@ -100,6 +100,14 @@ if [ "$success" = true ]; then
     exit 0
 fi
 
+if [ "$elapsed" -ge "$timeout_seconds" ]; then
+    cleanup
+    trap - EXIT HUP INT TERM
+    echo "QEMU $firmware_mode did not reach the graphical live system within ${timeout_seconds}s." >&2
+    tail -n 120 "$serial_log" >&2 || true
+    exit 1
+fi
+
 set +e
 wait "$qemu_pid" 2>/dev/null
 status=$?
@@ -113,12 +121,6 @@ test -s "$serial_log" || {
 
 if grep -Eqi "$failure_pattern" "$serial_log"; then
     echo "Boot failure detected in QEMU $firmware_mode serial output." >&2
-    exit 1
-fi
-
-if [ "$elapsed" -ge "$timeout_seconds" ]; then
-    echo "QEMU $firmware_mode did not reach the graphical live system within ${timeout_seconds}s." >&2
-    tail -n 120 "$serial_log" >&2 || true
     exit 1
 fi
 
