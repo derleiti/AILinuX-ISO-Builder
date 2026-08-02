@@ -392,7 +392,7 @@ if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|
     exit 1
 fi
 
-for excluded_product in triforce kimi; do
+for excluded_product in triforce aicoder kimi; do
     if grep -Riq --include='*.list.chroot' -- "$excluded_product" config/package-lists; then
         echo "Excluded product found in package lists: $excluded_product" >&2
         exit 1
