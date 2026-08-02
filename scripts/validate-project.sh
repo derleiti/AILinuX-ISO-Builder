@@ -223,7 +223,9 @@ grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-aili
 # live-build emits the Ubuntu mode's canonical "boot=casper config" prefix.
 # Boot append options must not override it with Debian live-boot. Keeping the
 # media path device-independent lets casper scan Ventoy's mapped ISO.
-grep -Fq 'live-media-path=casper debug=1' auto/config.in
+grep -Fq 'live-media-path=casper noprompt debug=1' auto/config.in
+grep -Fq "pinned_keyring=\"\$archive_dir/ailinux.key.chroot\"" scripts/prepare-keyrings.sh
+grep -Fq "[ \"\$probe_dist\" = '@flat' ]" scripts/sync-repositories.sh
 if grep -Eq '(^|[[:space:]])boot=(live|casper)([[:space:]]|$)' auto/config.in; then
     echo "Do not override live-build's boot=casper prefix in --bootappend-live." >&2
     exit 1

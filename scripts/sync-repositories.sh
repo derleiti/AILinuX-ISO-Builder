@@ -100,13 +100,23 @@ while IFS='|' read -r repo_path suites components archs probe_dist label signed_
         ''|'#'*) continue ;;
     esac
     signed_by=${signed_by:-/usr/share/keyrings/ailinux-archive-keyring.gpg}
+    if [ "$probe_dist" = '@flat' ]; then
+        release_url="$base_url/$repo_path/Release"
+    else
+        release_url="$base_url/$repo_path/dists/$probe_dist/Release"
+    fi
     if ! curl -fsSL --retry 2 --connect-timeout 10 \
-        "$base_url/$repo_path/dists/$probe_dist/Release" -o /dev/null; then
+        "$release_url" -o /dev/null; then
         echo "Skipping unavailable mirror: $repo_path ($probe_dist)" >&2
         continue
     fi
     echo >> "$mirror_list"
     echo "# $label ($repo_path)" >> "$mirror_list"
+    if [ "$probe_dist" = '@flat' ]; then
+        echo "deb [arch=$archs signed-by=$signed_by] $base_url/$repo_path /" >> "$mirror_list"
+        mirror_count=$((mirror_count + 1))
+        continue
+    fi
     old_ifs=$IFS
     IFS=,
     for suite in $suites; do

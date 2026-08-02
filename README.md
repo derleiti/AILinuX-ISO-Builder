@@ -115,8 +115,8 @@ Oxygen defaults and generated GRUB menu.
   entry at the top level
 - Live-only installer and web shortcuts are deleted from the target user's
   Desktop and `/etc/skel` before Calamares finishes
-- Reboot still ejects optical live media but no longer waits indefinitely for
-  an invisible ENTER keypress in QEMU/KVM
+- Casper receives `noprompt`, so reboot still ejects optical live media but no
+  longer waits indefinitely for an invisible ENTER keypress in QEMU/KVM
 - A generated AILinuX logo is installed in the hicolor icon theme at six
   raster sizes and selected through `LOGO=ailinux-logo` in KDE System Information
 - Official Ubuntu bootstrap with signed AILinuX mirrors for all image packages
