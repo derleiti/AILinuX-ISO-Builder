@@ -6,10 +6,9 @@
 /local/
 /.downloads/
 
-# Generated output
-/output/*.iso
-/output/*.log
-/output/*.sha256
+# Generated output (ISOs, build logs, checksums, VM test images, and
+# anything else landing in here - this directory is 100% build artifacts)
+/output/
 
 # Generated metadata
 /binary.contents
@@ -31,7 +30,6 @@
 *.bak
 *.bak.*
 
-# Build locks and VM test images
+# Build locks
 /.build.lock
 /.lock
-/output/*.qcow2

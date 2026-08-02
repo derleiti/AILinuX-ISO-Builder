@@ -12,7 +12,6 @@ kde-style-oxygen-qt6
 konsole
 kwin-decoration-oxygen
 kwin-wayland
-live-boot
 live-config
 live-config-systemd
 live-tools
