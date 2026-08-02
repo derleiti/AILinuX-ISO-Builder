@@ -21,5 +21,23 @@ deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https
 # WineHQ (dl.winehq.org/wine-builds/ubuntu)
 deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/dl.winehq.org/wine-builds/ubuntu resolute main
 
+# Docker CE (download.docker.com/linux/ubuntu)
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/download.docker.com/linux/ubuntu resolute stable
+
+# Cappelikan PPA (ppa.launchpadcontent.net/cappelikan/ppa/ubuntu)
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/cappelikan/ppa/ubuntu resolute main
+
+# Kisak Mesa PPA (ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu)
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu resolute main
+
+# Graphics Drivers PPA (ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu)
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu resolute main
+
+# LibreOffice PPA (ppa.launchpadcontent.net/libreoffice/ppa/ubuntu)
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/libreoffice/ppa/ubuntu resolute main
+
 # Steam (repo.steampowered.com/steam)
 deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.steampowered.com/steam stable steam
+
+# NVIDIA CUDA 26.04 (developer.download.nvidia.com/compute/cuda/repos/ubuntu2604/x86_64)
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/developer.download.nvidia.com/compute/cuda/repos/ubuntu2604/x86_64 /
