@@ -59,6 +59,38 @@ def ensure_search_root(text: str) -> str:
     return text[: match.start()] + SEARCH_BLOCK + text[match.start() :]
 
 
+# live-build haengt an den Failsafe-Eintrag Parameter, die fuer Hardware von
+# vor zwanzig Jahren gedacht sind. Auf aktuellen Systemen bringen noapic,
+# nolapic und nosmp den Kernel eher zum Stehen, als dass sie etwas retten.
+LEGACY_FAILSAFE_PARAMS = (
+    "memtest", "noapic", "noapm", "nodma", "nomce", "nolapic", "nosmp",
+    "vga=normal",
+)
+
+# Ein fest verdrahtetes Medium findet sich unter Ventoy nicht wieder: die ISO
+# ist dort ein Loop-Geraet ohne dieses Label. Ohne den Parameter sucht casper
+# selbst ueber alle Blockgeraete.
+LIVE_MEDIA_RE = re.compile(r"\s+live-media=\S+")
+
+LINUX_LINE_RE = re.compile(r"^[ \t]*linux[ \t].*$", re.MULTILINE)
+
+
+def sanitize_boot_params(text: str) -> str:
+    """Clean up the kernel command line of every live entry."""
+
+    def fix(match: re.Match[str]) -> str:
+        line = LIVE_MEDIA_RE.sub("", match.group(0))
+        if "nomodeset" in line:
+            for param in LEGACY_FAILSAFE_PARAMS:
+                line = re.sub(r"\s+" + re.escape(param) + r"(?=\s|$)", "", line)
+            # Ohne Ausgabe ist ein Fallback-Eintrag als Diagnose wertlos.
+            line = re.sub(r"\s+quiet(?=\s|$)", "", line)
+            line = re.sub(r"\s+splash(?=\s|$)", "", line)
+        return line
+
+    return LINUX_LINE_RE.sub(fix, text)
+
+
 @dataclass
 class MenuBlock:
     text: str
@@ -213,7 +245,7 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
             continue
         output.append(segment.text if isinstance(segment, MenuBlock) else segment)
 
-    result = ensure_search_root("".join(output))
+    result = sanitize_boot_params(ensure_search_root("".join(output)))
     if "Debian GNU/Linux - live" in result:
         raise ValueError("A generic Debian live title remains after finalization")
     return result, kernel_order

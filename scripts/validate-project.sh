@@ -215,7 +215,9 @@ grep -Fq 'DisplayServer=wayland' config/includes.chroot/usr/local/sbin/ailinux-l
 grep -Fq 'Session=$wayland_session' config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 grep -Fq 'cat > /etc/sddm.conf' config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
-grep -Fq 'live-media=/dev/disk/by-label/AILINUX_2604 live-media-path=casper' auto/config.in
+# live-media haengt das Medium an ein festes Label. Unter Ventoy ist die ISO
+# ein Loop-Geraet ohne dieses Label; ohne den Parameter scannt casper selbst.
+grep -Fq 'boot=live components live-media-path=casper' auto/config.in
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
 # Seed Oxygen through normal per-user configuration plus Plasma's reset

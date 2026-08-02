@@ -38,5 +38,5 @@ lb config noauto \
     --iso-application "AILinuX 26.04" \
     --iso-publisher "AILinuX <admin@ailinux.me>" \
     --iso-volume "AILINUX_2604" \
-    --bootappend-live "boot=live components live-media=/dev/disk/by-label/AILINUX_2604 live-media-path=casper quiet splash console=tty0 console=ttyS0,115200n8 username=ailinux hostname=ailinux locales=de_DE.UTF-8 keyboard-layouts=de timezone=Europe/Berlin" \
+    --bootappend-live "boot=live components live-media-path=casper quiet splash console=tty0 console=ttyS0,115200n8 username=ailinux hostname=ailinux locales=de_DE.UTF-8 keyboard-layouts=de timezone=Europe/Berlin" \
     "${@}"
