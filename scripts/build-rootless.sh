@@ -39,20 +39,43 @@ if [ ! -x "$debootstrap_root/usr/sbin/debootstrap" ]; then
     official_lists="$official_apt/lists"
     official_archives="$official_apt/archives"
     official_sources="$official_apt/sources.list"
+    official_config="$official_apt/apt.conf"
+    official_conf_parts="$official_apt/apt.conf.d"
     mkdir -p \
         "$package_dir" \
         "$debootstrap_root" \
         "$official_lists/partial" \
-        "$official_archives/partial"
+        "$official_archives/partial" \
+        "$official_conf_parts"
     printf '%s\n' \
         "deb [signed-by=$ubuntu_keyring] $mirror resolute main universe" \
         > "$official_sources"
+
+    # Sources, Listen und Archive laufen bereits isoliert vom Host - die Hooks
+    # aus /etc/apt/apt.conf.d taten es bisher nicht. Ein Host mit KDE-neon-
+    # Quellen bringt dort einen Post-Invoke-Hook mit, der nach jedem Update
+    # einen Symlink unterhalb /etc/apt anlegen will. Dem Builder gehoert das
+    # Verzeichnis nicht, der Hook scheitert, apt meldet einen Fehler - und der
+    # Build bricht ab, obwohl am Update selbst nichts falsch war.
+    #
+    # Nachtraeglich entfernen laesst sich das nicht: APT_CONFIG wird vor
+    # apt.conf.d gelesen, ein #clear dort kommt also zu frueh, und -o auf der
+    # Kommandozeile kommt zu spaet. Wohl aber laesst sich per APT_CONFIG
+    # umlenken, wo apt seine Hooks ueberhaupt sucht - ein leeres Verzeichnis
+    # nimmt dem Host jeden Zugriff auf diesen Lauf. Das gebootstrappte Rootfs
+    # bleibt davon unberuehrt, dort ist apt ohnehin sauber.
+    printf 'Dir::Etc::parts "%s";\n' "$official_conf_parts" > "$official_config"
     apt_get_official() {
-        apt-get \
+        # Auch die beiden Paketcaches gehoeren in das isolierte Verzeichnis:
+        # sonst greift apt auf /var/cache/apt zu, das dem Builder nicht
+        # gehoert, und meldet bei jedem Lauf Permission-denied-Warnungen.
+        APT_CONFIG="$official_config" apt-get \
             -o "Dir::Etc::sourcelist=$official_sources" \
             -o "Dir::Etc::sourceparts=-" \
             -o "Dir::State::lists=$official_lists" \
             -o "Dir::Cache::archives=$official_archives" \
+            -o "Dir::Cache::pkgcache=$official_apt/pkgcache.bin" \
+            -o "Dir::Cache::srcpkgcache=$official_apt/srcpkgcache.bin" \
             -o "APT::Get::List-Cleanup=0" \
             "$@"
     }
