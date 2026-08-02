@@ -49,7 +49,9 @@ config/includes.chroot/usr/local/bin/ailinux-installer
 config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
 config/includes.chroot/etc/calamares/modules/kernelcheck.conf
+config/includes.chroot/etc/calamares/modules/mediacheck.conf
 config/binary_grub/grub.cfg
 scripts/prepare-keyrings.sh
 scripts/prepare-offline-build.sh
@@ -103,7 +105,8 @@ for script in \
     config/includes.chroot/usr/local/bin/ailinux-installer \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
     config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup \
-    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
 do
     sh -n "$script"
 done
@@ -385,6 +388,30 @@ grep -Fq 'casper/vmlinuz-$version' \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 grep -Fq 'setup_sects + 1) * 512 + syssize * 16' \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+
+# Die Medienpruefung muss vor unpackfs laufen, sonst wird ein halb
+# durchgereichtes Medium erst nach dem Entpacken auffaellig.
+awk '
+    $1 == "-" && $2 == "id:" { instance_id = $3 }
+    instance_id == "mediacheck" && $1 == "module:" && $2 == "shellprocess" { found = 1 }
+    END { exit(found ? 0 : 1) }
+' config/includes.chroot/etc/calamares/settings.conf
+awk '
+    /^[[:space:]]*-[[:space:]]*exec:[[:space:]]*$/ { in_exec = 1; next }
+    in_exec && /^[[:space:]]*-[[:space:]]*show:[[:space:]]*$/ { in_exec = 0 }
+    in_exec && $2 == "shellprocess@mediacheck" { mediacheck = ++step; next }
+    in_exec && $2 == "unpackfs" { unpackfs = ++step }
+    in_exec && $1 == "-" { step++ }
+    END { exit(mediacheck && unpackfs && mediacheck < unpackfs ? 0 : 1) }
+' config/includes.chroot/etc/calamares/settings.conf || {
+    echo "shellprocess@mediacheck must run before unpackfs." >&2
+    exit 1
+}
+grep -Fq 'dontChroot: true' config/includes.chroot/etc/calamares/modules/mediacheck.conf
+grep -Fq '/usr/local/sbin/ailinux-verify-live-medium' \
+    config/includes.chroot/etc/calamares/modules/mediacheck.conf
+grep -Fq './casper/filesystem.squashfs' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
 
 # Firefox must resolve from Mozilla while live-build installs packages. Files in
 # includes.chroot arrive too late for dependency resolution, so the source, key

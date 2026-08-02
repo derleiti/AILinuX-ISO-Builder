@@ -1,0 +1,72 @@
+#!/bin/sh
+set -eu
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Zweite Verteidigungslinie gegen halb durchgereichte Medien, eine Stufe frueher
+# als ailinux-verify-target-kernel: Ventoy blendet die ISO ueber ein gemapptes
+# Loop-Device ein. Wird davon nur ein Teil korrekt abgebildet, liefert das
+# Medium stillschweigend falsche Daten - unpackfs meldet keinen Fehler, und der
+# Defekt faellt erst beim ersten Boot des installierten Systems auf.
+#
+# Die ISO traegt eine md5sum.txt ueber alle Dateien. Wird das squashfs vor dem
+# Entpacken dagegen geprueft, bricht die Installation an der Ursache ab statt
+# ein unbootbares System zu hinterlassen.
+
+find_live_media() {
+    if [ -n "${AILINUX_LIVE_MEDIA:-}" ]; then
+        if [ -d "$AILINUX_LIVE_MEDIA/casper" ]; then
+            printf '%s\n' "$AILINUX_LIVE_MEDIA"
+            return 0
+        fi
+        return 1
+    fi
+
+    for candidate in /cdrom /run/live/medium /isodevice /lib/live/mount/medium /media/cdrom; do
+        if [ -d "$candidate/casper" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+media_dir=$(find_live_media) || {
+    echo "No live medium found; skipping the medium integrity check."
+    exit 0
+}
+
+checksum_file="$media_dir/md5sum.txt"
+squashfs="$media_dir/casper/filesystem.squashfs"
+
+test -f "$squashfs" || {
+    echo "Live medium carries no squashfs: $squashfs" >&2
+    exit 1
+}
+
+if [ ! -f "$checksum_file" ]; then
+    echo "Live medium carries no md5sum.txt; skipping the integrity check."
+    exit 0
+fi
+
+# md5sum.txt listet die Pfade relativ zur Medienwurzel als ./casper/...
+expected=$(awk '$2 == "./casper/filesystem.squashfs" { print $1; exit }' "$checksum_file")
+
+if [ -z "$expected" ]; then
+    echo "md5sum.txt has no entry for the squashfs; skipping the integrity check."
+    exit 0
+fi
+
+echo "Verifying the squashfs against md5sum.txt; this reads the whole image."
+actual=$(md5sum "$squashfs" | cut -d' ' -f1)
+
+if [ "$actual" != "$expected" ]; then
+    echo "The live medium returns corrupted data for $squashfs." >&2
+    echo "Expected $expected but read $actual." >&2
+    echo "Installing from it would produce a system that cannot boot." >&2
+    echo "Rewrite the medium, or copy the ISO to the stick without fragmentation." >&2
+    exit 1
+fi
+
+echo "Live medium verified: the squashfs matches md5sum.txt."
+exit 0
