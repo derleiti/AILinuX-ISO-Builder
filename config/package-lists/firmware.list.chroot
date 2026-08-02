@@ -1,0 +1,8 @@
+# Ohne diese Pakete enthaelt das Image keinerlei Geraetefirmware: amdgpu,
+# i915 und nouveau koennen dann auf echter Hardware nicht initialisieren.
+# In QEMU faellt das nicht auf, weil virtio-vga ohne Firmware auskommt.
+# linux-firmware ist ab Ubuntu 25.10 nur noch ein Metapaket ueber die
+# linux-firmware-*-Teilpakete.
+linux-firmware
+amd64-microcode
+intel-microcode
