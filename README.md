@@ -18,18 +18,25 @@ binary tree and downloaded image-package cache before rebuilding. Only the
 isolated Resolute builder environment below `~/.cache/ailinux-distro-builder/`
 is reused.
 
-By default, `create.sh` uses repository-offline mode so an outage of
-`repo.ailinux.me` does not block a clean build. It validates the checked-in
+By default, `create.sh` builds from the network: it fetches the AILinuX
+repository metadata and pulls the AILinuX packages from `repo.ailinux.me`. A
+fresh clone therefore needs nothing but the dependencies below and an internet
+connection.
+
+Offline mode is the exception, for a machine that already carries live-build's
+package cache and needs to build while `repo.ailinux.me` is unavailable:
+
+```bash
+AILINUX_OFFLINE=1 ./create.sh
+```
+
+In offline mode the script validates the checked-in
 kernel and repository metadata, stages the SHA-256 allow-listed `copa` and
 selected `linux-image-*-ailinux` packages from live-build's local cache into
 `config/packages.chroot`, and uses the official Ubuntu archive directly. The
 temporary packages and disabled AILinuX build archive are restored by a trap on
-success, failure or interruption. To deliberately refresh AILinuX metadata
-from the server, opt in explicitly:
-
-```bash
-AILINUX_OFFLINE=0 ./create.sh
-```
+success, failure or interruption. Offline mode fails on a fresh clone, because
+the cached AILinuX packages it stages do not exist there.
 
 The default cache locations are `cache/packages.chroot`,
 `cache/packages_chroot`, `cache/packages.binary` and `cache/packages_binary`.

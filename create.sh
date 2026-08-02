@@ -4,9 +4,11 @@ set -eu
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd "$project_dir"
 
-# A clean build must remain possible while repo.ailinux.me is unavailable.
-# Set AILINUX_OFFLINE=0 explicitly to refresh kernel/repository metadata online.
-AILINUX_OFFLINE=${AILINUX_OFFLINE:-1}
+# Default to building from the network: a fresh clone has no live-build package
+# cache, so offline mode cannot stage the AILinuX kernel and copa packages and
+# would produce an image without them. Set AILINUX_OFFLINE=1 on a machine that
+# has the cache to build while repo.ailinux.me is unavailable.
+AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}
 case "$AILINUX_OFFLINE" in
     0|1) ;;
     *)
