@@ -106,7 +106,9 @@ python3 scripts/finalize-binary-grub.py --self-test >/dev/null
 
 # `create.sh` defaults to the repo-offline path. It may still download Ubuntu
 # packages from the official archive, but it must not contact repo.ailinux.me.
-grep -Fq 'AILINUX_OFFLINE=${AILINUX_OFFLINE:-1}' create.sh
+# Network build is the default: a fresh clone has no live-build package cache
+# and offline mode could not stage the AILinuX kernel and copa packages there.
+grep -Fq 'AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}' create.sh
 grep -Fq 'export AILINUX_OFFLINE' create.sh
 grep -Fq 'mirror="https://archive.ubuntu.com/ubuntu"' scripts/build-rootless.sh
 grep -Fq 'https://security.ubuntu.com/ubuntu resolute-security' scripts/build-rootless.sh
