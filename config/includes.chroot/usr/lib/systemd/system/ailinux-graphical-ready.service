@@ -1,6 +1,6 @@
 [Unit]
 Description=Report that the AILinuX live graphical stack is ready
-ConditionKernelCommandLine=boot=live
+ConditionKernelCommandLine=boot=casper
 Requires=sddm.service
 After=sddm.service
 

@@ -5,6 +5,7 @@ project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 iso_path=${1:-}
 timeout_seconds=${AILINUX_QEMU_TIMEOUT:-180}
 firmware_mode=${AILINUX_QEMU_MODE:-bios}
+media_mode=${AILINUX_QEMU_MEDIA:-cdrom}
 
 if [ -z "$iso_path" ]; then
     iso_path=$(find "$project_dir/output" -maxdepth 1 -type f \
@@ -44,18 +45,35 @@ case "$firmware_mode" in
         ;;
 esac
 
-serial_log="$project_dir/output/qemu-$firmware_mode-serial.log"
+case "$media_mode" in
+    cdrom|usb) ;;
+    *)
+        echo "Unsupported AILINUX_QEMU_MEDIA: $media_mode" >&2
+        exit 1
+        ;;
+esac
+
+"$project_dir/scripts/validate-iso-boot.sh" "$iso_path"
+
+serial_log="$project_dir/output/qemu-$firmware_mode-$media_mode-serial.log"
 rm -f "$serial_log"
 
 set -- qemu-system-x86_64 \
     -machine accel=kvm:tcg \
     -m 4096 \
     -smp 4 \
-    -boot d \
-    -cdrom "$iso_path" \
     -display none \
     -serial "file:$serial_log" \
     -no-reboot
+
+if [ "$media_mode" = "cdrom" ]; then
+    set -- "$@" -boot d -cdrom "$iso_path"
+else
+    set -- "$@" \
+        -device qemu-xhci,id=ailinux_xhci \
+        -drive "if=none,id=ailinux_usb,format=raw,readonly=on,file=$iso_path" \
+        -device usb-storage,drive=ailinux_usb,bus=ailinux_xhci.0,bootindex=1
+fi
 
 if [ "$firmware_mode" = "uefi" ]; then
     set -- "$@" -drive "if=pflash,format=raw,readonly=on,file=$firmware"
@@ -78,7 +96,7 @@ elapsed=0
 success=false
 while kill -0 "$qemu_pid" 2>/dev/null; do
     if [ -s "$serial_log" ] && grep -Eqi "$failure_pattern" "$serial_log"; then
-        echo "Boot failure detected in QEMU $firmware_mode serial output." >&2
+        echo "Boot failure detected in QEMU $firmware_mode/$media_mode serial output." >&2
         tail -n 120 "$serial_log" >&2 || true
         exit 1
     fi
@@ -97,13 +115,14 @@ if [ "$success" = true ]; then
     cleanup
     trap - EXIT HUP INT TERM
     echo "QEMU $firmware_mode smoke test reached the graphical live system."
+    echo "Boot medium: $media_mode"
     exit 0
 fi
 
 if [ "$elapsed" -ge "$timeout_seconds" ]; then
     cleanup
     trap - EXIT HUP INT TERM
-    echo "QEMU $firmware_mode did not reach the graphical live system within ${timeout_seconds}s." >&2
+    echo "QEMU $firmware_mode/$media_mode did not reach the graphical live system within ${timeout_seconds}s." >&2
     tail -n 120 "$serial_log" >&2 || true
     exit 1
 fi
@@ -120,7 +139,7 @@ test -s "$serial_log" || {
 }
 
 if grep -Eqi "$failure_pattern" "$serial_log"; then
-    echo "Boot failure detected in QEMU $firmware_mode serial output." >&2
+    echo "Boot failure detected in QEMU $firmware_mode/$media_mode serial output." >&2
     exit 1
 fi
 
@@ -132,5 +151,5 @@ case "$status" in
         ;;
 esac
 
-echo "QEMU $firmware_mode exited before the graphical live system was reached." >&2
+echo "QEMU $firmware_mode/$media_mode exited before the graphical live system was reached." >&2
 exit 1

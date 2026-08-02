@@ -68,21 +68,29 @@ It creates a reusable Resolute build root below
 
 ```bash
 ./scripts/validate-project.sh
-AILINUX_QEMU_MODE=bios ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
-AILINUX_QEMU_MODE=uefi ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
+./scripts/validate-iso-boot.sh output/ailinux-26.04-amd64-latest.iso
+AILINUX_QEMU_MODE=bios AILINUX_QEMU_MEDIA=cdrom ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
+AILINUX_QEMU_MODE=bios AILINUX_QEMU_MEDIA=usb ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
+AILINUX_QEMU_MODE=uefi AILINUX_QEMU_MEDIA=cdrom ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
+AILINUX_QEMU_MODE=uefi AILINUX_QEMU_MEDIA=usb ./scripts/smoke-test-iso.sh output/ailinux-26.04-amd64-latest.iso
 ./scripts/verify-installed-system.sh /mnt/ailinux USERNAME
 ```
 
-The smoke tests boot the ISO without touching a disk and accept only the
+`validate-iso-boot.sh` rejects images without bootable BIOS and UEFI El Torito
+entries, hybrid MBR/GPT metadata, the required casper files, or the
+device-independent GRUB search used for Ventoy. The smoke tests then boot both
+the optical path and the raw hybrid image as USB media. They accept only the
 explicit `AILINUX_GRAPHICAL_READY` signal after SDDM is ready. Use
-`AILINUX_QEMU_TIMEOUT=180` to change their timeout. The installed-system audit
-is read-only and checks the mounted Calamares target, including its user,
-Desktop, sudoers policy, kernels, native Firefox, Oxygen defaults and generated
-GRUB menu.
+`AILINUX_QEMU_TIMEOUT=180` to change their timeout. These tests do not replace
+a final boot on representative physical firmware and a current Ventoy USB
+stick. The installed-system audit is read-only and checks the mounted Calamares
+target, including its user, Desktop, sudoers policy, kernels, native Firefox,
+Oxygen defaults and generated GRUB menu.
 
 ## Design
 
-- Ubuntu 26.04 LTS (`resolute`), amd64, hybrid BIOS/UEFI ISO
+- Ubuntu 26.04 LTS (`resolute`), amd64, hybrid BIOS/UEFI ISO with direct USB
+  boot metadata and device-independent casper discovery for Ventoy
 - Ubuntu Server base via `ubuntu-server`, with KDE Plasma/Wayland installed as
   explicit desktop packages instead of the Kubuntu desktop meta-package
 - Kubuntu libraries and Plymouth branding are purged after package installation;

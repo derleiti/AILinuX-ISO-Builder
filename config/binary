@@ -14,7 +14,7 @@ LB_APT_INDICES="true"
 
 # $LB_BOOTAPPEND_LIVE: set boot parameters
 # (Default: empty)
-LB_BOOTAPPEND_LIVE="boot=live components live-media-path=casper quiet splash console=tty0 console=ttyS0,115200n8 username=ailinux hostname=ailinux locales=de_DE.UTF-8 keyboard-layouts=de timezone=Europe/Berlin"
+LB_BOOTAPPEND_LIVE="live-media-path=casper debug=1 console=tty0 console=ttyS0,115200n8 username=ailinux hostname=ailinux locales=de_DE.UTF-8 keyboard-layouts=de timezone=Europe/Berlin"
 
 # $LB_BOOTAPPEND_INSTALL: set boot parameters
 # (Default: empty)

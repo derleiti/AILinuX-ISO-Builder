@@ -21,6 +21,7 @@ config/includes.binary/live/tools.conf
 config/includes.chroot/etc/calamares/settings.conf
 config/includes.chroot/etc/calamares/modules/partition.conf
 config/includes.chroot/etc/calamares/modules/bootloader.conf
+config/includes.chroot/etc/calamares/modules/unpackfs.conf
 config/includes.chroot/etc/calamares/modules/mount.conf
 config/includes.chroot/etc/calamares/modules/fstab.conf
 config/includes.chroot/etc/calamares/modules/welcome.conf
@@ -53,6 +54,7 @@ scripts/prepare-offline-build.sh
 scripts/resolve-latest-kernel.sh
 scripts/sync-repositories.sh
 scripts/finalize-binary-grub.py
+scripts/validate-iso-boot.sh
 scripts/verify-installed-system.sh
 config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
@@ -85,6 +87,7 @@ for script in \
     scripts/resolve-latest-kernel.sh \
     scripts/sync-repositories.sh \
     scripts/smoke-test-iso.sh \
+    scripts/validate-iso-boot.sh \
     scripts/verify-installed-system.sh \
     scripts/validate-project.sh \
     config/hooks/0050-apt-network.chroot_early \
@@ -217,9 +220,22 @@ grep -Fq 'DisplayServer=wayland' config/includes.chroot/usr/local/sbin/ailinux-l
 grep -Fq 'Session=$wayland_session' config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 grep -Fq 'cat > /etc/sddm.conf' config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
-# live-media haengt das Medium an ein festes Label. Unter Ventoy ist die ISO
-# ein Loop-Geraet ohne dieses Label; ohne den Parameter scannt casper selbst.
-grep -Fq 'boot=live components live-media-path=casper' auto/config.in
+# live-build emits the Ubuntu mode's canonical "boot=casper config" prefix.
+# Boot append options must not override it with Debian live-boot. Keeping the
+# media path device-independent lets casper scan Ventoy's mapped ISO.
+grep -Fq 'live-media-path=casper debug=1' auto/config.in
+if grep -Eq '(^|[[:space:]])boot=(live|casper)([[:space:]]|$)' auto/config.in; then
+    echo "Do not override live-build's boot=casper prefix in --bootappend-live." >&2
+    exit 1
+fi
+cmp -s auto/config.in auto/config || {
+    echo "auto/config is stale; regenerate it from auto/config.in." >&2
+    exit 1
+}
+if grep -Eq '(^|[[:space:]"])boot=live([[:space:]"]|$)' auto/config config/binary; then
+    echo "Generated live-build configuration still contains boot=live." >&2
+    exit 1
+fi
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
 # Seed Oxygen through normal per-user configuration plus Plasma's reset
@@ -269,11 +285,16 @@ grep -Fq 'update-icon-caches /usr/share/icons/hicolor' config/hooks/live/0100-ai
 
 test -f config/includes.chroot/usr/lib/systemd/system/ailinux-live-autologin.service
 grep -Fq 'ConditionKernelCommandLine=boot=casper' config/includes.chroot/usr/lib/systemd/system/ailinux-live-autologin.service
-grep -Fq 'ConditionKernelCommandLine=boot=live' config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
+grep -Fq 'ConditionKernelCommandLine=boot=casper' config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
 grep -Fq 'Requires=sddm.service' config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
 grep -Fq 'AILINUX_GRAPHICAL_READY' config/includes.chroot/usr/lib/systemd/system/ailinux-graphical-ready.service
 grep -Fq 'enable ailinux-graphical-ready.service' config/hooks/0100-ailinux-config.chroot
 grep -Fq "success_pattern='AILINUX_GRAPHICAL_READY'" scripts/smoke-test-iso.sh
+grep -Fq 'scripts/validate-iso-boot.sh' scripts/smoke-test-iso.sh
+grep -Fq 'AILINUX_QEMU_MEDIA' scripts/smoke-test-iso.sh
+grep -Fq 'media_mode in cdrom usb' create.sh
+grep -Fq 'El Torito boot img' scripts/validate-iso-boot.sh
+grep -Fq 'Ventoy media discovery' scripts/validate-iso-boot.sh
 test -f config/includes.chroot/etc/systemd/system/getty@tty1.service.d/10-ailinux-live-autologin.conf
 test -f config/includes.chroot/etc/systemd/system/serial-getty@ttyS0.service.d/10-ailinux-live-autologin.conf
 grep -Fq 'PasswordAuthentication no' config/includes.chroot/etc/ssh/sshd_config.d/90-ailinux-live-security.conf
@@ -297,7 +318,9 @@ grep -Fq 'size: 100%' config/includes.chroot/etc/calamares/modules/partition.con
 grep -Fq 'mountPoint: /proc' config/includes.chroot/etc/calamares/modules/mount.conf
 grep -Fq 'mountPoint: /sys' config/includes.chroot/etc/calamares/modules/mount.conf
 grep -Fq 'mountPoint: /dev' config/includes.chroot/etc/calamares/modules/mount.conf
-grep -Fq '/run/live/medium/md5sum.txt' config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
+grep -Fq 'source: /cdrom/casper/filesystem.squashfs' config/includes.chroot/etc/calamares/modules/unpackfs.conf
+grep -Fq 'ConditionPathIsMountPoint=/cdrom' config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
+grep -Fq '/usr/lib/casper/casper-md5check /cdrom /cdrom/md5sum.txt' config/includes.chroot/etc/systemd/system/casper-md5check.service.d/override.conf
 grep -Fq 'SidebarBackground:' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
 grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
 grep -Fq 'restartNowMode: user-checked' config/includes.chroot/etc/calamares/modules/finished.conf

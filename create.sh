@@ -47,8 +47,13 @@ test -L "$latest_iso" || {
 test -s "$latest_iso"
 (cd "$project_dir/output" && sha256sum --check "$(basename "$latest_iso.sha256")")
 
-AILINUX_QEMU_MODE=bios ./scripts/smoke-test-iso.sh "$latest_iso"
-AILINUX_QEMU_MODE=uefi ./scripts/smoke-test-iso.sh "$latest_iso"
+for firmware_mode in bios uefi; do
+    for media_mode in cdrom usb; do
+        AILINUX_QEMU_MODE="$firmware_mode" \
+            AILINUX_QEMU_MEDIA="$media_mode" \
+            ./scripts/smoke-test-iso.sh "$latest_iso"
+    done
+done
 
 echo "Verified ISO: $(readlink -f "$latest_iso")"
 echo "Checksum: $latest_iso.sha256"
