@@ -432,6 +432,14 @@ grep -Fq '/usr/local/sbin/ailinux-verify-live-medium' \
 grep -Fq './casper/filesystem.squashfs' \
     config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
 
+# Ein defektes Medium darf die Installation stoppen, ein fehlendes md5sum.txt
+# nicht: sonst laesst sich aus keiner anderen Quelle als einer gebauten ISO
+# mehr installieren.
+grep -Fq 'skipping the integrity check' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
+test -x scripts/test-verify-live-medium.sh
+grep -Fq 'AILINUX_LIVE_MEDIA' scripts/test-verify-live-medium.sh
+
 # Firefox must resolve from Mozilla while live-build installs packages. Files in
 # includes.chroot arrive too late for dependency resolution, so the source, key
 # and pin are deliberately duplicated under config/archives.
