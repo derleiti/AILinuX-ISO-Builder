@@ -48,6 +48,8 @@ config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
 config/includes.chroot/usr/local/bin/ailinux-installer
 config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+config/includes.chroot/etc/calamares/modules/kernelcheck.conf
 config/binary_grub/grub.cfg
 scripts/prepare-keyrings.sh
 scripts/prepare-offline-build.sh
@@ -100,7 +102,8 @@ for script in \
     config/includes.binary/live/tools.conf \
     config/includes.chroot/usr/local/bin/ailinux-installer \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
-    config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+    config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 do
     sh -n "$script"
 done
@@ -351,6 +354,37 @@ grep -Fq '/etc/sudoers.d/90-ailinux-installer-user' config/includes.chroot/usr/l
 grep -Fq "printf '%s ALL=(ALL:ALL) ALL" config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fq 'install -o root -g root -m 0440' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fq 'visudo -cf /etc/sudoers' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+
+# Der Kernel-Check muss zwischen unpackfs und der GRUB-Konfiguration laufen:
+# ein unvollstaendig entpacktes vmlinuz laesst GRUB spaeter mit
+# "premature end of file" abbrechen, und danach ist das System unbootbar.
+awk '
+    $1 == "-" && $2 == "id:" { instance_id = $3 }
+    instance_id == "kernelcheck" && $1 == "module:" && $2 == "shellprocess" { found = 1 }
+    END { exit(found ? 0 : 1) }
+' config/includes.chroot/etc/calamares/settings.conf
+awk '
+    /^[[:space:]]*-[[:space:]]*exec:[[:space:]]*$/ { in_exec = 1; next }
+    in_exec && /^[[:space:]]*-[[:space:]]*show:[[:space:]]*$/ { in_exec = 0 }
+    in_exec && $2 == "unpackfs" { unpackfs = ++step }
+    in_exec && $2 == "shellprocess@kernelcheck" { kernelcheck = ++step; next }
+    in_exec && $2 == "grubcfg" { grubcfg = ++step }
+    in_exec && $1 == "-" { step++ }
+    END {
+        exit(unpackfs && kernelcheck && grubcfg &&
+             kernelcheck > unpackfs && kernelcheck < grubcfg ? 0 : 1)
+    }
+' config/includes.chroot/etc/calamares/settings.conf || {
+    echo "shellprocess@kernelcheck must run between unpackfs and grubcfg." >&2
+    exit 1
+}
+grep -Fq 'dontChroot: true' config/includes.chroot/etc/calamares/modules/kernelcheck.conf
+grep -Fq '/usr/local/sbin/ailinux-verify-target-kernel ${ROOT}' \
+    config/includes.chroot/etc/calamares/modules/kernelcheck.conf
+grep -Fq 'casper/vmlinuz-$version' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+grep -Fq 'setup_sects + 1) * 512 + syssize * 16' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 
 # Firefox must resolve from Mozilla while live-build installs packages. Files in
 # includes.chroot arrive too late for dependency resolution, so the source, key

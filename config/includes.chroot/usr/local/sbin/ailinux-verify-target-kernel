@@ -1,0 +1,144 @@
+#!/bin/sh
+set -eu
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# GRUB bricht mit "premature end of file /@/boot/vmlinuz-..." ab, sobald die
+# Kerneldatei im Zielsystem kuerzer ist, als ihr eigener Setup-Header angibt.
+# Genau das passiert, wenn unpackfs das squashfs von einem Medium liest, das
+# nur teilweise korrekt durchgereicht wird - bei Ventoy wird die ISO ueber ein
+# gemapptes Loop-Device eingeblendet, und ein unvollstaendig abgebildeter
+# Bereich liefert stillschweigend zu wenig Daten. Die Installation laeuft dann
+# durch, das installierte System startet aber nie.
+#
+# /casper/vmlinuz-<version> auf dem Live-Medium ist dieselbe Datei und wurde
+# beim Live-Boot bereits nachweislich vollstaendig gelesen. Sie ist damit die
+# verlaessliche Referenz, gegen die hier geprueft und notfalls repariert wird.
+
+root_dir=${1:-}
+
+case "$root_dir" in
+    ''|*[!/A-Za-z0-9._-]*)
+        echo "Invalid target root supplied by Calamares: $root_dir" >&2
+        exit 1
+        ;;
+esac
+
+test -d "$root_dir/boot" || {
+    echo "Target root has no /boot directory: $root_dir" >&2
+    exit 1
+}
+
+# Liest ein einzelnes Byte als Dezimalwert.
+read_byte() {
+    od -An -tu1 -j "$2" -N 1 "$1" 2>/dev/null | tr -d ' \n'
+}
+
+# Liest 4 Bytes little-endian als Dezimalwert.
+read_le32() {
+    od -An -tu1 -j "$2" -N 4 "$1" 2>/dev/null |
+        awk '{ print $1 + $2 * 256 + $3 * 65536 + $4 * 16777216 }'
+}
+
+# Ein bzImage traegt bei 0x1FE die Bootsignatur 0x55AA und bei 0x202 die
+# Kennung "HdrS". setup_sects (0x1F1) und syssize (0x1F4, in 16-Byte-Paragraphen)
+# beschreiben zusammen, wie viele Bytes GRUB aus der Datei lesen wird:
+#
+#     (setup_sects + 1) * 512 + syssize * 16
+#
+# Ist die Datei kleiner als dieser Wert, bricht GRUB exakt mit
+# "premature end of file" ab. Signierte Kernel haengen hinten noch eine
+# PKCS#7-Signatur an, deshalb wird auf "mindestens" geprueft.
+kernel_is_complete() {
+    image=$1
+
+    test -f "$image" || return 1
+
+    size=$(stat -c %s "$image" 2>/dev/null) || return 1
+    test "$size" -gt 1048576 || return 1
+
+    signature=$(od -An -tx1 -j 510 -N 2 "$image" 2>/dev/null | tr -d ' \n')
+    test "$signature" = "55aa" || return 1
+
+    header=$(dd if="$image" bs=1 skip=514 count=4 2>/dev/null)
+    test "$header" = "HdrS" || return 1
+
+    setup_sects=$(read_byte "$image" 497)
+    syssize=$(read_le32 "$image" 500)
+
+    case "$setup_sects" in ''|*[!0-9]*) return 1 ;; esac
+    case "$syssize" in ''|*[!0-9]*) return 1 ;; esac
+
+    test "$setup_sects" -gt 0 || setup_sects=4
+    test "$syssize" -gt 0 || return 1
+
+    expected=$(( (setup_sects + 1) * 512 + syssize * 16 ))
+    test "$size" -ge "$expected" || return 1
+
+    return 0
+}
+
+# Casper haengt das Medium normalerweise unter /cdrom ein. Die weiteren Pfade
+# decken abweichende Loader und live-boot-Varianten ab, damit die Pruefung auch
+# dann greift, wenn nicht von einem klassisch geschriebenen Stick gebootet wird.
+find_live_media() {
+    if [ -n "${AILINUX_LIVE_MEDIA:-}" ]; then
+        if [ -d "$AILINUX_LIVE_MEDIA/casper" ]; then
+            printf '%s\n' "$AILINUX_LIVE_MEDIA"
+            return 0
+        fi
+        return 1
+    fi
+
+    for candidate in /cdrom /run/live/medium /isodevice /lib/live/mount/medium /media/cdrom; do
+        if [ -d "$candidate/casper" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+media_dir=$(find_live_media) || media_dir=
+
+checked=0
+repaired=0
+
+for target_image in "$root_dir"/boot/vmlinuz-*; do
+    test -e "$target_image" || continue
+    checked=$((checked + 1))
+
+    version=${target_image##*/vmlinuz-}
+    source_image="$media_dir/casper/vmlinuz-$version"
+
+    if [ -n "$media_dir" ] && [ -f "$source_image" ]; then
+        if ! kernel_is_complete "$source_image"; then
+            echo "Live medium carries an incomplete kernel: $source_image" >&2
+            exit 1
+        fi
+
+        source_size=$(stat -c %s "$source_image")
+        target_size=$(stat -c %s "$target_image" 2>/dev/null || echo 0)
+
+        if [ "$source_size" != "$target_size" ]; then
+            echo "Kernel $version is truncated in the target ($target_size of $source_size bytes); restoring from the live medium."
+            cp -f "$source_image" "$target_image"
+            sync
+            repaired=$((repaired + 1))
+        fi
+    fi
+
+    if ! kernel_is_complete "$target_image"; then
+        echo "Kernel image is incomplete and cannot be repaired: $target_image" >&2
+        echo "The installed system would fail with 'premature end of file' in GRUB." >&2
+        exit 1
+    fi
+done
+
+test "$checked" -gt 0 || {
+    echo "No kernel image found below $root_dir/boot." >&2
+    exit 1
+}
+
+echo "Verified $checked kernel image(s) in the target system; repaired $repaired."
+exit 0
