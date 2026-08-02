@@ -140,5 +140,84 @@ test "$checked" -gt 0 || {
     exit 1
 }
 
+# Der abgeschnittene Kernel ist nur der auffaelligste Schaden: unpackfs kopiert
+# den gesamten Dateibaum ueber denselben Lesepfad. Erwischt der Ausfall
+# stattdessen den Modulbaum, laedt GRUB den Kernel anstandslos und das System
+# bleibt erst beim Root-Dateisystem stehen - dieselbe Ursache, ein spaeteres und
+# deutlich schwerer zuzuordnendes Symptom.
+#
+# Das Metadaten-Listing des squashfs nennt die Soll-Groesse jeder Datei und
+# braucht fuer beide Baeume unter 0,1 s. Geprueft werden bewusst nur /boot und
+# /usr/lib/modules: beide sind nie eigene Mounts, waehrend /home, /var/log und
+# /var/cache bei btrfs als Subvolumes haengen und einen Vergleich ueber den
+# ganzen Baum mit Fehlalarmen fluten wuerden.
+verify_boot_critical_tree() {
+    image="$media_dir/casper/filesystem.squashfs"
+
+    test -f "$image" || return 0
+    command -v unsquashfs >/dev/null 2>&1 || return 0
+
+    expected=$(mktemp) || return 0
+    actual=$(mktemp) || { rm -f "$expected"; return 0; }
+    report=$(mktemp) || { rm -f "$expected" "$actual"; return 0; }
+
+    if ! unsquashfs -ll "$image" boot usr/lib/modules > "$expected.raw" 2>/dev/null; then
+        rm -f "$expected" "$expected.raw" "$actual" "$report"
+        return 0
+    fi
+
+    # Zeilenformat: "-rw-r--r-- root/root  16916992 2026-07-27 05:21 squashfs-root/pfad".
+    # Nur regulaere Dateien ("-") tragen eine vergleichbare Groesse. Der Pfad wird
+    # ab Feld 6 wieder zusammengesetzt, damit Leerzeichen nicht stoeren.
+    awk '
+        $1 ~ /^-/ {
+            path = $6
+            for (i = 7; i <= NF; i++) path = path " " $i
+            sub(/^squashfs-root\/?/, "", path)
+            if (path != "") printf "%s\t%s\n", $3, path
+        }
+    ' "$expected.raw" > "$expected"
+    rm -f "$expected.raw"
+
+    : > "$actual"
+    for tree in boot usr/lib/modules; do
+        test -d "$root_dir/$tree" || continue
+        ( cd "$root_dir" && find "$tree" -type f -printf '%s\t%p\n' ) >> "$actual" 2>/dev/null || true
+    done
+
+    awk -F '\t' '
+        NR == FNR { have[$2] = $1; next }
+        {
+            if (!($2 in have)) {
+                printf "Unpacked file is missing: %s\n", $2
+                broken++
+            } else if (have[$2] + 0 < $1 + 0) {
+                printf "Unpacked file is truncated: %s (%d of %d bytes)\n", $2, have[$2], $1
+                broken++
+            }
+        }
+        END { if (broken > 0) printf "BROKEN\t%d\n", broken }
+    ' "$actual" "$expected" > "$report"
+
+    # Bei flaechigem Schaden waeren es tausende Zeilen; die ersten reichen, um das
+    # Muster zu erkennen, die Gesamtzahl steht darunter.
+    grep -v '^BROKEN' "$report" | head -20 >&2 || true
+    broken=$(awk -F '\t' '$1 == "BROKEN" { print $2 }' "$report")
+
+    rm -f "$expected" "$actual" "$report"
+
+    if [ -n "$broken" ]; then
+        echo "$broken boot-critical file(s) did not survive unpacking." >&2
+        echo "Installing from this medium would produce a system that cannot boot." >&2
+        return 1
+    fi
+
+    return 0
+}
+
+if [ -n "$media_dir" ]; then
+    verify_boot_critical_tree || exit 1
+fi
+
 echo "Verified $checked kernel image(s) in the target system; repaired $repaired."
 exit 0

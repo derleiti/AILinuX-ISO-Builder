@@ -389,6 +389,25 @@ grep -Fq 'casper/vmlinuz-$version' \
 grep -Fq 'setup_sects + 1) * 512 + syssize * 16' \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 
+# Ein zu kurzer Kernel ist nur das erste sichtbare Opfer: unpackfs schreibt den
+# ganzen Baum ueber denselben Lesepfad. Trifft es den Modulbaum, laedt GRUB den
+# Kernel und das System bleibt erst beim Root-Dateisystem stehen, was die
+# Ursache deutlich schwerer erkennbar macht. Geprueft werden nur /boot und
+# /usr/lib/modules - bei btrfs haengen /home, /var/log und /var/cache als
+# eigene Subvolumes und wuerden einen Vergleich ueber den ganzen Baum mit
+# Fehlalarmen fluten.
+grep -Fq 'verify_boot_critical_tree' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+grep -Fq 'unsquashfs -ll "$image" boot usr/lib/modules' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+grep -Fq 'boot-critical file(s) did not survive unpacking' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+
+# Der Fehler braucht einen defekten Ventoy-Stick und laesst sich nicht auf
+# Zuruf ausloesen, deshalb stellt der Testlauf das Ergebnis nach.
+test -x scripts/test-verify-target-kernel.sh
+grep -Fq 'AILINUX_LIVE_MEDIA' scripts/test-verify-target-kernel.sh
+
 # Die Medienpruefung muss vor unpackfs laufen, sonst wird ein halb
 # durchgereichtes Medium erst nach dem Entpacken auffaellig.
 awk '
