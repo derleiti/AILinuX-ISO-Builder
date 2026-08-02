@@ -480,6 +480,32 @@ if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|
     exit 1
 fi
 
+# Ein Paket unter "remove:" muss auch ausgeliefert werden. Fehlt es, bricht
+# apt mit Fehlercode 100 ab - und zwar im letzten Schritt der Installation,
+# nach dem Bootloader und vor dem Cleanup. Das installierte System bleibt dann
+# mit dem Live-initramfs zurueck und landet beim Start in der initramfs-Shell.
+# Genau so ist live-boot aufgefallen: aus der Paketliste entfernt, in
+# packages.conf stehen geblieben. Was nur manchmal vorhanden ist, gehoert
+# unter "try_remove".
+packages_conf=config/includes.chroot/etc/calamares/modules/packages.conf
+hard_removals=$(awk '
+    /^[[:space:]]*-[[:space:]]*remove:/ { collect = 1; next }
+    /^[[:space:]]*-[[:space:]]*(try_remove|install|try_install|localInstall):/ { collect = 0 }
+    collect && /^[[:space:]]*-[[:space:]]*[a-z0-9]/ {
+        gsub(/^[[:space:]]*-[[:space:]]*/, "")
+        gsub(/[[:space:]]*$/, "")
+        if ($0 != "") print
+    }
+' "$packages_conf")
+
+for package in $hard_removals; do
+    if ! grep -Rqx -- "$package" config/package-lists; then
+        echo "packages.conf removes '$package', but no package list installs it." >&2
+        echo "apt fails with code 100 on a package it cannot find; use try_remove." >&2
+        exit 1
+    fi
+done
+
 for excluded_product in triforce aicoder kimi; do
     if grep -Riq --include='*.list.chroot' -- "$excluded_product" config/package-lists; then
         echo "Excluded product found in package lists: $excluded_product" >&2
