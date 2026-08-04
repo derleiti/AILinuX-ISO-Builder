@@ -50,6 +50,7 @@ config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
+config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
 config/hooks/0145-ailinux-unpackfs-nosparse.chroot
 config/includes.chroot/etc/calamares/modules/kernelcheck.conf
 config/includes.chroot/etc/calamares/modules/mediacheck.conf
@@ -108,7 +109,8 @@ for script in \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
     config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel \
-    config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
+    config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium \
+    config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
 do
     sh -n "$script"
 done
@@ -400,11 +402,17 @@ grep -Fq 'setup_sects + 1) * 512 + syssize * 16' \
 # Weil die Groesse dabei stimmt, kann keine der Groessenpruefungen darauf
 # anschlagen; es braucht SEEK_HOLE.
 grep -Fq 'SEEK_HOLE' \
-    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+    config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
+grep -Fq -- '--sparse=never' \
+    config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
 grep -Fq 'repair_sparse_boot_files' \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
-grep -Fq -- '--sparse=never' \
-    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+
+# Der Kernel-Check laeuft direkt nach unpackfs. ailinux-installed-cleanup baut
+# danach das initramfs neu und ist der letzte Schritt, der /boot ueberhaupt
+# anfasst - deshalb wird dort ein zweites Mal auf Loecher geprueft.
+grep -Fq 'ailinux-refill-sparse-boot /boot' \
+    config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 
 # Die Ursache selbst wird im Build abgestellt: der Hook nimmt Calamares das
 # Sparse-Flag weg, damit im Ziel gar kein Loch entsteht.

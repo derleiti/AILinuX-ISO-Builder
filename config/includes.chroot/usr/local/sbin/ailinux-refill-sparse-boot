@@ -1,0 +1,93 @@
+#!/bin/sh
+set -eu
+
+# Fuellt Loecher in Dateien unterhalb eines /boot-Verzeichnisses auf.
+#
+#     ailinux-refill-sparse-boot BOOT_DIR
+#
+# Ein Loch ist der Schaden, an dem GRUB real gestoppt hat, und er ist an der
+# Dateigroesse nicht zu erkennen: "rsync --sparse" legt einen Nullbereich als
+# Loch ab, statt ihn zu schreiben. Der Inode meldet weiter die volle Groesse,
+# hinter dem letzten Extent liegen aber keine Daten.
+#
+# grub-core/loader/i386/linux.c leitet die Lesemenge aus der Dateigroesse ab
+# und vergleicht exakt. btrfs liefert ab dem ersten Loch nichts mehr, ext4 gibt
+# Nullbytes zurueck - deshalb bootet dieselbe ISO auf ext4 und scheitert auf
+# btrfs mit "premature end of file".
+#
+# Geprueft wird das ganze Verzeichnis, weil GRUB von dort auch initrd,
+# Microcode und seine eigenen Module ueber dieselbe Leseroutine liest.
+
+boot_dir=${1:-}
+test -n "$boot_dir" || { echo "Usage: $0 BOOT_DIR" >&2; exit 2; }
+test -d "$boot_dir" || { echo "Not a directory: $boot_dir" >&2; exit 1; }
+
+command -v python3 >/dev/null 2>&1 || {
+    echo "python3 is unavailable; cannot inspect $boot_dir for holes." >&2
+    exit 0
+}
+
+list_sparse_files() {
+    python3 - "$1" <<'PY' 2>/dev/null
+import os
+import stat
+import sys
+
+for dirpath, _dirnames, filenames in os.walk(sys.argv[1]):
+    for name in filenames:
+        path = os.path.join(dirpath, name)
+        try:
+            st = os.lstat(path)
+            if not stat.S_ISREG(st.st_mode) or st.st_size == 0:
+                continue
+            fd = os.open(path, os.O_RDONLY)
+            try:
+                hole = os.lseek(fd, 0, os.SEEK_HOLE)
+            finally:
+                os.close(fd)
+        except OSError:
+            # Ohne SEEK_HOLE-Unterstuetzung gibt es auch keine Loecher zu melden.
+            continue
+        if hole < st.st_size:
+            print(path)
+PY
+}
+
+sparse_list=$(list_sparse_files "$boot_dir")
+if [ -z "$sparse_list" ]; then
+    echo "No holes below $boot_dir."
+    exit 0
+fi
+
+# Bewusst keine Pipe: der Zaehler wuerde in der Subshell verloren gehen.
+refilled=0
+saved_ifs=$IFS
+IFS='
+'
+for path in $sparse_list; do
+    IFS=$saved_ifs
+    test -n "$path" || continue
+    echo "Refilling $path: it has holes GRUB would stop at."
+    if cp --sparse=never --preserve=all -f "$path" "$path.ailinux-refill"; then
+        mv -f "$path.ailinux-refill" "$path"
+        refilled=$((refilled + 1))
+    else
+        rm -f "$path.ailinux-refill"
+        echo "Could not rewrite $path without holes." >&2
+    fi
+    IFS='
+'
+done
+IFS=$saved_ifs
+sync
+
+remaining=$(list_sparse_files "$boot_dir")
+if [ -n "$remaining" ]; then
+    echo "These files below $boot_dir still contain holes:" >&2
+    printf '%s\n' "$remaining" | head -10 >&2
+    echo "On btrfs GRUB stops at the first hole with 'premature end of file'." >&2
+    exit 1
+fi
+
+echo "Refilled $refilled sparse file(s) below $boot_dir."
+exit 0

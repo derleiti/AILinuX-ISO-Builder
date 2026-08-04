@@ -102,4 +102,18 @@ test "$rebuilt" -eq 1 || {
     exit 1
 }
 
+# Letzte Station der Installation: hier ist /boot fertig geschrieben, inklusive
+# des eben neu gebauten initramfs. Der Kernel-Check des Installers lief direkt
+# nach unpackfs und damit lange vor diesem Punkt.
+#
+# Ein Loch in einer /boot-Datei laesst GRUB auf btrfs mit "premature end of
+# file" abbrechen, ohne dass die Dateigroesse etwas davon verraet. Deshalb wird
+# hier ein zweites Mal geprueft, wenn nichts mehr nachkommt.
+if [ -x /usr/local/sbin/ailinux-refill-sparse-boot ]; then
+    /usr/local/sbin/ailinux-refill-sparse-boot /boot || {
+        echo "Boot files still contain holes; the installed system would not boot." >&2
+        exit 1
+    }
+fi
+
 exit 0

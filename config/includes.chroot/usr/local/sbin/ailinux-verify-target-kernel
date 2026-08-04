@@ -96,80 +96,18 @@ kernel_is_complete() {
     return 0
 }
 
-# Ein Loch ist der Schaden, der GRUB tatsaechlich stoppt, und er ist an der
-# Dateigroesse nicht zu erkennen. SEEK_HOLE meldet die Position des ersten
-# Lochs; liegt sie vor dem Dateiende, fehlen der Datei Extents.
-#
-# Geprueft wird ganz /boot und nicht nur der Kernel: GRUB liest von dort auch
-# initrd, Microcode und seine eigenen Module ueber dieselbe Leseroutine, und ein
-# Loch trifft sie alle gleich.
-list_sparse_files() {
-    python3 - "$1" <<'PY' 2>/dev/null
-import os
-import stat
-import sys
-
-for dirpath, _dirnames, filenames in os.walk(sys.argv[1]):
-    for name in filenames:
-        path = os.path.join(dirpath, name)
-        try:
-            st = os.lstat(path)
-            if not stat.S_ISREG(st.st_mode) or st.st_size == 0:
-                continue
-            fd = os.open(path, os.O_RDONLY)
-            try:
-                hole = os.lseek(fd, 0, os.SEEK_HOLE)
-            finally:
-                os.close(fd)
-        except OSError:
-            # Ohne SEEK_HOLE-Unterstuetzung gibt es auch keine Loecher zu melden.
-            continue
-        if hole < st.st_size:
-            print(path)
-PY
-}
+# Die Loch-Erkennung und -Reparatur steckt in einem eigenen Skript, weil
+# ailinux-installed-cleanup sie am Ende der Installation ein zweites Mal
+# braucht: dort wird das initramfs neu gebaut, also nach diesem Schritt.
+refill_helper=$(dirname "$0")/ailinux-refill-sparse-boot
+test -x "$refill_helper" || refill_helper=/usr/local/sbin/ailinux-refill-sparse-boot
 
 repair_sparse_boot_files() {
-    boot_dir=$1
-
-    command -v python3 >/dev/null 2>&1 || {
-        echo "python3 is unavailable; cannot inspect $boot_dir for holes." >&2
+    test -x "$refill_helper" || {
+        echo "Missing $refill_helper; cannot check for holes." >&2
         return 0
     }
-
-    sparse_list=$(list_sparse_files "$boot_dir")
-    test -n "$sparse_list" || return 0
-
-    # Bewusst keine Pipe: der Zaehler wuerde in der Subshell verloren gehen.
-    saved_ifs=$IFS
-    IFS='
-'
-    for path in $sparse_list; do
-        IFS=$saved_ifs
-        test -n "$path" || continue
-        echo "Refilling $path: it has holes GRUB would stop at."
-        if cp --sparse=never --preserve=all -f "$path" "$path.ailinux-refill"; then
-            mv -f "$path.ailinux-refill" "$path"
-            refilled=$((refilled + 1))
-        else
-            rm -f "$path.ailinux-refill"
-            echo "Could not rewrite $path without holes." >&2
-        fi
-        IFS='
-'
-    done
-    IFS=$saved_ifs
-    sync
-
-    remaining=$(list_sparse_files "$boot_dir")
-    if [ -n "$remaining" ]; then
-        echo "These files below $boot_dir still contain holes:" >&2
-        printf '%s\n' "$remaining" | head -10 >&2
-        echo "On btrfs GRUB stops at the first hole with 'premature end of file'." >&2
-        return 1
-    fi
-
-    return 0
+    "$refill_helper" "$1"
 }
 
 # Casper haengt das Medium normalerweise unter /cdrom ein. Die weiteren Pfade
@@ -194,8 +132,6 @@ find_live_media() {
 }
 
 media_dir=$(find_live_media) || media_dir=
-
-refilled=0
 
 # Vor jeder Groessenpruefung: Loecher erzeugen keine Groessenabweichung und
 # wuerden von den folgenden Vergleichen nicht bemerkt.
@@ -320,5 +256,5 @@ if [ -n "$media_dir" ]; then
 fi
 
 echo "Verified $checked kernel image(s) in the target system;"
-echo "restored $repaired from the live medium, refilled $refilled sparse file(s) below /boot."
+echo "restored $repaired from the live medium."
 exit 0
