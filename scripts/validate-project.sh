@@ -117,17 +117,33 @@ done
 python3 -c 'compile(open("scripts/finalize-binary-grub.py", encoding="utf-8").read(), "scripts/finalize-binary-grub.py", "exec")'
 python3 scripts/finalize-binary-grub.py --self-test >/dev/null
 
-# `create.sh` defaults to the repo-offline path. It may still download Ubuntu
-# packages from the official archive, but it must not contact repo.ailinux.me.
 # Network build is the default: a fresh clone has no live-build package cache
 # and offline mode could not stage the AILinuX kernel and copa packages there.
-grep -Fq 'AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}' create.sh
-grep -Fq 'export AILINUX_OFFLINE' create.sh
-grep -Fq 'AILINUX_RESET_ONLY=${AILINUX_RESET_ONLY:-0}' create.sh
-grep -Fq 'reset_build_state' create.sh
-grep -Fq 'kernel.apparmor_restrict_unprivileged_userns' create.sh
-grep -Fq 'Previous build tree and ISO artifacts removed.' create.sh
-grep -Fq "printf '%s\\n' \"\$\$\" > .build.lock" scripts/build.sh
+for required_create_fragment in \
+    'AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}' \
+    'export AILINUX_OFFLINE' \
+    'AILINUX_RESET_ONLY=${AILINUX_RESET_ONLY:-0}' \
+    'reset_build_state' \
+    'kernel.apparmor_restrict_unprivileged_userns' \
+    'Previous build tree and ISO artifacts removed.' \
+    'cleanup_unverified_output'
+do
+    grep -Fq "$required_create_fragment" create.sh || {
+        echo "create.sh is missing required clean-build guard: $required_create_fragment" >&2
+        exit 1
+    }
+done
+for required_lock_fragment in \
+    'lock_file="$project_dir/.build.lock"' \
+    'acquire_build_lock' \
+    'release_build_lock' \
+    "set -C; printf '%s\\n'"
+do
+    grep -Fq "$required_lock_fragment" scripts/build.sh || {
+        echo "build.sh is missing required lock guard: $required_lock_fragment" >&2
+        exit 1
+    }
+done
 grep -Fq 'mirror="https://archive.ubuntu.com/ubuntu"' scripts/build-rootless.sh
 grep -Fq 'https://security.ubuntu.com/ubuntu resolute-security' scripts/build-rootless.sh
 if grep -Fq 'repo.ailinux.me/mirror/archive.ubuntu.com' scripts/build-rootless.sh; then
@@ -255,30 +271,34 @@ if grep -Eq '(^|[[:space:]"])boot=live([[:space:]"]|$)' auto/config config/binar
 fi
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
-# Seed Infinity through normal per-user configuration plus Plasma's reset
+# Seed Breeze Dark through normal per-user configuration plus Plasma's reset
 # defaults. These files are copied from /etc/skel only when a user is created,
-# so choosing another Global Theme later remains possible; no login-time
-# service forces the theme again.
-infinity_skel=config/includes.chroot/etc/skel/.config
-grep -Fqx 'LookAndFeelPackage=Infinity-Global-6' "$infinity_skel/kdeglobals"
-grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdeglobals"
-grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdeglobals"
-grep -Fqx 'widgetStyle=kvantum' "$infinity_skel/kdeglobals"
-grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kcminputrc"
-grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/ksplashrc"
-grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kwinrc"
-grep -Fqx 'theme=__aurorae__svg__Infinity-Color-Aurorae-6' "$infinity_skel/kwinrc"
-grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/plasmarc"
-grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdedefaults/kdeglobals"
-grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdedefaults/kdeglobals"
-grep -Fqx 'widgetStyle=kvantum' "$infinity_skel/kdedefaults/kdeglobals"
-grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kdedefaults/kcminputrc"
-grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/kdedefaults/ksplashrc"
-grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kdedefaults/kwinrc"
-grep -Fqx 'Infinity-Global-6' "$infinity_skel/kdedefaults/package"
-grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/kdedefaults/plasmarc"
-if grep -RqsE 'plasma-apply-lookandfeel.*Infinity|lookandfeeltool.*Infinity'         config/includes.chroot/etc/xdg/autostart         config/includes.chroot/etc/systemd         config/includes.chroot/usr/lib/systemd         config/includes.chroot/usr/local 2>/dev/null; then
-    echo "Infinity must remain a user-changeable default, not a login-time override." >&2
+# so choosing another Global Theme later replaces them normally; no login-time
+# service may force Breeze Dark.
+breeze_skel=config/includes.chroot/etc/skel/.config
+grep -Fqx 'LookAndFeelPackage=org.kde.breezedark.desktop' "$breeze_skel/kdeglobals"
+grep -Fqx 'ColorScheme=BreezeDark' "$breeze_skel/kdeglobals"
+grep -Fqx 'Theme=breeze-dark' "$breeze_skel/kdeglobals"
+grep -Fqx 'widgetStyle=Breeze' "$breeze_skel/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$breeze_skel/kcminputrc"
+grep -Fqx 'Theme=org.kde.breezedark.desktop' "$breeze_skel/ksplashrc"
+grep -Fqx 'library=org.kde.breeze' "$breeze_skel/kwinrc"
+grep -Fqx 'name=breeze-dark' "$breeze_skel/plasmarc"
+grep -Fqx 'ColorScheme=BreezeDark' "$breeze_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=breeze-dark' "$breeze_skel/kdedefaults/kdeglobals"
+grep -Fqx 'widgetStyle=Breeze' "$breeze_skel/kdedefaults/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$breeze_skel/kdedefaults/kcminputrc"
+grep -Fqx 'Theme=org.kde.breezedark.desktop' "$breeze_skel/kdedefaults/ksplashrc"
+grep -Fqx 'library=org.kde.breeze' "$breeze_skel/kdedefaults/kwinrc"
+grep -Fqx 'NoPlugin=false' "$breeze_skel/kdedefaults/kwinrc"
+grep -Fqx 'org.kde.breezedark.desktop' "$breeze_skel/kdedefaults/package"
+grep -Fqx 'name=breeze-dark' "$breeze_skel/kdedefaults/plasmarc"
+if grep -RqsE 'plasma-apply-lookandfeel.*org\.kde\.breezedark|lookandfeeltool.*org\.kde\.breezedark' \
+        config/includes.chroot/etc/xdg/autostart \
+        config/includes.chroot/etc/systemd \
+        config/includes.chroot/usr/lib/systemd \
+        config/includes.chroot/usr/local 2>/dev/null; then
+    echo "Breeze Dark must be a user-changeable default, not a login-time override." >&2
     exit 1
 fi
 
@@ -305,6 +325,8 @@ grep -Fq 'enable ailinux-graphical-ready.service' config/hooks/0100-ailinux-conf
 grep -Fq "success_pattern='AILINUX_GRAPHICAL_READY'" scripts/smoke-test-iso.sh
 grep -Fq 'scripts/validate-iso-boot.sh' scripts/smoke-test-iso.sh
 grep -Fq 'AILINUX_QEMU_MEDIA' scripts/smoke-test-iso.sh
+grep -Fq 'uefi) default_timeout_seconds=300' scripts/smoke-test-iso.sh
+grep -Fq 'firmware_mode in bios uefi' create.sh
 grep -Fq 'media_mode in cdrom usb' create.sh
 grep -Fq 'El Torito boot img' scripts/validate-iso-boot.sh
 grep -Fq 'Ventoy media discovery' scripts/validate-iso-boot.sh
@@ -536,29 +558,11 @@ for package in $hard_removals; do
     fi
 done
 
-for excluded_product in triforce kimi; do
+for excluded_product in triforce aicoder kimi; do
     if grep -Riq --include='*.list.chroot' -- "$excluded_product" config/package-lists; then
         echo "Excluded product found in package lists: $excluded_product" >&2
         exit 1
     fi
-done
-
-grep -Rqx -- 'aicoder' config/package-lists || {
-    echo "Required AILinuX package missing from package lists: aicoder" >&2
-    exit 1
-}
-
-for required_theme_file in \
-    config/includes.chroot/usr/share/plasma/look-and-feel/Infinity-Global-6/metadata.json \
-    config/includes.chroot/usr/share/plasma/desktoptheme/Infinity-Plasma/metadata.desktop \
-    config/includes.chroot/usr/share/sddm/themes/Infinity-SDDM-6/metadata.desktop \
-    config/includes.chroot/etc/sddm.conf.d/20-ailinux-theme.conf \
-    config/includes.chroot/etc/skel/.config/kdeglobals
-do
-    test -s "$required_theme_file" || {
-        echo "Required Infinity theme file missing: $required_theme_file" >&2
-        exit 1
-    }
 done
 
 echo "Project validation passed: Wayland autologin, managed networking, complete repositories, kernel $AILINUX_KERNEL_VERSION."

@@ -17,12 +17,43 @@ for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs c
     }
 done
 
-if [ -e .build.lock ]; then
-    echo "Build lock exists: $project_dir/.build.lock" >&2
-    exit 1
-fi
+lock_file="$project_dir/.build.lock"
 
-touch .build.lock
+read_lock_pid() {
+    test -s "$lock_file" || return 1
+    lock_pid=$(sed -n '1p' "$lock_file")
+    case "$lock_pid" in
+        ''|0|*[!0-9]*) return 1 ;;
+    esac
+}
+
+acquire_build_lock() {
+    attempts=0
+    while [ "$attempts" -lt 2 ]; do
+        if (set -C; printf '%s\n' "$$" > "$lock_file") 2>/dev/null; then
+            return 0
+        fi
+
+        if read_lock_pid && kill -0 "$lock_pid" 2>/dev/null; then
+            echo "Build already active with PID $lock_pid: $lock_file" >&2
+            exit 1
+        fi
+
+        rm -f "$lock_file"
+        attempts=$((attempts + 1))
+    done
+
+    echo "Unable to acquire build lock: $lock_file" >&2
+    exit 1
+}
+
+release_build_lock() {
+    if read_lock_pid && [ "$lock_pid" = "$$" ]; then
+        rm -f "$lock_file"
+    fi
+}
+
+acquire_build_lock
 cleanup_build() {
     status=$?
     trap - EXIT HUP INT TERM
@@ -30,13 +61,16 @@ cleanup_build() {
     if [ -d "$project_dir/.offline-build-state" ]; then
         ./scripts/prepare-offline-build.sh cleanup || cleanup_status=$?
     fi
-    rm -f .build.lock
+    release_build_lock
     if [ "$status" -eq 0 ] && [ "$cleanup_status" -ne 0 ]; then
         status=$cleanup_status
     fi
     exit "$status"
 }
-trap cleanup_build EXIT HUP INT TERM
+trap cleanup_build EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 ./scripts/resolve-latest-kernel.sh
 if [ ! -s config/archives/ailinux.key.chroot ]; then

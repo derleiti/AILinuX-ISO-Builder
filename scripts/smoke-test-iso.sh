@@ -3,9 +3,22 @@ set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 iso_path=${1:-}
-timeout_seconds=${AILINUX_QEMU_TIMEOUT:-180}
 firmware_mode=${AILINUX_QEMU_MODE:-bios}
 media_mode=${AILINUX_QEMU_MEDIA:-cdrom}
+
+# OVMF is substantially slower than SeaBIOS when GRUB reads a large initrd
+# from an emulated optical drive, especially when QEMU falls back to TCG.
+# Do not classify a boot that already reached Casper/systemd as broken merely
+# because the generic BIOS timeout expired.
+case "$firmware_mode" in
+    bios) default_timeout_seconds=180 ;;
+    uefi) default_timeout_seconds=300 ;;
+    *)
+        echo "Unsupported AILINUX_QEMU_MODE: $firmware_mode" >&2
+        exit 1
+        ;;
+esac
+timeout_seconds=${AILINUX_QEMU_TIMEOUT:-$default_timeout_seconds}
 
 if [ -z "$iso_path" ]; then
     iso_path=$(find "$project_dir/output" -maxdepth 1 -type f \
@@ -30,20 +43,13 @@ command -v qemu-system-x86_64 >/dev/null 2>&1 || {
     exit 1
 }
 
-case "$firmware_mode" in
-    bios) ;;
-    uefi)
-        firmware=${AILINUX_OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.fd}
-        test -r "$firmware" || {
-            echo "UEFI firmware not found: $firmware" >&2
-            exit 1
-        }
-        ;;
-    *)
-        echo "Unsupported AILINUX_QEMU_MODE: $firmware_mode" >&2
+if [ "$firmware_mode" = "uefi" ]; then
+    firmware=${AILINUX_OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.fd}
+    test -r "$firmware" || {
+        echo "UEFI firmware not found: $firmware" >&2
         exit 1
-        ;;
-esac
+    }
+fi
 
 case "$media_mode" in
     cdrom|usb) ;;
