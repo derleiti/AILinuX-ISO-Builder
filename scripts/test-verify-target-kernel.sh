@@ -90,9 +90,47 @@ cp "$GOOD" "$BASE/root/boot/vmlinuz-$VERSION"
 out=$(run "$BASE/medium"); rc=$?
 echo "$out" | sed 's/^/  /'
 check "Fall 3 exit" 0 $rc
-case "$out" in *"repaired 0"*) assert "Fall 3 keine Reparatur" true ;;
+case "$out" in *"restored 0 from the live medium"*) assert "Fall 3 keine Reparatur" true ;;
                *) assert "Fall 3 keine Reparatur" false ;; esac
 echo
+
+# Der Schaden, an dem die Installation real gescheitert ist: rsync --sparse legt
+# den Nullbereich am Dateiende als Loch ab. Die Groesse bleibt exakt richtig,
+# deshalb sieht ihn weder ein Groessenvergleich noch die Setup-Header-Arithmetik.
+# Auf btrfs liefert GRUB ab dem Loch nichts mehr -> "premature end of file".
+echo "Fall 3b: Loch bei korrekter Groesse -> aufgefuellt"
+fresh
+cp "$GOOD" "$BASE/medium/casper/vmlinuz-$VERSION"
+cp --sparse=never "$GOOD" "$BASE/root/boot/vmlinuz-$VERSION"
+if command -v fallocate >/dev/null 2>&1; then
+    target="$BASE/root/boot/vmlinuz-$VERSION"
+    size_before=$(stat -c %s "$target")
+    # Loch auf Blockgrenze im hinteren Bereich, wie rsync es anlegen wuerde.
+    hole_off=$(( (size_before - 8192) / 4096 * 4096 ))
+    fallocate --punch-hole --keep-size -o "$hole_off" -l 4096 "$target" 2>/dev/null
+    hole_at=$(python3 -c "import os,sys;fd=os.open(sys.argv[1],os.O_RDONLY);print(os.lseek(fd,0,os.SEEK_HOLE))" "$target" 2>/dev/null || echo "")
+    if [ -n "$hole_at" ] && [ "$hole_at" -lt "$size_before" ]; then
+        out=$(run "$BASE/medium"); rc=$?
+        echo "$out" | sed 's/^/  /'
+        check "Fall 3b exit" 0 $rc
+        size_after=$(stat -c %s "$target")
+        hole_after=$(python3 -c "import os,sys;fd=os.open(sys.argv[1],os.O_RDONLY);print(os.lseek(fd,0,os.SEEK_HOLE))" "$target")
+        if [ "$size_after" = "$size_before" ] && [ "$hole_after" = "$size_after" ]; then
+            assert "Fall 3b Loch aufgefuellt, Groesse unveraendert" true
+        else
+            assert "Fall 3b Loch aufgefuellt, Groesse unveraendert" false
+        fi
+        case "$out" in *"Refilling"*) assert "Fall 3b meldet die Reparatur" true ;;
+                       *) assert "Fall 3b meldet die Reparatur" false ;; esac
+    else
+        echo "  SKIP  Fall 3b (Dateisystem legt hier kein Loch an)"
+        skip=$((skip + 3))
+    fi
+else
+    echo "  SKIP  Fall 3b (fallocate fehlt)"
+    skip=$((skip + 3))
+fi
+
 
 echo "Fall 4: kein Kernel im Ziel -> harter Abbruch"
 fresh

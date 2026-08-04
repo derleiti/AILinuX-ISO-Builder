@@ -50,6 +50,7 @@ config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
+config/hooks/0145-ailinux-unpackfs-nosparse.chroot
 config/includes.chroot/etc/calamares/modules/kernelcheck.conf
 config/includes.chroot/etc/calamares/modules/mediacheck.conf
 config/binary_grub/grub.cfg
@@ -100,6 +101,7 @@ for script in \
     config/hooks/0140-ailinux-grub-titles.chroot \
     config/hooks/live/0100-ailinux-config.hook.chroot \
     config/hooks/0150-remove-kubuntu.chroot \
+    config/hooks/0145-ailinux-unpackfs-nosparse.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
     config/includes.binary/live/tools.conf \
     config/includes.chroot/usr/local/bin/ailinux-installer \
@@ -119,6 +121,11 @@ python3 scripts/finalize-binary-grub.py --self-test >/dev/null
 # and offline mode could not stage the AILinuX kernel and copa packages there.
 grep -Fq 'AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}' create.sh
 grep -Fq 'export AILINUX_OFFLINE' create.sh
+grep -Fq 'AILINUX_RESET_ONLY=${AILINUX_RESET_ONLY:-0}' create.sh
+grep -Fq 'reset_build_state' create.sh
+grep -Fq 'kernel.apparmor_restrict_unprivileged_userns' create.sh
+grep -Fq 'Previous build tree and ISO artifacts removed.' create.sh
+grep -Fq "printf '%s\\n' \"\$\$\" > .build.lock" scripts/build.sh
 grep -Fq 'mirror="https://archive.ubuntu.com/ubuntu"' scripts/build-rootless.sh
 grep -Fq 'https://security.ubuntu.com/ubuntu resolute-security' scripts/build-rootless.sh
 if grep -Fq 'repo.ailinux.me/mirror/archive.ubuntu.com' scripts/build-rootless.sh; then
@@ -246,34 +253,30 @@ if grep -Eq '(^|[[:space:]"])boot=live([[:space:]"]|$)' auto/config config/binar
 fi
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
-# Seed Oxygen through normal per-user configuration plus Plasma's reset
+# Seed Infinity through normal per-user configuration plus Plasma's reset
 # defaults. These files are copied from /etc/skel only when a user is created,
-# so choosing another Global Theme later replaces them normally; no login-time
-# service may force Oxygen.
-oxygen_skel=config/includes.chroot/etc/skel/.config
-grep -Fqx 'LookAndFeelPackage=org.kde.breezedark.desktop' "$oxygen_skel/kdeglobals"
-grep -Fqx 'ColorScheme=BreezeDark' "$oxygen_skel/kdeglobals"
-grep -Fqx 'Theme=breeze-dark' "$oxygen_skel/kdeglobals"
-grep -Fqx 'widgetStyle=Breeze' "$oxygen_skel/kdeglobals"
-grep -Fqx 'cursorTheme=breeze_cursors' "$oxygen_skel/kcminputrc"
-grep -Fqx 'Theme=org.kde.breezedark.desktop' "$oxygen_skel/ksplashrc"
-grep -Fqx 'library=org.kde.breeze' "$oxygen_skel/kwinrc"
-grep -Fqx 'name=breeze-dark' "$oxygen_skel/plasmarc"
-grep -Fqx 'ColorScheme=BreezeDark' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'Theme=breeze-dark' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'widgetStyle=Breeze' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'cursorTheme=breeze_cursors' "$oxygen_skel/kdedefaults/kcminputrc"
-grep -Fqx 'Theme=org.kde.breezedark.desktop' "$oxygen_skel/kdedefaults/ksplashrc"
-grep -Fqx 'library=org.kde.breeze' "$oxygen_skel/kdedefaults/kwinrc"
-grep -Fqx 'NoPlugin=false' "$oxygen_skel/kdedefaults/kwinrc"
-grep -Fqx 'org.kde.breezedark.desktop' "$oxygen_skel/kdedefaults/package"
-grep -Fqx 'name=breeze-dark' "$oxygen_skel/kdedefaults/plasmarc"
-if grep -RqsE 'plasma-apply-lookandfeel.*org\.kde\.oxygen|lookandfeeltool.*org\.kde\.oxygen' \
-        config/includes.chroot/etc/xdg/autostart \
-        config/includes.chroot/etc/systemd \
-        config/includes.chroot/usr/lib/systemd \
-        config/includes.chroot/usr/local 2>/dev/null; then
-    echo "Oxygen must be a user-changeable default, not a login-time override." >&2
+# so choosing another Global Theme later remains possible; no login-time
+# service forces the theme again.
+infinity_skel=config/includes.chroot/etc/skel/.config
+grep -Fqx 'LookAndFeelPackage=Infinity-Global-6' "$infinity_skel/kdeglobals"
+grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdeglobals"
+grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdeglobals"
+grep -Fqx 'widgetStyle=kvantum' "$infinity_skel/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kcminputrc"
+grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/ksplashrc"
+grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kwinrc"
+grep -Fqx 'theme=__aurorae__svg__Infinity-Color-Aurorae-6' "$infinity_skel/kwinrc"
+grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/plasmarc"
+grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'widgetStyle=kvantum' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kdedefaults/kcminputrc"
+grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/kdedefaults/ksplashrc"
+grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kdedefaults/kwinrc"
+grep -Fqx 'Infinity-Global-6' "$infinity_skel/kdedefaults/package"
+grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/kdedefaults/plasmarc"
+if grep -RqsE 'plasma-apply-lookandfeel.*Infinity|lookandfeeltool.*Infinity'         config/includes.chroot/etc/xdg/autostart         config/includes.chroot/etc/systemd         config/includes.chroot/usr/lib/systemd         config/includes.chroot/usr/local 2>/dev/null; then
+    echo "Infinity must remain a user-changeable default, not a login-time override." >&2
     exit 1
 fi
 
@@ -388,6 +391,25 @@ grep -Fq 'casper/vmlinuz-$version' \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 grep -Fq 'setup_sects + 1) * 512 + syssize * 16' \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+
+# Der Schaden, der GRUB real gestoppt hat, ist kein zu kurzer Kernel, sondern
+# ein Loch bei korrekter Dateigroesse: Calamares entpackt mit "rsync -aHAXSr",
+# das S ist --sparse und legt den Nullbereich am Dateiende als Loch ab. btrfs
+# liefert ab dem ersten Loch nichts mehr, ext4 gibt Nullbytes zurueck - deshalb
+# bootet dieselbe ISO in einer ext4-VM und scheitert auf einem btrfs-Ziel.
+# Weil die Groesse dabei stimmt, kann keine der Groessenpruefungen darauf
+# anschlagen; es braucht SEEK_HOLE.
+grep -Fq 'SEEK_HOLE' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+grep -Fq 'repair_sparse_boot_files' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+grep -Fq -- '--sparse=never' \
+    config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
+
+# Die Ursache selbst wird im Build abgestellt: der Hook nimmt Calamares das
+# Sparse-Flag weg, damit im Ziel gar kein Loch entsteht.
+grep -Fq -- "'-aHAXSr'" config/hooks/0145-ailinux-unpackfs-nosparse.chroot
+grep -Fq -- "'-aHAXr'" config/hooks/0145-ailinux-unpackfs-nosparse.chroot
 
 # Ein zu kurzer Kernel ist nur das erste sichtbare Opfer: unpackfs schreibt den
 # ganzen Baum ueber denselben Lesepfad. Trifft es den Modulbaum, laedt GRUB den
@@ -506,11 +528,29 @@ for package in $hard_removals; do
     fi
 done
 
-for excluded_product in triforce aicoder kimi; do
+for excluded_product in triforce kimi; do
     if grep -Riq --include='*.list.chroot' -- "$excluded_product" config/package-lists; then
         echo "Excluded product found in package lists: $excluded_product" >&2
         exit 1
     fi
+done
+
+grep -Rqx -- 'aicoder' config/package-lists || {
+    echo "Required AILinuX package missing from package lists: aicoder" >&2
+    exit 1
+}
+
+for required_theme_file in \
+    config/includes.chroot/usr/share/plasma/look-and-feel/Infinity-Global-6/metadata.json \
+    config/includes.chroot/usr/share/plasma/desktoptheme/Infinity-Plasma/metadata.desktop \
+    config/includes.chroot/usr/share/sddm/themes/Infinity-SDDM-6/metadata.desktop \
+    config/includes.chroot/etc/sddm.conf.d/20-ailinux-theme.conf \
+    config/includes.chroot/etc/skel/.config/kdeglobals
+do
+    test -s "$required_theme_file" || {
+        echo "Required Infinity theme file missing: $required_theme_file" >&2
+        exit 1
+    }
 done
 
 echo "Project validation passed: Wayland autologin, managed networking, complete repositories, kernel $AILINUX_KERNEL_VERSION."

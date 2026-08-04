@@ -1,0 +1,68 @@
+#!/bin/sh
+set -eu
+
+# Calamares entpackt das Live-Squashfs mit "rsync -aHAXSr". Das S darin ist
+# --sparse: rsync ersetzt jeden Nullblock der Quelle durch ein Loch im Ziel.
+# Die Dateigroesse bleibt dabei unveraendert, es fehlen nur die Extents.
+#
+# Fuer GRUB entscheidet genau das ueber bootet / bootet nicht:
+#
+#   ext4   liefert fuer ein Loch Nullbytes und damit die volle Laenge
+#   btrfs  bricht am ersten Loch ab und liefert weniger Bytes, als der Inode nennt
+#
+# grub-core/loader/i386/linux.c leitet die Lesemenge aus der Dateigroesse ab
+# (prot_file_size = Dateigroesse - Setup-Header) und vergleicht exakt:
+#
+#     if (grub_file_read (file, prot_mode_mem, len) != len && !grub_errno)
+#       grub_error (GRUB_ERR_BAD_OS, N_("premature end of file %s"), argv[0]);
+#
+# vmlinuz-*-ailinux endet auf mehrere Kilobyte Nullbytes (3624 im aktuellen
+# Build). rsync legt den auf Blockgrenze gerundeten Teil davon als Loch ab, statt
+# ihn zu schreiben - der Inode meldet weiter die volle Groesse, aber hinter dem
+# letzten Extent liegen keine Daten mehr. Gemessen an einem Ziel-btrfs:
+#
+#   rsync -aHAXSr -> erstes Loch bei 16916480, GRUB liefert 16916480/16916992
+#   rsync -aHAXr  -> kein Loch,               GRUB liefert 16916992/16916992
+#
+# Im ersten Fall bricht GRUB mit "premature end of file /@/boot/vmlinuz-..." ab,
+# gefolgt von "you need to load the kernel first" fuer die initrd.
+#
+# Weil die Dateigroesse dabei stimmt, ist der Schaden fuer jede groessen- oder
+# headerbasierte Pruefung unsichtbar - und auf ext4, dem Standardlayout in einer
+# Test-VM, faellt er ueberhaupt nicht auf. Nur eine Installation auf btrfs
+# stolpert darueber.
+#
+# Das Live-System enthaelt keine echten Sparse-Dateien, die von --sparse
+# profitieren wuerden. Die Option wird deshalb hier entfernt.
+
+python3 - <<'PY'
+from pathlib import Path
+import sys
+
+candidates = sorted(Path("/usr/lib").glob("*/calamares/modules/unpackfs/main.py"))
+candidates += sorted(Path("/usr/lib/calamares/modules").glob("unpackfs/main.py"))
+if not candidates:
+    sys.exit("Calamares unpackfs module not found; cannot disable sparse copies.")
+
+patched = 0
+for path in candidates:
+    text = path.read_text(encoding="utf-8")
+    if "'-aHAXr'" in text or '"-aHAXr"' in text:
+        patched += 1
+        continue
+    for old, new in (("'-aHAXSr'", "'-aHAXr'"), ('"-aHAXSr"', '"-aHAXr"')):
+        if old in text:
+            if text.count(old) != 1:
+                sys.exit(f"Expected exactly one rsync flag literal in {path}.")
+            path.write_text(text.replace(old, new), encoding="utf-8")
+            patched += 1
+            break
+    else:
+        sys.exit(f"Unexpected rsync invocation in {path}; refusing to guess.")
+
+print(f"Disabled sparse unpacking in {patched} Calamares unpackfs module(s).")
+PY
+
+# Gegenprobe: keine Datei darf das Sparse-Flag behalten.
+! grep -rqF -- '-aHAXSr' /usr/lib/*/calamares/modules/unpackfs/main.py 2>/dev/null
+grep -rqF -- '-aHAXr' /usr/lib/*/calamares/modules/unpackfs/main.py
