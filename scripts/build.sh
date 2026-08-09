@@ -4,11 +4,25 @@ set -eu
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
 offline=${AILINUX_OFFLINE:-0}
+resume_binary=${AILINUX_RESUME_BINARY:-0}
+retry_build=${AILINUX_RETRY_BUILD:-0}
 
 case "$offline" in
     0|1) ;;
     *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;;
 esac
+case "$resume_binary" in
+    0|1) ;;
+    *) echo "AILINUX_RESUME_BINARY must be 0 or 1." >&2; exit 1 ;;
+esac
+case "$retry_build" in
+    0|1) ;;
+    *) echo "AILINUX_RETRY_BUILD must be 0 or 1." >&2; exit 1 ;;
+esac
+if [ "$resume_binary" = "1" ] && [ "$retry_build" = "1" ]; then
+    echo "AILINUX_RESUME_BINARY and AILINUX_RETRY_BUILD are mutually exclusive." >&2
+    exit 1
+fi
 
 for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg python3 tee mktemp; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -140,7 +154,22 @@ run_logged() {
     return "$status"
 }
 
-if [ "${AILINUX_RESUME_BINARY:-0}" = "1" ]; then
+if [ "$retry_build" = "1" ]; then
+    test -d "$project_dir/cache" || {
+        echo "AILINUX_RETRY_BUILD requires an existing live-build package cache." >&2
+        exit 1
+    }
+    # Reusing live-build's stage markers directly is unsafe: bootstrap-cache
+    # restore can replace the populated chroot while later stages remain
+    # marked as complete. Rebuild the chroot, but retain downloaded packages.
+    echo "Retrying with the existing package cache and a fresh chroot."
+    run_as_root lb clean --chroot
+    # live-build 3.x leaves this marker behind although --chroot removed the
+    # restored tree. Force the cached bootstrap to be unpacked again.
+    run_as_root rm -f .build/bootstrap_cache.restore
+    run_as_root ./auto/config
+    run_logged lb build
+elif [ "$resume_binary" = "1" ]; then
     run_logged lb binary
 else
     if [ "${AILINUX_PURGE_CACHE:-0}" = "1" ]; then

@@ -95,6 +95,17 @@ It creates a reusable Resolute build root below
 Run `./scripts/preflight-build.sh rootless` for a fast, non-destructive host
 check before starting it directly.
 
+If a build fails after downloading packages, the download cache can be reused
+after correcting the cause:
+
+```bash
+AILINUX_RETRY_BUILD=1 ./scripts/build-rootless.sh
+```
+
+This recovery command creates a fresh chroot instead of trusting stale
+live-build stage markers, but it avoids downloading the package set again. Use
+the normal `./create.sh` entry point for the final clean, reproducible build.
+
 ## Validation
 
 ```bash

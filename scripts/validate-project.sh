@@ -154,6 +154,10 @@ do
     }
 done
 grep -Fq 'AILINUX_BUILD_LOCK_PID' scripts/build.sh
+grep -Fq 'AILINUX_RETRY_BUILD must be 0 or 1.' scripts/build.sh
+grep -Fq 'AILINUX_RETRY_BUILD requires an existing live-build package cache.' scripts/build.sh
+grep -Fq 'lb clean --chroot' scripts/build.sh
+grep -Fq 'rm -f .build/bootstrap_cache.restore' scripts/build.sh
 grep -Fq '| tee "$log_file"' scripts/build.sh
 grep -Fq './scripts/validate-iso-boot.sh "$final_iso"' scripts/build.sh
 if grep -Eq '^\./scripts/(resolve-latest-kernel|prepare-keyrings|sync-repositories)\.sh$' scripts/build-rootless.sh; then
