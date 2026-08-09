@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Wallpaper/Images",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "l4k1"
+            }
+        ],
+        "Id": "Infinity-World-Wallpaper",
+        "License": "GPLv3",
+        "Name": "Infinity World (Plasma logo)",
+        "Description": "Infinity World wallpaper with the Plasma logo"
+    }
+}
