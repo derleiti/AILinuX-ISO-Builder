@@ -9,7 +9,7 @@ test -x "$update_initramfs" || {
 }
 
 found=0
-for kernel_image in /boot/vmlinuz-*-ailinux; do
+for kernel_image in /boot/vmlinuz-*-ailinux*; do
     test -e "$kernel_image" || continue
     version=${kernel_image#/boot/vmlinuz-}
     found=1
