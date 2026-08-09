@@ -239,6 +239,8 @@ fi
 grep -Fq 'add-ailinux-repo.sh' scripts/sync-repositories.sh
 grep -Fq 'third-party-repos.json' scripts/sync-repositories.sh
 grep -Fq 'update-initramfs.orig.initramfs-tools' config/hooks/0200-ailinux-initramfs.chroot
+grep -Fq 'for kernel_image in /boot/vmlinuz-*ailinux*' config/hooks/0200-ailinux-initramfs.chroot
+grep -Fq 'for kernel_file in "$root"/boot/vmlinuz-*ailinux*' scripts/verify-installed-system.sh
 for stale in \
     config/includes.chroot/etc/apt/sources.list.d/ailinux-mirrors.list \
     config/includes.chroot/etc/apt/sources.list.d/third-party.list \

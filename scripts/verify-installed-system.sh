@@ -201,7 +201,7 @@ fi
 
 # AILinuX kernel, matching initramfs and module tree.
 kernel_count=0
-for kernel_file in "$root"/boot/vmlinuz-*-ailinux; do
+for kernel_file in "$root"/boot/vmlinuz-*ailinux*; do
     [ -f "$kernel_file" ] || continue
     kernel_count=$((kernel_count + 1))
     kernel_version=${kernel_file##*/vmlinuz-}
@@ -219,7 +219,7 @@ for kernel_file in "$root"/boot/vmlinuz-*-ailinux; do
         fail "kernel files exist without installed dpkg package linux-image-$kernel_version"
     fi
 done
-[ "$kernel_count" -gt 0 ] || fail 'no /boot/vmlinuz-*-ailinux kernel was found'
+[ "$kernel_count" -gt 0 ] || fail 'no /boot/vmlinuz-*ailinux* kernel was found'
 
 if [ "$package_db" = true ]; then
     # Native Mozilla Firefox DEB, not Ubuntu's snap transition package.
@@ -468,7 +468,7 @@ if [ "$mode" = installed ] && [ -n "$selected_user" ]; then
     if [ ! -r "$grub_cfg" ]; then
         fail 'installed target has no readable /boot/grub/grub.cfg'
     else
-        for kernel_file in "$root"/boot/vmlinuz-*-ailinux; do
+        for kernel_file in "$root"/boot/vmlinuz-*ailinux*; do
             [ -f "$kernel_file" ] || continue
             kernel_version=${kernel_file##*/vmlinuz-}
             if grep -F "AILinuX $kernel_version" "$grub_cfg" | grep -Fvq '(Safe Mode)'; then

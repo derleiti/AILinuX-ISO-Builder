@@ -9,7 +9,10 @@ test -x "$update_initramfs" || {
 }
 
 found=0
-for kernel_image in /boot/vmlinuz-*-ailinux; do
+# The repository currently exposes a compatibility metapackage ending in
+# -ailinux, while its concrete image ends in -ailinux-ai-gaming. Match the
+# installed image rather than assuming that AILinuX is the final suffix.
+for kernel_image in /boot/vmlinuz-*ailinux*; do
     test -e "$kernel_image" || continue
     version=${kernel_image#/boot/vmlinuz-}
     found=1
