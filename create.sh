@@ -76,7 +76,7 @@ reset_build_state() {
     # The reusable rootless builder lives below ~/.cache and is intentionally
     # retained; only live-build's project-local state and published artifacts
     # are removed here.
-    rm -rf \
+    set -- \
         .build \
         binary \
         cache \
@@ -84,14 +84,26 @@ reset_build_state() {
         local \
         .downloads \
         .offline-build-state \
-        output
-    rm -f \
+        output \
         binary.contents \
         binary.packages \
         chroot.headers \
         chroot.packages.* \
         .final-iso \
         .autologin-final-iso
+
+    # live-build creates files as system users inside the mapped namespace.
+    # On the host they are subordinate-ID objects and cannot all be removed by
+    # the invoking user. Delete the complete tree with the same mapping that
+    # created it. The fallback still handles a genuinely fresh tree on hosts
+    # where user namespaces have not been configured yet.
+    if command -v unshare >/dev/null 2>&1 && \
+        unshare --user --map-root-user --map-auto rm -rf -- "$@"
+    then
+        :
+    else
+        rm -rf -- "$@"
+    fi
     mkdir -p output
     echo "Previous build tree and ISO artifacts removed."
 }

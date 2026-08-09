@@ -36,6 +36,10 @@ or `/etc/subgid` are not configured. The actual `live-build`, GRUB, SquashFS and
 ISO tools are installed only inside the reusable rootless builder; they do not
 need to be installed on the host.
 
+The clean reset runs in that same mapped user namespace. This allows repeated
+`./create.sh` runs to remove chroot files owned by mapped system users without
+`sudo` and without leaving a partially cleaned build tree.
+
 By default, `create.sh` builds from the network: it fetches the AILinuX
 repository metadata and pulls the AILinuX packages from `repo.ailinux.me`. A
 fresh clone therefore needs nothing but the dependencies below and an internet

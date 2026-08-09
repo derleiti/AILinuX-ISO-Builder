@@ -130,6 +130,7 @@ for required_create_fragment in \
     'acquire_build_lock' \
     'AILINUX_BUILD_LOCK_PID=$$' \
     './scripts/preflight-build.sh rootless' \
+    'unshare --user --map-root-user --map-auto rm -rf' \
     'Previous build tree and ISO artifacts removed.' \
     'artifact_ready=1'
 do
