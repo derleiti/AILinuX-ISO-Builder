@@ -376,6 +376,37 @@ else
     fail 'neither installed-user nor /etc/skel Infinity configuration is available'
 fi
 
+for infinity_theme_dir in \
+    usr/share/Kvantum/Infinity-Kvantum \
+    usr/share/plasma/look-and-feel/Infinity-Global \
+    usr/share/plasma/look-and-feel/Infinity-Global-6 \
+    usr/share/plasma/look-and-feel/Infinity-Plasma-Splash-6 \
+    usr/share/aurorae/themes/Infinity-Blur-Aurorae \
+    usr/share/aurorae/themes/Infinity-Blur-Aurorae-6 \
+    usr/share/aurorae/themes/Infinity-Color-Aurorae \
+    usr/share/aurorae/themes/Infinity-Color-Aurorae-6 \
+    usr/share/aurorae/themes/Infinity-Solid-Aurorae \
+    usr/share/aurorae/themes/Infinity-Solid-Aurorae-6 \
+    usr/share/themes/Infinity-GTK \
+    usr/share/themes/Infinity-GTK-Light \
+    usr/share/icons/Infinity-Dark-Icons \
+    usr/share/icons/Infinity-Lavender-Dark-Icons \
+    usr/share/icons/Infinity-Lavender-Light-Icons \
+    usr/share/icons/Infinity-Light-Icons \
+    usr/share/plasma/desktoptheme/Infinity-Light-Plasma \
+    usr/share/plasma/desktoptheme/Infinity-Plasma \
+    usr/share/plasma/desktoptheme/Infinity-Solid-Plasma \
+    usr/share/sddm/themes/Infinity-SDDM-6 \
+    usr/share/wallpapers/Infinity-World-Wallpaper \
+    usr/share/wallpapers/Infinity-World-Wallpaper-No-Logo
+do
+    if [ -d "$root/$infinity_theme_dir" ]; then
+        pass "Infinity theme directory is installed: /$infinity_theme_dir"
+    else
+        fail "Infinity theme directory is missing: /$infinity_theme_dir"
+    fi
+done
+
 for infinity_payload in \
     usr/share/color-schemes/InfinityBlueDarkColor.colors \
     usr/share/Kvantum/Infinity-Kvantum/Infinity-Kvantum.kvconfig \

@@ -74,6 +74,7 @@ scripts/verify-installed-system.sh
 config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
 config/hooks/0200-ailinux-initramfs.chroot
+config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
 config/third-party-repos.json
 config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list
 scripts/patch-live-build-mounts.sh
@@ -115,6 +116,7 @@ for script in \
     config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0145-ailinux-unpackfs-nosparse.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
+    config/hooks/normal/9500-ailinux-wallpaper.hook.chroot \
     config/includes.binary/live/tools.conf \
     config/includes.chroot/usr/local/bin/ailinux-installer \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
@@ -127,6 +129,9 @@ do
 done
 python3 -c 'compile(open("scripts/finalize-binary-grub.py", encoding="utf-8").read(), "scripts/finalize-binary-grub.py", "exec")'
 python3 scripts/finalize-binary-grub.py --self-test >/dev/null
+python3 -c 'import json,sys; [json.load(open(path, encoding="utf-8")) for path in sys.argv[1:]]' \
+    assets/infinity-theme/Infinity-World-Wallpaper.metadata.json \
+    assets/infinity-theme/Infinity-World-Wallpaper-No-Logo.metadata.json
 
 # Network build is the default: a fresh clone has no live-build package cache
 # and offline mode could not stage the AILinuX kernel and copa packages there.
