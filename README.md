@@ -26,10 +26,15 @@ tool set:
 ```bash
 sudo apt-get update
 sudo apt-get install --yes git uidmap util-linux ubuntu-keyring python3
-git clone https://github.com/derleiti/AILinuX-ISO-Builder.git
+git clone --recurse-submodules https://github.com/derleiti/AILinuX-ISO-Builder.git
 cd AILinuX-ISO-Builder
 ./create.sh
 ```
+
+For an existing checkout, fetch the pinned Infinity theme source once with
+`git submodule update --init`. The build stages that source temporarily into
+live-build's include tree and removes the staged copy again on success, failure
+or interruption.
 
 The preflight prints an exact repair command when user namespaces, `/etc/subuid`
 or `/etc/subgid` are not configured. The actual `live-build`, GRUB, SquashFS and
@@ -127,7 +132,7 @@ explicit `AILINUX_GRAPHICAL_READY` signal after SDDM is ready. Use
 a final boot on representative physical firmware and a current Ventoy USB
 stick. The installed-system audit is read-only and checks the mounted Calamares
 target, including its user, Desktop, sudoers policy, kernels, native Firefox,
-Oxygen defaults and generated GRUB menu.
+Infinity defaults and generated GRUB menu.
 
 ## Design
 
@@ -141,9 +146,13 @@ Oxygen defaults and generated GRUB menu.
   transition wrapper); its source, key and priority pin are active through
   `config/archives` before live-build resolves packages, and a chroot hook
   aborts the build if the transition package is selected
-- Oxygen is the initial Plasma 6 global look-and-feel for the live account and
-  every newly installed user; it is seeded through `/etc/skel`, so users can
-  change it normally and it is not forced again on later logins
+- The complete Infinity collection is installed system-wide: Plasma 5/6 global
+  themes, Plasma desktop themes, color scheme, Kvantum and GTK themes, all icon
+  variants, Aurorae decorations, Plasma 6 splash, SDDM theme and both
+  wallpapers. `Infinity-Global-6` and its matching dark components are the
+  initial defaults for the live account and every newly installed user. They
+  are seeded through `/etc/skel`, so users can change them normally and they
+  are not forced again on later logins
 - Calamares graphical installer for physical desktop and server-class PCs
 - Calamares' automatic erase layout creates the required UEFI system partition
   on UEFI machines, one ext4 root filesystem and a swap file instead of an

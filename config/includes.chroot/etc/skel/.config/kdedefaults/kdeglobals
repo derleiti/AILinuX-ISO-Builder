@@ -1,8 +1,8 @@
 [General]
-ColorScheme=Oxygen
+ColorScheme=InfinityDarkColor
 
 [Icons]
-Theme=oxygen
+Theme=Infinity-Dark-Icons
 
 [KDE]
-widgetStyle=oxygen
+widgetStyle=kvantum-dark

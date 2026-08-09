@@ -1,10 +1,13 @@
 #!/bin/sh
-# AILinuX: Wallpaper als Plasma- und SDDM-Default verdrahten.
-# Laeuft nach chroot_includes, d.h. /usr/share/wallpapers/AILinuX existiert bereits.
+# AILinuX: Infinity-Wallpaper und Infinity-SDDM als Defaults verdrahten.
+# Laeuft nach chroot_includes, sodass die temporaer bereitgestellte Infinity-
+# Sammlung bereits unter /usr/share liegt.
 set -e
 
-WPNAME="AILinuX"
-IMG="/usr/share/wallpapers/AILinuX/contents/images/3840x2160.png"
+WPNAME="Infinity-World-Wallpaper"
+IMG="/usr/share/wallpapers/${WPNAME}/contents/images/1920x1080.png"
+LNF="/usr/share/plasma/look-and-feel/Infinity-Global-6"
+SDDM_THEME="/usr/share/sddm/themes/Infinity-SDDM-6"
 
 echo "I: [ailinux-wallpaper] start"
 
@@ -13,49 +16,32 @@ if [ ! -f "$IMG" ]; then
     exit 1
 fi
 
-# --- 1. Look-and-Feel defaults: Wallpaper eintragen ---------------------------
-found_lnf=0
-for lnf in /usr/share/plasma/look-and-feel/*/; do
-    [ -d "${lnf}contents" ] || continue
-    d="${lnf}contents/defaults"
-    case "$lnf" in
-        *org.kde.oxygen.desktop/|*org.kde.breeze.desktop/|*org.kde.breezedark.desktop/) ;;
-        *) continue ;;
-    esac
-    found_lnf=1
-    if [ -f "$d" ] && grep -q '^\[Wallpaper\]' "$d"; then
-        if grep -q '^\[Wallpaper\]' "$d" && sed -n '/^\[Wallpaper\]/,/^\[/p' "$d" | grep -q '^Image='; then
-            sed -i "/^\[Wallpaper\]/,/^\[/ s|^Image=.*|Image=${WPNAME}|" "$d"
-        else
-            sed -i "/^\[Wallpaper\]/a Image=${WPNAME}" "$d"
-        fi
-    else
-        printf '\n[Wallpaper]\nImage=%s\n' "$WPNAME" >> "$d"
-    fi
-    echo "I: [ailinux-wallpaper] gesetzt in $d"
-done
-[ "$found_lnf" = 1 ] || echo "W: [ailinux-wallpaper] kein passendes look-and-feel gefunden"
+# --- 1. Plasma-6-Global-Theme und Wallpaper pruefen ---------------------------
+DEFAULTS="$LNF/contents/defaults"
+[ -f "$DEFAULTS" ] || {
+    echo "E: [ailinux-wallpaper] Infinity-Global-6 fehlt - Abbruch"
+    exit 1
+}
+grep -Fxq "Image=${WPNAME}" "$DEFAULTS" || {
+    echo "E: [ailinux-wallpaper] falsches Infinity-Wallpaper in $DEFAULTS"
+    exit 1
+}
+grep -Fxq 'Theme=Infinity-Plasma-Splash-6' "$DEFAULTS" || {
+    echo "E: [ailinux-wallpaper] falscher Plasma-6-Splash in $DEFAULTS"
+    exit 1
+}
+echo "I: [ailinux-wallpaper] Plasma-Default: $WPNAME"
 
-# --- 2. SDDM: Hintergrund und Theme ------------------------------------------
-sddm_theme=""
-for t in /usr/share/sddm/themes/breeze /usr/share/sddm/themes/maui /usr/share/sddm/themes/elarun; do
-    if [ -d "$t" ]; then sddm_theme="$t"; break; fi
-done
-
-if [ -n "$sddm_theme" ]; then
-    cat > "${sddm_theme}/theme.conf.user" <<EOF
-[General]
-type=image
-background=${IMG}
-EOF
-    mkdir -p /etc/sddm.conf.d
-    cat > /etc/sddm.conf.d/10-ailinux-theme.conf <<EOF
+# --- 2. SDDM: Infinity-Plasma-6-Theme aktivieren ------------------------------
+[ -f "$SDDM_THEME/Main.qml" ] || {
+    echo "E: [ailinux-wallpaper] Infinity-SDDM-6 fehlt - Abbruch"
+    exit 1
+}
+mkdir -p /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/10-ailinux-theme.conf <<EOF
 [Theme]
-Current=$(basename "$sddm_theme")
+Current=Infinity-SDDM-6
 EOF
-    echo "I: [ailinux-wallpaper] SDDM-Theme: $sddm_theme"
-else
-    echo "W: [ailinux-wallpaper] kein SDDM-Theme gefunden - uebersprungen"
-fi
+echo "I: [ailinux-wallpaper] SDDM-Theme: Infinity-SDDM-6"
 
 echo "I: [ailinux-wallpaper] fertig"

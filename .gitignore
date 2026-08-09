@@ -24,6 +24,7 @@
 /.autologin-final-iso
 /.last-installer-branding-backup
 /.offline-build-state/
+/.infinity-theme-state/
 
 # Backups
 /backups/

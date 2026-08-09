@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Wallpaper/Images",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "l4k1"
+            }
+        ],
+        "Id": "Infinity-World-Wallpaper-No-Logo",
+        "License": "GPLv3",
+        "Name": "Infinity World (without Plasma logo)",
+        "Description": "Infinity World wallpaper without the Plasma logo"
+    }
+}

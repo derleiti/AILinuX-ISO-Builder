@@ -1,9 +1,9 @@
 [General]
-ColorScheme=Oxygen
+ColorScheme=InfinityDarkColor
 
 [Icons]
-Theme=oxygen
+Theme=Infinity-Dark-Icons
 
 [KDE]
-LookAndFeelPackage=org.kde.oxygen
-widgetStyle=oxygen
+LookAndFeelPackage=Infinity-Global-6
+widgetStyle=kvantum-dark

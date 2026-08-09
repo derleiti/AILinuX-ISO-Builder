@@ -5,9 +5,12 @@ project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
 
 required_files="
+.gitmodules
 create.sh
 assets/branding/ailinux-system-logo-source.png
 assets/branding/ailinux-system-logo.png
+assets/infinity-theme/Infinity-World-Wallpaper.metadata.json
+assets/infinity-theme/Infinity-World-Wallpaper-No-Logo.metadata.json
 auto/config.in
 config/ailinux-kernel.env
 config/offline-packages.sha256
@@ -35,6 +38,10 @@ config/includes.chroot/etc/skel/.config/kcminputrc
 config/includes.chroot/etc/skel/.config/ksplashrc
 config/includes.chroot/etc/skel/.config/kwinrc
 config/includes.chroot/etc/skel/.config/plasmarc
+config/includes.chroot/etc/skel/.config/Kvantum/kvantum.kvconfig
+config/includes.chroot/etc/skel/.config/gtk-3.0/settings.ini
+config/includes.chroot/etc/skel/.config/gtk-4.0/settings.ini
+config/includes.chroot/etc/skel/.gtkrc-2.0
 config/includes.chroot/etc/skel/.config/kdedefaults/kcminputrc
 config/includes.chroot/etc/skel/.config/kdedefaults/kdeglobals
 config/includes.chroot/etc/skel/.config/kdedefaults/ksplashrc
@@ -56,6 +63,7 @@ config/includes.chroot/etc/calamares/modules/kernelcheck.conf
 config/includes.chroot/etc/calamares/modules/mediacheck.conf
 config/binary_grub/grub.cfg
 scripts/prepare-keyrings.sh
+scripts/prepare-infinity-theme.sh
 scripts/prepare-offline-build.sh
 scripts/preflight-build.sh
 scripts/resolve-latest-kernel.sh
@@ -91,6 +99,7 @@ for script in \
     scripts/patch-live-build-iso.sh \
     scripts/preflight-build.sh \
     scripts/prepare-keyrings.sh \
+    scripts/prepare-infinity-theme.sh \
     scripts/prepare-offline-build.sh \
     scripts/resolve-latest-kernel.sh \
     scripts/sync-repositories.sh \
@@ -175,6 +184,8 @@ grep -Fq 'Using existing checked repository configuration without network refres
 grep -Fq 'prepare-offline-build.sh stage' scripts/build.sh
 grep -Fq 'prepare-offline-build.sh mask-archive' scripts/build.sh
 grep -Fq 'prepare-offline-build.sh cleanup' scripts/build.sh
+grep -Fq 'prepare-infinity-theme.sh stage' scripts/build.sh
+grep -Fq 'prepare-infinity-theme.sh cleanup' scripts/build.sh
 
 awk '
     NF != 2 || $1 !~ /^[0-9a-f]{64}$/ || $2 !~ /_(amd64|all)\.deb$/ { exit 1 }
@@ -203,6 +214,7 @@ for oxygen_package in \
 do
     grep -Fqx "$oxygen_package" config/package-lists/desktop.list.chroot
 done
+grep -Fqx 'qt-style-kvantum' config/package-lists/desktop.list.chroot
 grep -q '^firefox$' config/package-lists/productivity.list.chroot
 if grep -Rqs '^kubuntu-desktop$' config/package-lists; then
     echo "Kubuntu desktop meta-package is forbidden; use Ubuntu Server plus explicit Plasma packages." >&2
@@ -294,36 +306,65 @@ if grep -Eq '(^|[[:space:]"])boot=live([[:space:]"]|$)' auto/config config/binar
 fi
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
-# Seed Oxygen through normal per-user configuration plus Plasma's reset
+# Seed Infinity through normal per-user configuration plus Plasma's reset
 # defaults. These files are copied from /etc/skel only when a user is created,
 # so choosing another Global Theme later replaces them normally; no login-time
-# service may force Oxygen.
-oxygen_skel=config/includes.chroot/etc/skel/.config
-grep -Fqx 'LookAndFeelPackage=org.kde.oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdeglobals"
-grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kcminputrc"
-grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/ksplashrc"
-grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kwinrc"
-grep -Fqx 'name=oxygen' "$oxygen_skel/plasmarc"
-grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
-grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kdedefaults/kcminputrc"
-grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/kdedefaults/ksplashrc"
-grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kdedefaults/kwinrc"
-grep -Fqx 'NoPlugin=false' "$oxygen_skel/kdedefaults/kwinrc"
-grep -Fqx 'org.kde.oxygen' "$oxygen_skel/kdedefaults/package"
-grep -Fqx 'name=oxygen' "$oxygen_skel/kdedefaults/plasmarc"
-if grep -RqsE 'plasma-apply-lookandfeel.*org\.kde\.oxygen|lookandfeeltool.*org\.kde\.oxygen' \
+# service may force Infinity.
+infinity_skel=config/includes.chroot/etc/skel/.config
+grep -Fqx 'LookAndFeelPackage=Infinity-Global-6' "$infinity_skel/kdeglobals"
+grep -Fqx 'ColorScheme=InfinityDarkColor' "$infinity_skel/kdeglobals"
+grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdeglobals"
+grep -Fqx 'widgetStyle=kvantum-dark' "$infinity_skel/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kcminputrc"
+grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/ksplashrc"
+grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kwinrc"
+grep -Fqx 'theme=__aurorae__svg__Infinity-Color-Aurorae-6' "$infinity_skel/kwinrc"
+grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/plasmarc"
+grep -Fqx 'ColorScheme=InfinityDarkColor' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'widgetStyle=kvantum-dark' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kdedefaults/kcminputrc"
+grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/kdedefaults/ksplashrc"
+grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kdedefaults/kwinrc"
+grep -Fqx 'theme=__aurorae__svg__Infinity-Color-Aurorae-6' "$infinity_skel/kdedefaults/kwinrc"
+grep -Fqx 'NoPlugin=false' "$infinity_skel/kdedefaults/kwinrc"
+grep -Fqx 'Infinity-Global-6' "$infinity_skel/kdedefaults/package"
+grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/kdedefaults/plasmarc"
+grep -Fqx 'theme=Infinity-Kvantum' "$infinity_skel/Kvantum/kvantum.kvconfig"
+grep -Fqx 'gtk-theme-name=Infinity-GTK' "$infinity_skel/gtk-3.0/settings.ini"
+grep -Fqx 'gtk-theme-name=Infinity-GTK' "$infinity_skel/gtk-4.0/settings.ini"
+grep -Fqx 'gtk-theme-name="Infinity-GTK"' config/includes.chroot/etc/skel/.gtkrc-2.0
+if grep -RqsE 'plasma-apply-lookandfeel.*Infinity-Global-6|lookandfeeltool.*Infinity-Global-6' \
         config/includes.chroot/etc/xdg/autostart \
         config/includes.chroot/etc/systemd \
         config/includes.chroot/usr/lib/systemd \
         config/includes.chroot/usr/local 2>/dev/null; then
-    echo "Oxygen must be a user-changeable default, not a login-time override." >&2
+    echo "Infinity must be a user-changeable default, not a login-time override." >&2
     exit 1
 fi
+
+grep -Fq 'path = Infinity-Plasma-Themes' .gitmodules
+grep -Fq 'https://github.com/L4ki/Infinity-Plasma-Themes' .gitmodules
+for infinity_source in \
+    "Infinity Color Schemes/InfinityBlueDarkColor.colors" \
+    "Infinity Kvantum Theme/Infinity-Kvantum/Infinity-Kvantum.kvconfig" \
+    "Infinity Global Themes/Infinity-Global-6/metadata.json" \
+    "Infinity Windows Decorations/Infinity-Color-Aurorae-6/metadata.json" \
+    "Infinity-GTK/Infinity-GTK/gtk-3.0/gtk.css" \
+    "Infinity-Icons/Infinity-Dark-Icons/index.theme" \
+    "Infinity-Plasma-Splash-6/metadata.json" \
+    "Infinity-Plasma-Themes/Infinity-Plasma/metadata.desktop" \
+    "Infinity-SDDM/Infinity-SDDM-6/Main.qml" \
+    "Infinity-Wallpapers/Infinity-World-Wallpaper With Plasma logo.png" \
+    "Infinity-Wallpapers/Infinity-World-Wallpaper Without Plasma logo.png"
+do
+    test -s "Infinity-Plasma-Themes/$infinity_source" || {
+        echo "Missing Infinity theme source: $infinity_source" >&2
+        exit 1
+    }
+done
+grep -Fq 'Theme=Infinity-Plasma-Splash-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
+grep -Fq 'Current=Infinity-SDDM-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
 
 # KDE's about-distro KCM resolves LOGO through the hicolor icon theme. Keep
 # several native raster sizes so the logo stays sharp in normal and HiDPI UI.

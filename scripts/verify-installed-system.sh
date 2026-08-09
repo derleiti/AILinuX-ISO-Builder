@@ -256,7 +256,7 @@ if [ "$package_db" = true ]; then
 
     # Ubuntu Server is the base; Plasma and AILinuX products are layered
     # explicitly on top.
-    for required_package in ubuntu-server plasma-desktop plasma-workspace sddm aicoder copa; do
+    for required_package in ubuntu-server plasma-desktop plasma-workspace sddm qt-style-kvantum aicoder copa; do
         if package_installed "$required_package"; then
             pass "required image package is installed: $required_package"
         else
@@ -344,39 +344,63 @@ fi
 
 printf '\nDetected target mode: %s\n' "$mode"
 
-# Oxygen must be a default, not a forced login-time override.  Prefer an
+# Infinity must be a default, not a forced login-time override. Prefer an
 # explicit user setting.  If the profile has not materialized it yet, verify
 # the /etc/skel seed which Calamares copies when creating the user.
-oxygen_config="$root/etc/skel/.config"
-oxygen_origin='/etc/skel fallback'
+infinity_config="$root/etc/skel/.config"
+infinity_origin='/etc/skel fallback'
 if [ -n "$selected_user" ] && [ "$mode" = installed ]; then
     profile_config="$root$user_home/.config"
     profile_look=$(ini_value "$profile_config/kdeglobals" KDE LookAndFeelPackage)
     if [ -n "$profile_look" ]; then
-        oxygen_config=$profile_config
-        oxygen_origin="user profile $user_home"
+        infinity_config=$profile_config
+        infinity_origin="user profile $user_home"
     fi
 fi
 
-if [ -d "$oxygen_config" ]; then
-    pass "Oxygen configuration source is $oxygen_origin"
-    check_ini_value 'Oxygen global look-and-feel' "$oxygen_config/kdeglobals" KDE LookAndFeelPackage org.kde.oxygen
-    check_ini_value 'Oxygen color scheme' "$oxygen_config/kdedefaults/kdeglobals" General ColorScheme Oxygen
-    check_ini_value 'Oxygen icon theme' "$oxygen_config/kdedefaults/kdeglobals" Icons Theme oxygen
-    check_ini_value 'Oxygen widget style' "$oxygen_config/kdedefaults/kdeglobals" KDE widgetStyle oxygen
-    check_ini_value 'Oxygen cursor theme' "$oxygen_config/kdedefaults/kcminputrc" Mouse cursorTheme Oxygen_Black
-    check_ini_value 'Oxygen splash theme' "$oxygen_config/kdedefaults/ksplashrc" KSplash Theme org.kde.oxygen
-    check_ini_value 'Oxygen window decoration' "$oxygen_config/kdedefaults/kwinrc" org.kde.kdecoration2 library org.kde.oxygen
-    check_ini_value 'Oxygen Plasma theme' "$oxygen_config/kdedefaults/plasmarc" Theme name oxygen
+if [ -d "$infinity_config" ]; then
+    pass "Infinity configuration source is $infinity_origin"
+    check_ini_value 'Infinity global look-and-feel' "$infinity_config/kdeglobals" KDE LookAndFeelPackage Infinity-Global-6
+    check_ini_value 'Infinity color scheme' "$infinity_config/kdedefaults/kdeglobals" General ColorScheme InfinityDarkColor
+    check_ini_value 'Infinity icon theme' "$infinity_config/kdedefaults/kdeglobals" Icons Theme Infinity-Dark-Icons
+    check_ini_value 'Infinity widget style' "$infinity_config/kdedefaults/kdeglobals" KDE widgetStyle kvantum-dark
+    check_ini_value 'Infinity cursor fallback' "$infinity_config/kdedefaults/kcminputrc" Mouse cursorTheme breeze_cursors
+    check_ini_value 'Infinity splash theme' "$infinity_config/kdedefaults/ksplashrc" KSplash Theme Infinity-Plasma-Splash-6
+    check_ini_value 'Infinity window decoration engine' "$infinity_config/kdedefaults/kwinrc" org.kde.kdecoration2 library org.kde.kwin.aurorae
+    check_ini_value 'Infinity window decoration' "$infinity_config/kdedefaults/kwinrc" org.kde.kdecoration2 theme __aurorae__svg__Infinity-Color-Aurorae-6
+    check_ini_value 'Infinity Plasma theme' "$infinity_config/kdedefaults/plasmarc" Theme name Infinity-Plasma
+    check_ini_value 'Infinity Kvantum theme' "$infinity_config/Kvantum/kvantum.kvconfig" General theme Infinity-Kvantum
+    check_ini_value 'Infinity GTK 3 theme' "$infinity_config/gtk-3.0/settings.ini" Settings gtk-theme-name Infinity-GTK
+    check_ini_value 'Infinity GTK 4 theme' "$infinity_config/gtk-4.0/settings.ini" Settings gtk-theme-name Infinity-GTK
 else
-    fail 'neither installed-user nor /etc/skel Oxygen configuration is available'
+    fail 'neither installed-user nor /etc/skel Infinity configuration is available'
 fi
 
-if [ ! -d "$root/usr/share/plasma/look-and-feel/org.kde.oxygen" ]; then
-    fail 'Oxygen look-and-feel package data is missing'
-else
-    pass 'Oxygen look-and-feel package data is present'
-fi
+for infinity_payload in \
+    usr/share/color-schemes/InfinityBlueDarkColor.colors \
+    usr/share/Kvantum/Infinity-Kvantum/Infinity-Kvantum.kvconfig \
+    usr/share/plasma/look-and-feel/Infinity-Global/metadata.desktop \
+    usr/share/plasma/look-and-feel/Infinity-Global-6/metadata.json \
+    usr/share/plasma/look-and-feel/Infinity-Plasma-Splash-6/metadata.json \
+    usr/share/aurorae/themes/Infinity-Color-Aurorae-6/metadata.json \
+    usr/share/themes/Infinity-GTK/gtk-3.0/gtk.css \
+    usr/share/icons/Infinity-Dark-Icons/index.theme \
+    usr/share/plasma/desktoptheme/Infinity-Plasma/metadata.desktop \
+    usr/share/sddm/themes/Infinity-SDDM-6/Main.qml \
+    usr/share/wallpapers/Infinity-World-Wallpaper/metadata.json \
+    usr/share/wallpapers/Infinity-World-Wallpaper-No-Logo/metadata.json
+do
+    if [ -s "$root/$infinity_payload" ]; then
+        pass "Infinity payload is installed: /$infinity_payload"
+    else
+        fail "Infinity payload is missing: /$infinity_payload"
+    fi
+done
+check_ini_value 'Infinity wallpaper default' \
+    "$root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults" \
+    Wallpaper Image Infinity-World-Wallpaper
+check_ini_value 'Infinity SDDM default' \
+    "$root/etc/sddm.conf.d/10-ailinux-theme.conf" Theme Current Infinity-SDDM-6
 
 # GRUB defaults can be checked in both image and installed targets.
 grub_defaults="$root/etc/default/grub.d/99-ailinux.cfg"
