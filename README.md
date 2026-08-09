@@ -25,8 +25,8 @@ tool set:
 
 ```bash
 sudo apt-get update
-sudo apt-get install --yes git uidmap ubuntu-keyring python3
-git clone <repository-url> AILinuX-ISO-Builder
+sudo apt-get install --yes git uidmap util-linux ubuntu-keyring python3
+git clone https://github.com/derleiti/AILinuX-ISO-Builder.git
 cd AILinuX-ISO-Builder
 ./create.sh
 ```

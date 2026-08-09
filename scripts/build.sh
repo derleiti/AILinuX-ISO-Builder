@@ -54,6 +54,7 @@ release_build_lock() {
 }
 
 owns_build_lock=0
+pending_iso=
 if [ -n "${AILINUX_BUILD_LOCK_PID:-}" ]; then
     read_lock_pid && [ "$lock_pid" = "$AILINUX_BUILD_LOCK_PID" ] || {
         echo "Inherited build lock does not match $lock_file." >&2
@@ -69,6 +70,9 @@ cleanup_build() {
     cleanup_status=0
     if [ -d "$project_dir/.offline-build-state" ]; then
         ./scripts/prepare-offline-build.sh cleanup || cleanup_status=$?
+    fi
+    if [ -n "$pending_iso" ]; then
+        rm -f "$pending_iso" "$pending_iso.sha256"
     fi
     if [ "$owns_build_lock" -eq 1 ]; then
         release_build_lock
@@ -199,12 +203,14 @@ if [ -z "$iso_path" ]; then
 fi
 
 final_iso="$project_dir/output/ailinux-26.04-amd64-$timestamp.iso"
+pending_iso=$final_iso
 install -m 0644 "$iso_path" "$final_iso"
 if [ "$iso_path" != "$final_iso" ]; then
     rm -f "$iso_path"
 fi
 ./scripts/validate-iso-boot.sh "$final_iso"
 (cd "$project_dir/output" && sha256sum "$(basename "$final_iso")" > "$(basename "$final_iso").sha256")
+pending_iso=
 # Only touch artifacts created by this build. Historical root-owned test ISOs
 # must not turn an otherwise successful rootless build into a failure.
 chown "$owner" "$final_iso" "$final_iso.sha256" "$log_file" 2>/dev/null || true

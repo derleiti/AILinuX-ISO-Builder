@@ -9,7 +9,15 @@ bootstrap_marker="$rootfs/.ailinux-builder-ready"
 mirror="https://archive.ubuntu.com/ubuntu"
 ubuntu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
 
-if [ "${AILINUX_CREATE_READY:-0}" != "1" ]; then
+create_preflight_ready=0
+if [ "${AILINUX_CREATE_READY:-0}" = "1" ] && \
+    [ -n "${AILINUX_BUILD_LOCK_PID:-}" ] && \
+    [ -s "$project_dir/.build.lock" ] && \
+    [ "$(sed -n '1p' "$project_dir/.build.lock")" = "$AILINUX_BUILD_LOCK_PID" ]
+then
+    create_preflight_ready=1
+fi
+if [ "$create_preflight_ready" -ne 1 ]; then
     ./scripts/preflight-build.sh rootless
     ./scripts/validate-project.sh
 fi
