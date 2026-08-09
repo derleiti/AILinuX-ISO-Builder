@@ -189,8 +189,10 @@ grep -Fq 'Using existing checked repository configuration without network refres
 grep -Fq 'prepare-offline-build.sh stage' scripts/build.sh
 grep -Fq 'prepare-offline-build.sh mask-archive' scripts/build.sh
 grep -Fq 'prepare-offline-build.sh cleanup' scripts/build.sh
-grep -Fq 'prepare-infinity-theme.sh stage' scripts/build.sh
-grep -Fq 'prepare-infinity-theme.sh cleanup' scripts/build.sh
+if grep -Fq 'prepare-infinity-theme.sh cleanup' scripts/build.sh; then
+    echo "The build must not delete versioned Infinity theme assets." >&2
+    exit 1
+fi
 
 awk '
     NF != 2 || $1 !~ /^[0-9a-f]{64}$/ || $2 !~ /_(amd64|all)\.deb$/ { exit 1 }

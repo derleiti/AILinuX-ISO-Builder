@@ -82,9 +82,6 @@ cleanup_build() {
     status=$?
     trap - EXIT HUP INT TERM
     cleanup_status=0
-    if [ -d "$project_dir/.infinity-theme-state" ]; then
-        ./scripts/prepare-infinity-theme.sh cleanup || cleanup_status=$?
-    fi
     if [ -d "$project_dir/.offline-build-state" ]; then
         ./scripts/prepare-offline-build.sh cleanup || cleanup_status=$?
     fi
@@ -111,10 +108,6 @@ fi
 ./scripts/sync-repositories.sh
 ./scripts/validate-project.sh
 install -m 0755 auto/config.in auto/config
-
-if [ "$resume_binary" != "1" ]; then
-    ./scripts/prepare-infinity-theme.sh stage
-fi
 
 if [ "$offline" = "1" ] && [ "${AILINUX_RESUME_BINARY:-0}" != "1" ]; then
     ./scripts/prepare-offline-build.sh stage

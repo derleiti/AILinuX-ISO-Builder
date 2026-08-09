@@ -32,9 +32,9 @@ cd AILinuX-ISO-Builder
 ```
 
 For an existing checkout, fetch the pinned Infinity theme source once with
-`git submodule update --init`. The build stages that source temporarily into
-live-build's include tree and removes the staged copy again on success, failure
-or interruption.
+`git submodule update --init`. The source checkout records the provenance of
+the system-wide copy below `config/includes.chroot`; maintainers can refresh
+that copy explicitly with `./scripts/prepare-infinity-theme.sh sync`.
 
 The preflight prints an exact repair command when user namespaces, `/etc/subuid`
 or `/etc/subgid` are not configured. The actual `live-build`, GRUB, SquashFS and
