@@ -57,6 +57,7 @@ config/includes.chroot/etc/calamares/modules/mediacheck.conf
 config/binary_grub/grub.cfg
 scripts/prepare-keyrings.sh
 scripts/prepare-offline-build.sh
+scripts/preflight-build.sh
 scripts/resolve-latest-kernel.sh
 scripts/sync-repositories.sh
 scripts/finalize-binary-grub.py
@@ -88,6 +89,7 @@ for script in \
     scripts/patch-live-build-mounts.sh \
     scripts/patch-live-build-squashfs.sh \
     scripts/patch-live-build-iso.sh \
+    scripts/preflight-build.sh \
     scripts/prepare-keyrings.sh \
     scripts/prepare-offline-build.sh \
     scripts/resolve-latest-kernel.sh \
@@ -123,16 +125,22 @@ for required_create_fragment in \
     'AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}' \
     'export AILINUX_OFFLINE' \
     'AILINUX_RESET_ONLY=${AILINUX_RESET_ONLY:-0}' \
+    'AILINUX_SMOKE_TESTS=${AILINUX_SMOKE_TESTS:-auto}' \
     'reset_build_state' \
-    'kernel.apparmor_restrict_unprivileged_userns' \
+    'acquire_build_lock' \
+    'AILINUX_BUILD_LOCK_PID=$$' \
+    './scripts/preflight-build.sh rootless' \
     'Previous build tree and ISO artifacts removed.' \
-    'cleanup_unverified_output'
+    'artifact_ready=1'
 do
     grep -Fq "$required_create_fragment" create.sh || {
         echo "create.sh is missing required clean-build guard: $required_create_fragment" >&2
         exit 1
     }
 done
+grep -Fq 'kernel.apparmor_restrict_unprivileged_userns' scripts/preflight-build.sh
+grep -Fq 'unshare --user --map-root-user --map-auto true' scripts/preflight-build.sh
+grep -Fq 'AILINUX_OVMF_CODE' scripts/preflight-build.sh
 for required_lock_fragment in \
     'lock_file="$project_dir/.build.lock"' \
     'acquire_build_lock' \
@@ -144,6 +152,13 @@ do
         exit 1
     }
 done
+grep -Fq 'AILINUX_BUILD_LOCK_PID' scripts/build.sh
+grep -Fq '| tee "$log_file"' scripts/build.sh
+grep -Fq './scripts/validate-iso-boot.sh "$final_iso"' scripts/build.sh
+if grep -Eq '^\./scripts/(resolve-latest-kernel|prepare-keyrings|sync-repositories)\.sh$' scripts/build-rootless.sh; then
+    echo "build-rootless.sh must not refresh metadata before build.sh refreshes it." >&2
+    exit 1
+fi
 grep -Fq 'mirror="https://archive.ubuntu.com/ubuntu"' scripts/build-rootless.sh
 grep -Fq 'https://security.ubuntu.com/ubuntu resolute-security' scripts/build-rootless.sh
 if grep -Fq 'repo.ailinux.me/mirror/archive.ubuntu.com' scripts/build-rootless.sh; then

@@ -18,10 +18,35 @@ binary tree and downloaded image-package cache before rebuilding. Only the
 isolated Resolute builder environment below `~/.cache/ailinux-distro-builder/`
 is reused.
 
+Before deleting any previous build artifacts, `create.sh` validates the project,
+checks every rootless host requirement and acquires an atomic build lock. A
+fresh Ubuntu host needs working subordinate user IDs plus the small bootstrap
+tool set:
+
+```bash
+sudo apt-get update
+sudo apt-get install --yes git uidmap ubuntu-keyring python3
+git clone <repository-url> AILinuX-ISO-Builder
+cd AILinuX-ISO-Builder
+./create.sh
+```
+
+The preflight prints an exact repair command when user namespaces, `/etc/subuid`
+or `/etc/subgid` are not configured. The actual `live-build`, GRUB, SquashFS and
+ISO tools are installed only inside the reusable rootless builder; they do not
+need to be installed on the host.
+
 By default, `create.sh` builds from the network: it fetches the AILinuX
 repository metadata and pulls the AILinuX packages from `repo.ailinux.me`. A
 fresh clone therefore needs nothing but the dependencies below and an internet
 connection.
+
+Every produced ISO is structurally checked inside the builder before it is
+published. QEMU boot tests run automatically when QEMU, xorriso and OVMF are
+available on the host. Use `AILINUX_SMOKE_TESTS=0 ./create.sh` to skip them or
+`AILINUX_SMOKE_TESTS=1 ./create.sh` to require all BIOS/UEFI and CD-ROM/USB
+tests. If a required QEMU test fails, the already structurally verified ISO is
+kept for diagnosis.
 
 Offline mode is the exception, for a machine that already carries live-build's
 package cache and needs to build while `repo.ailinux.me` is unavailable:
@@ -63,6 +88,8 @@ If host sudo is unavailable, use the isolated user-namespace builder:
 
 It creates a reusable Resolute build root below
 `~/.cache/ailinux-distro-builder/` and does not install packages on the host.
+Run `./scripts/preflight-build.sh rootless` for a fast, non-destructive host
+check before starting it directly.
 
 ## Validation
 

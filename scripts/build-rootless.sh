@@ -9,8 +9,10 @@ bootstrap_marker="$rootfs/.ailinux-builder-ready"
 mirror="https://archive.ubuntu.com/ubuntu"
 ubuntu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
 
-./scripts/preflight-build.sh rootless
-./scripts/validate-project.sh
+if [ "${AILINUX_CREATE_READY:-0}" != "1" ]; then
+    ./scripts/preflight-build.sh rootless
+    ./scripts/validate-project.sh
+fi
 test -s "$project_dir/config/archives/ailinux.key.chroot" || {
     echo "Repository-pinned AILinuX keyring is missing." >&2
     exit 1

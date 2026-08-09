@@ -137,6 +137,8 @@ fi
 
 ./scripts/preflight-build.sh rootless
 ./scripts/validate-project.sh
+AILINUX_CREATE_READY=1
+export AILINUX_CREATE_READY
 
 run_smoke_tests=0
 case "$AILINUX_SMOKE_TESTS" in

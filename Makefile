@@ -1,4 +1,4 @@
-.PHONY: build create clean validate smoke
+.PHONY: build create clean preflight validate smoke
 
 build:
 	./scripts/build.sh
@@ -8,6 +8,9 @@ create:
 
 clean:
 	sudo lb clean --purge
+
+preflight:
+	./scripts/preflight-build.sh rootless
 
 validate:
 	./scripts/validate-project.sh
