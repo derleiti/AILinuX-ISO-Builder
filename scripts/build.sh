@@ -22,7 +22,7 @@ if [ -e .build.lock ]; then
     exit 1
 fi
 
-touch .build.lock
+printf '%s\n' "$$" > .build.lock
 cleanup_build() {
     status=$?
     trap - EXIT HUP INT TERM
@@ -121,7 +121,7 @@ if grep -q '^LB_BOOTLOADER="grub2"$' config/binary; then
     }
     grub_iso="$project_dir/ailinux-26.04-amd64-$timestamp.iso"
     rm -f "$project_dir/binary/boot/grub/grub_eltorito" "$grub_iso"
-    grub-mkrescue -o "$grub_iso" "$project_dir/binary" -- -volid AILINUX_2604
+    "$project_dir/scripts/grub-mkrescue-ailinux.sh" "$grub_iso" "$project_dir/binary"
     iso_path="$grub_iso"
 fi
 

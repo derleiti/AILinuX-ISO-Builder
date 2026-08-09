@@ -73,6 +73,16 @@ LEGACY_FAILSAFE_PARAMS = (
 LIVE_MEDIA_RE = re.compile(r"\s+live-media=\S+")
 
 LINUX_LINE_RE = re.compile(r"^[ \t]*linux[ \t].*$", re.MULTILINE)
+ESCAPED_COMMAND_TABS_RE = re.compile(
+    r"^(?P<indent>[ \t]*)(?P<command>linux|initrd)(?:\\t)+",
+    re.MULTILINE,
+)
+
+
+def normalize_command_spacing(text: str) -> str:
+    """Replace live-build's escaped tab separators with real whitespace."""
+
+    return ESCAPED_COMMAND_TABS_RE.sub(r"\g<indent>\g<command> ", text)
 
 
 def sanitize_boot_params(text: str) -> str:
@@ -158,7 +168,7 @@ def split_config(text: str) -> list[str | MenuBlock]:
     return segments
 
 
-def live_entry(block: MenuBlock) -> tuple[str, bool, int] | None:
+def live_entry(block: MenuBlock) -> tuple[str | None, bool, int] | None:
     debian_match = DEBIAN_LIVE_RE.fullmatch(block.title)
     ailinux_match = AILINUX_LIVE_RE.fullmatch(block.title)
     if not debian_match and not ailinux_match:
@@ -175,6 +185,11 @@ def live_entry(block: MenuBlock) -> tuple[str, bool, int] | None:
     version = title_version or path_version
 
     if not version or not VERSION_RE.fullmatch(version):
+        # Generic live-build entries can contain wildcard or unversioned
+        # kernel paths. Remove them as lower-priority duplicates, but do
+        # not accept their unsafe version text as a canonical kernel.
+        if debian_match and title_version is None:
+            return None, safe_mode, 0
         raise ValueError(f"Cannot determine a safe kernel version for {block.title!r}")
     if title_version and path_version and title_version != path_version:
         raise ValueError(
@@ -197,6 +212,7 @@ def rewrite_title(block: MenuBlock, title: str) -> str:
 
 
 def canonicalize(text: str) -> tuple[str, list[str]]:
+    text = normalize_command_spacing(text)
     segments = split_config(text)
     candidates: dict[tuple[str, bool], tuple[int, int, MenuBlock]] = {}
     kernel_order: list[str] = []
@@ -210,6 +226,8 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
             continue
         version, safe_mode, priority = details
         live_indexes.append(index)
+        if version is None:
+            continue
         if version not in kernel_order:
             kernel_order.append(version)
         key = (version, safe_mode)
@@ -219,6 +237,8 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
 
     if not live_indexes:
         raise ValueError("No live-build GRUB live entries were found")
+    if not kernel_order:
+        raise ValueError("No safely versioned live-build GRUB entries were found")
 
     for version in kernel_order:
         missing = [
@@ -254,10 +274,10 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
 def self_test() -> int:
     fixture = """set timeout=5
 menuentry "Debian GNU/Linux - live" {
-linux /casper/vmlinuz-7.2.0-test boot=casper
+linux /casper/vmlinuz-*7.1.0-stale boot=casper
 }
 menuentry "Debian GNU/Linux - live (fail-safe mode)" {
-linux /casper/vmlinuz-7.2.0-test boot=casper nomodeset
+linux /casper/vmlinuz-*7.1.0-stale boot=casper nomodeset
 }
 menuentry "Debian GNU/Linux - live, kernel 7.2.0-test" {
 linux /casper/vmlinuz-7.2.0-test boot=casper
@@ -279,8 +299,26 @@ echo unchanged
         'menuentry "Memory test" {'
     ]:
         raise AssertionError("GRUB finalizer produced unexpected menu entries")
+    if "7.1.0-stale" in finalized:
+        raise AssertionError("Stale generic GRUB entries were not removed")
     if canonicalize(finalized)[0] != finalized:
         raise AssertionError("GRUB finalizer is not idempotent")
+
+    escaped_fixture = fixture.replace(
+        "linux /casper/", r"linux\t\t/casper/"
+    ).replace(
+        "echo unchanged", r"initrd\t\t/casper/initrd.img-7.2.0-test"
+    )
+    escaped_finalized, escaped_versions = canonicalize(escaped_fixture)
+    if escaped_versions != ["7.2.0-test"]:
+        raise AssertionError("Escaped-tab fixture lost its kernel version")
+    if r"\t" in escaped_finalized:
+        raise AssertionError("Escaped GRUB tab separators were not normalized")
+    if "linux /casper/vmlinuz-7.2.0-test" not in escaped_finalized:
+        raise AssertionError("Normalized GRUB linux command is missing")
+    if "initrd /casper/initrd.img-7.2.0-test" not in escaped_finalized:
+        raise AssertionError("Normalized GRUB initrd command is missing")
+
     print("GRUB live-menu finalizer self-test passed")
     return 0
 

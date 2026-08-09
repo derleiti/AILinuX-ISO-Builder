@@ -7,7 +7,7 @@
 # step runs inside the rootless builder root filesystem where mtools exists.
 set -eu
 
-project_dir=/home/zombie/AILinuX-Distro
+project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$project_dir"
 
 cache_dir=${AILINUX_BUILDER_CACHE:-"$HOME/.cache/ailinux-distro-builder"}
@@ -73,7 +73,7 @@ unshare --user --map-root-user --map-auto --mount --pid --fork --mount-proc \
 
         chroot "$rootfs" /usr/bin/env HOME=/root \
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-            /bin/sh -eu -c "cd /workspace && grub-mkrescue -o \"\$1\" binary -- -volid AILINUX_2604" sh "$iso_rel"
+            /bin/sh -eu -c "cd /workspace && ./scripts/grub-mkrescue-ailinux.sh \"\$1\" /workspace/binary" sh "$iso_rel"
     ' sh "$builder_rootfs" "$project_dir" "$final_iso"
 
 test -s "$final_iso"

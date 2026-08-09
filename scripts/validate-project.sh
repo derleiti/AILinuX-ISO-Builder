@@ -60,6 +60,7 @@ scripts/prepare-offline-build.sh
 scripts/resolve-latest-kernel.sh
 scripts/sync-repositories.sh
 scripts/finalize-binary-grub.py
+scripts/grub-mkrescue-ailinux.sh
 scripts/validate-iso-boot.sh
 scripts/verify-installed-system.sh
 config/hooks/0150-remove-kubuntu.chroot
@@ -84,6 +85,7 @@ for script in \
     auto/config.in \
     scripts/build.sh \
     scripts/build-rootless.sh \
+    scripts/grub-mkrescue-ailinux.sh \
     scripts/patch-live-build-rootless.sh \
     scripts/patch-live-build-mounts.sh \
     scripts/patch-live-build-squashfs.sh \
@@ -117,16 +119,30 @@ done
 python3 -c 'compile(open("scripts/finalize-binary-grub.py", encoding="utf-8").read(), "scripts/finalize-binary-grub.py", "exec")'
 python3 scripts/finalize-binary-grub.py --self-test >/dev/null
 
-# `create.sh` defaults to the repo-offline path. It may still download Ubuntu
-# packages from the official archive, but it must not contact repo.ailinux.me.
 # Network build is the default: a fresh clone has no live-build package cache
 # and offline mode could not stage the AILinuX kernel and copa packages there.
+# A failed build must not replace or delete the last verified ISO.
+grep -Fq 'AILINUX_CREATE_SNAPSHOT_ACTIVE' create.sh
+grep -Fq 'AILINUX_CREATE_SNAPSHOT_PATH' create.sh
+grep -Fq 'exec env' create.sh
+grep -Fq "trap 'exit 143' TERM" create.sh
 grep -Fq 'AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}' create.sh
-grep -Fq 'export AILINUX_OFFLINE' create.sh
+grep -Fq 'AILINUX_PURGE_CACHE=${AILINUX_PURGE_CACHE:-auto}' create.sh
+grep -Fq 'export AILINUX_OFFLINE AILINUX_PURGE_CACHE' create.sh
+grep -Fq 'AILINUX_PURGE_CACHE=1 cannot be combined with offline mode.' create.sh
 grep -Fq 'AILINUX_RESET_ONLY=${AILINUX_RESET_ONLY:-0}' create.sh
 grep -Fq 'reset_build_state' create.sh
 grep -Fq 'kernel.apparmor_restrict_unprivileged_userns' create.sh
-grep -Fq 'Previous build tree and ISO artifacts removed.' create.sh
+grep -Fq -- 'unshare --user --map-root-user --map-auto true' create.sh
+grep -Fq 'Previous build tree removed; package cache and ISO artifacts preserved.' create.sh
+grep -Fq 'restore_previous_latest' create.sh
+grep -Fq 'ailinux-26.04-amd64-known-good.iso' create.sh
+grep -Fq 'Mode: reset build tree and purge the downloaded package cache' create.sh
+grep -Fq 'Mode: reset build tree and retain the validated package cache' create.sh
+if sed -n '/sudo rm -rf/,/sudo rm -f/p' create.sh | grep -Fq '"$project_dir/cache"'; then
+    echo "create.sh must retain the package cache during reset." >&2
+    exit 1
+fi
 grep -Fq "printf '%s\\n' \"\$\$\" > .build.lock" scripts/build.sh
 grep -Fq 'mirror="https://archive.ubuntu.com/ubuntu"' scripts/build-rootless.sh
 grep -Fq 'https://security.ubuntu.com/ubuntu resolute-security' scripts/build-rootless.sh
@@ -238,7 +254,7 @@ grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-aili
 # live-build emits the Ubuntu mode's canonical "boot=casper config" prefix.
 # Boot append options must not override it with Debian live-boot. Keeping the
 # media path device-independent lets casper scan Ventoy's mapped ISO.
-grep -Fq 'live-media-path=casper noprompt debug=1' auto/config.in
+grep -Fq 'live-media-path=casper noprompt quiet splash console=ttyS0,115200n8 console=tty0' auto/config.in
 grep -Fq "pinned_keyring=\"\$archive_dir/ailinux.key.chroot\"" scripts/prepare-keyrings.sh
 grep -Fq "[ \"\$probe_dist\" = '@flat' ]" scripts/sync-repositories.sh
 if grep -Eq '(^|[[:space:]])boot=(live|casper)([[:space:]]|$)' auto/config.in; then
@@ -305,9 +321,30 @@ grep -Fq 'enable ailinux-graphical-ready.service' config/hooks/0100-ailinux-conf
 grep -Fq "success_pattern='AILINUX_GRAPHICAL_READY'" scripts/smoke-test-iso.sh
 grep -Fq 'scripts/validate-iso-boot.sh' scripts/smoke-test-iso.sh
 grep -Fq 'AILINUX_QEMU_MEDIA' scripts/smoke-test-iso.sh
+grep -Fq 'AILINUX_OVMF_VARS' scripts/smoke-test-iso.sh
+grep -Fq 'if=pflash,unit=0' scripts/smoke-test-iso.sh
+grep -Fq 'if=pflash,unit=1' scripts/smoke-test-iso.sh
 grep -Fq 'media_mode in cdrom usb' create.sh
 grep -Fq 'El Torito boot img' scripts/validate-iso-boot.sh
 grep -Fq 'Ventoy media discovery' scripts/validate-iso-boot.sh
+grep -Fq 'GRUB enables initramfs debug mode for the normal hardware boot.' scripts/validate-iso-boot.sh
+grep -Fq 'if ($i == "quiet") quiet = 1' scripts/validate-iso-boot.sh
+grep -Fq 'if ($i == "splash") splash = 1' scripts/validate-iso-boot.sh
+grep -Fq 'console=ttyS0,115200n8 console=tty0' auto/config.in
+if grep -Fq 'debug=1' auto/config.in; then
+    echo "The normal hardware boot must not enable permanent initramfs debugging." >&2
+    exit 1
+fi
+grep -Fq 'premature end of file' scripts/smoke-test-iso.sh
+grep -Fq '1048576' scripts/validate-iso-boot.sh
+grep -Fq 'grub-mkrescue-ailinux.sh' scripts/build.sh
+grep -Fq -- '--sort-weight' scripts/grub-mkrescue-ailinux.sh
+grep -Fq 'set -- grub-mkrescue -o "$output_iso" -volid AILINUX_2604' scripts/grub-mkrescue-ailinux.sh
+grep -Fq 'set -- "$@" "$binary_dir"' scripts/grub-mkrescue-ailinux.sh
+if grep -Fq -- ' -- -volid ' scripts/grub-mkrescue-ailinux.sh; then
+    echo "grub-mkrescue must not switch xorriso to native mode before mkisofs options." >&2
+    exit 1
+fi
 test -f config/includes.chroot/etc/systemd/system/getty@tty1.service.d/10-ailinux-live-autologin.conf
 test -f config/includes.chroot/etc/systemd/system/serial-getty@ttyS0.service.d/10-ailinux-live-autologin.conf
 grep -Fq 'PasswordAuthentication no' config/includes.chroot/etc/ssh/sshd_config.d/90-ailinux-live-security.conf
@@ -315,6 +352,8 @@ grep -Fq 'md5sum.txt' scripts/build.sh
 grep -Fq 'python3 ./scripts/finalize-binary-grub.py "$project_dir/binary/boot/grub/grub.cfg"' scripts/build.sh
 grep -Fq 'AILinuX {version}' scripts/finalize-binary-grub.py
 grep -Fq '(Safe Mode)' scripts/finalize-binary-grub.py
+grep -Fq 'normalize_command_spacing' scripts/finalize-binary-grub.py
+grep -Fq 'ESCAPED_COMMAND_TABS_RE' scripts/finalize-binary-grub.py
 if grep -Fq 'ailinux login:' scripts/smoke-test-iso.sh; then
     echo "The ISO smoke test must not accept a text login prompt as graphical success." >&2
     exit 1

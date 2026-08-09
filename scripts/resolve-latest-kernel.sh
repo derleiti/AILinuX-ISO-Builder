@@ -82,6 +82,6 @@ AILINUX_KERNEL_FLAVOUR='$latest_flavour'
 AILINUX_KERNEL_VERSION='$latest_version'
 EOF
 chmod 0644 "$tmp_out"
-mv "$tmp_out" "$out_file"
+mv -f "$tmp_out" "$out_file"
 
 echo "Latest AILinuX kernel: $latest_package ($latest_version)"

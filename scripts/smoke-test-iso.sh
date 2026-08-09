@@ -6,6 +6,10 @@ iso_path=${1:-}
 timeout_seconds=${AILINUX_QEMU_TIMEOUT:-180}
 firmware_mode=${AILINUX_QEMU_MODE:-bios}
 media_mode=${AILINUX_QEMU_MEDIA:-cdrom}
+firmware=
+firmware_vars_template=
+firmware_vars=
+qemu_pid=
 
 if [ -z "$iso_path" ]; then
     iso_path=$(find "$project_dir/output" -maxdepth 1 -type f \
@@ -29,13 +33,22 @@ command -v qemu-system-x86_64 >/dev/null 2>&1 || {
     echo "qemu-system-x86_64 is required for the smoke test." >&2
     exit 1
 }
+command -v mktemp >/dev/null 2>&1 || {
+    echo "mktemp is required for the UEFI smoke test." >&2
+    exit 1
+}
 
 case "$firmware_mode" in
     bios) ;;
     uefi)
         firmware=${AILINUX_OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.fd}
+        firmware_vars_template=${AILINUX_OVMF_VARS:-/usr/share/OVMF/OVMF_VARS_4M.fd}
         test -r "$firmware" || {
-            echo "UEFI firmware not found: $firmware" >&2
+            echo "UEFI firmware code not found: $firmware" >&2
+            exit 1
+        }
+        test -r "$firmware_vars_template" || {
+            echo "UEFI firmware variables template not found: $firmware_vars_template" >&2
             exit 1
         }
         ;;
@@ -58,6 +71,19 @@ esac
 serial_log="$project_dir/output/qemu-$firmware_mode-$media_mode-serial.log"
 rm -f "$serial_log"
 
+cleanup() {
+    if [ -n "$qemu_pid" ] && kill -0 "$qemu_pid" 2>/dev/null; then
+        kill "$qemu_pid" 2>/dev/null || true
+        wait "$qemu_pid" 2>/dev/null || true
+    fi
+    qemu_pid=
+    if [ -n "$firmware_vars" ]; then
+        rm -f "$firmware_vars"
+        firmware_vars=
+    fi
+}
+trap cleanup EXIT HUP INT TERM
+
 set -- qemu-system-x86_64 \
     -machine accel=kvm:tcg \
     -m 4096 \
@@ -76,21 +102,18 @@ else
 fi
 
 if [ "$firmware_mode" = "uefi" ]; then
-    set -- "$@" -drive "if=pflash,format=raw,readonly=on,file=$firmware"
+    firmware_vars=$(mktemp "$project_dir/output/.ovmf-vars-${firmware_mode}-${media_mode}.XXXXXX")
+    cp "$firmware_vars_template" "$firmware_vars"
+    set -- "$@" \
+        -drive "if=pflash,unit=0,format=raw,readonly=on,file=$firmware" \
+        -drive "if=pflash,unit=1,format=raw,file=$firmware_vars"
 fi
 
-failure_pattern='kernel panic|not syncing|unable to mount root fs|unable to find a medium containing a live file system|can.t open /root/dev/console|entered emergency mode'
+failure_pattern='kernel panic|not syncing|unable to mount root fs|vfs: cannot open root device|unknown-block|unable to find a medium containing a live file system|can.t open /root/dev/console|entered emergency mode|you need to load the kernel first|premature end of file|bad shim signature|verification failed|security violation|invalid magic number|failed to load (the )?(kernel|initrd)'
 success_pattern='AILINUX_GRAPHICAL_READY'
 
 "$@" &
 qemu_pid=$!
-cleanup() {
-    if kill -0 "$qemu_pid" 2>/dev/null; then
-        kill "$qemu_pid" 2>/dev/null || true
-        wait "$qemu_pid" 2>/dev/null || true
-    fi
-}
-trap cleanup EXIT HUP INT TERM
 
 elapsed=0
 success=false
@@ -131,6 +154,7 @@ set +e
 wait "$qemu_pid" 2>/dev/null
 status=$?
 set -e
+cleanup
 trap - EXIT HUP INT TERM
 
 test -s "$serial_log" || {

@@ -1,0 +1,9 @@
+[General]
+ColorScheme=InfinityBlueDarkColor
+
+[Icons]
+Theme=Infinity-Dark-Icons
+
+[KDE]
+LookAndFeelPackage=Infinity-Global-6
+widgetStyle=kvantum

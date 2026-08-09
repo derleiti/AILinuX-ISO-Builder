@@ -32,4 +32,5 @@
 
 # Build locks
 /.build.lock
+/.create.lock
 /.lock

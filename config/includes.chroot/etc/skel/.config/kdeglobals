@@ -1,9 +1,9 @@
 [General]
-ColorScheme=BreezeDark
+ColorScheme=InfinityBlueDarkColor
 
 [Icons]
-Theme=breeze-dark
+Theme=Infinity-Dark-Icons
 
 [KDE]
-LookAndFeelPackage=org.kde.breezedark.desktop
-widgetStyle=Breeze
+LookAndFeelPackage=Infinity-Global-6
+widgetStyle=kvantum

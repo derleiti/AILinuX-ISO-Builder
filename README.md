@@ -13,10 +13,17 @@ checksum verification and BIOS plus UEFI boot smoke tests:
 ./create.sh
 ```
 
-The script uses the rootless builder and purges live-build's previous chroot,
-binary tree and downloaded image-package cache before rebuilding. Only the
-isolated Resolute builder environment below `~/.cache/ailinux-distro-builder/`
-is reused.
+The script uses the rootless builder and removes live-build's previous chroot
+and binary tree before rebuilding. Network builds purge the downloaded package
+cache by default; use `AILINUX_PURGE_CACHE=0 ./create.sh` for an explicit warm
+network build. Offline mode always retains the cache and rejects an attempted
+purge. Existing ISO artifacts and logs are retained. The `latest` link is rolled
+back automatically when a build or smoke test fails, and the
+`ailinux-26.04-amd64-known-good.iso` link is updated only after all four boot
+smoke tests pass. `create.sh` executes an immutable temporary copy of itself, so
+a parallel editor cannot truncate the control flow while a long build is
+running. The isolated Resolute builder environment below
+`~/.cache/ailinux-distro-builder/` is reused.
 
 By default, `create.sh` builds from the network: it fetches the AILinuX
 repository metadata and pulls the AILinuX packages from `repo.ailinux.me`. A
@@ -53,7 +60,11 @@ sudo apt-get install --yes live-build debootstrap xorriso squashfs-tools \
 ./scripts/build.sh
 ```
 
-The finished ISO and its SHA-256 checksum are written to `output/`.
+The finished ISO and its SHA-256 checksum are written to `output/`. During
+ISO creation, the kernel, initramfs, EFI image and GRUB configuration are placed
+before the multi-gigabyte SquashFS payload. This keeps the boot-critical files
+inside the first 2 GiB for firmware and optical-emulation paths that cannot
+reliably read them near the 4 GiB edge.
 
 If host sudo is unavailable, use the isolated user-namespace builder:
 
@@ -79,8 +90,10 @@ AILINUX_QEMU_MODE=uefi AILINUX_QEMU_MEDIA=usb ./scripts/smoke-test-iso.sh output
 `validate-iso-boot.sh` rejects images without bootable BIOS and UEFI El Torito
 entries, hybrid MBR/GPT metadata, the required casper files, or the
 device-independent GRUB search used for Ventoy. The smoke tests then boot both
-the optical path and the raw hybrid image as USB media. They accept only the
-explicit `AILINUX_GRAPHICAL_READY` signal after SDDM is ready. Use
+the optical path and the raw hybrid image as USB media. UEFI tests pair the
+read-only OVMF code image with a disposable writable VARS copy, so firmware
+state cannot leak between runs or stall the GRUB-to-kernel handoff. They accept
+only the explicit `AILINUX_GRAPHICAL_READY` signal after SDDM is ready. Use
 `AILINUX_QEMU_TIMEOUT=180` to change their timeout. These tests do not replace
 a final boot on representative physical firmware and a current Ventoy USB
 stick. The installed-system audit is read-only and checks the mounted Calamares

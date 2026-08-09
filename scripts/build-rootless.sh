@@ -30,6 +30,7 @@ unshare --user --map-root-user --map-auto true
 ./scripts/resolve-latest-kernel.sh
 ./scripts/prepare-keyrings.sh
 ./scripts/sync-repositories.sh
+./scripts/prepare-infinity-theme.sh
 ./scripts/validate-project.sh
 mkdir -p "$cache_dir"
 
