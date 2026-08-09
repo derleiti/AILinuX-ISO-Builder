@@ -104,11 +104,17 @@ sync_themes() {
 
     # Fix two upstream Plasma 6 references in the system-wide copy while the
     # pinned source checkout remains untouched.
-    infinity_defaults="$include_root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults"
-    sed -i \
-        -e 's/^widgetStyle=breeze$/widgetStyle=kvantum-dark/' \
-        -e 's/^Theme=Infinity-Plasma-Splash$/Theme=Infinity-Plasma-Splash-6/' \
-        "$infinity_defaults"
+    for infinity_defaults in \
+        "$include_root/usr/share/plasma/look-and-feel/Infinity-Global/contents/defaults" \
+        "$include_root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults"
+    do
+        sed -i \
+            -e 's/^widgetStyle=breeze$/widgetStyle=kvantum-dark/' \
+            -e 's/^ColorScheme=InfinityDarkColor$/ColorScheme=InfinityBlueDarkColor/' \
+            -e 's/^Image=Gently-Nebula-Noir Plasma Logo.jpg$/Image=Infinity-World-Wallpaper/' \
+            -e 's/^Theme=Infinity-Plasma-Splash$/Theme=Infinity-Plasma-Splash-6/' \
+            "$infinity_defaults"
+    done
 
     echo "Infinity theme suite synchronized."
 }
@@ -144,6 +150,12 @@ verify_themes() {
     [ "$missing" -eq 0 ] || exit 1
     grep -Fxq 'widgetStyle=kvantum-dark' \
         "$include_root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults"
+    grep -Fxq 'ColorScheme=InfinityBlueDarkColor' \
+        "$include_root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults"
+    grep -Fxq 'ColorScheme=InfinityBlueDarkColor' \
+        "$include_root/usr/share/plasma/look-and-feel/Infinity-Global/contents/defaults"
+    grep -Fxq 'Image=Infinity-World-Wallpaper' \
+        "$include_root/usr/share/plasma/look-and-feel/Infinity-Global/contents/defaults"
     grep -Fxq 'Theme=Infinity-Plasma-Splash-6' \
         "$include_root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults"
     echo "Infinity theme suite verified."

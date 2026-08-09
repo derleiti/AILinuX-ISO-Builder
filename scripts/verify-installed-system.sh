@@ -361,7 +361,9 @@ fi
 if [ -d "$infinity_config" ]; then
     pass "Infinity configuration source is $infinity_origin"
     check_ini_value 'Infinity global look-and-feel' "$infinity_config/kdeglobals" KDE LookAndFeelPackage Infinity-Global-6
-    check_ini_value 'Infinity color scheme' "$infinity_config/kdedefaults/kdeglobals" General ColorScheme InfinityDarkColor
+    check_ini_value 'Infinity color scheme' "$infinity_config/kdedefaults/kdeglobals" General ColorScheme InfinityBlueDarkColor
+    check_ini_value 'Infinity dark window background' "$infinity_config/kdedefaults/kdeglobals" Colors:Window BackgroundNormal 30,33,41
+    check_ini_value 'Infinity light window text' "$infinity_config/kdedefaults/kdeglobals" Colors:Window ForegroundNormal 211,218,227
     check_ini_value 'Infinity icon theme' "$infinity_config/kdedefaults/kdeglobals" Icons Theme Infinity-Dark-Icons
     check_ini_value 'Infinity widget style' "$infinity_config/kdedefaults/kdeglobals" KDE widgetStyle kvantum-dark
     check_ini_value 'Infinity cursor fallback' "$infinity_config/kdedefaults/kcminputrc" Mouse cursorTheme breeze_cursors

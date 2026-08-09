@@ -319,7 +319,9 @@ grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 # service may force Infinity.
 infinity_skel=config/includes.chroot/etc/skel/.config
 grep -Fqx 'LookAndFeelPackage=Infinity-Global-6' "$infinity_skel/kdeglobals"
-grep -Fqx 'ColorScheme=InfinityDarkColor' "$infinity_skel/kdeglobals"
+grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdeglobals"
+grep -Fqx 'BackgroundNormal=30,33,41' "$infinity_skel/kdeglobals"
+grep -Fqx 'ForegroundNormal=211,218,227' "$infinity_skel/kdeglobals"
 grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdeglobals"
 grep -Fqx 'widgetStyle=kvantum-dark' "$infinity_skel/kdeglobals"
 grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kcminputrc"
@@ -327,7 +329,9 @@ grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/ksplashrc"
 grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kwinrc"
 grep -Fqx 'theme=__aurorae__svg__Infinity-Color-Aurorae-6' "$infinity_skel/kwinrc"
 grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/plasmarc"
-grep -Fqx 'ColorScheme=InfinityDarkColor' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'BackgroundNormal=30,33,41' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'ForegroundNormal=211,218,227' "$infinity_skel/kdedefaults/kdeglobals"
 grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdedefaults/kdeglobals"
 grep -Fqx 'widgetStyle=kvantum-dark' "$infinity_skel/kdedefaults/kdeglobals"
 grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kdedefaults/kcminputrc"
@@ -372,6 +376,7 @@ do
 done
 grep -Fq 'Theme=Infinity-Plasma-Splash-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
 grep -Fq 'Current=Infinity-SDDM-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
+./scripts/prepare-infinity-theme.sh verify >/dev/null
 
 # KDE's about-distro KCM resolves LOGO through the hicolor icon theme. Keep
 # several native raster sizes so the logo stays sharp in normal and HiDPI UI.

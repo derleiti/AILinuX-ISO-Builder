@@ -8,6 +8,7 @@ WPNAME="Infinity-World-Wallpaper"
 IMG="/usr/share/wallpapers/${WPNAME}/contents/images/1920x1080.png"
 LNF="/usr/share/plasma/look-and-feel/Infinity-Global-6"
 SDDM_THEME="/usr/share/sddm/themes/Infinity-SDDM-6"
+COLOR_SCHEME="/usr/share/color-schemes/InfinityBlueDarkColor.colors"
 
 echo "I: [ailinux-wallpaper] start"
 
@@ -28,6 +29,14 @@ grep -Fxq "Image=${WPNAME}" "$DEFAULTS" || {
 }
 grep -Fxq 'Theme=Infinity-Plasma-Splash-6' "$DEFAULTS" || {
     echo "E: [ailinux-wallpaper] falscher Plasma-6-Splash in $DEFAULTS"
+    exit 1
+}
+grep -Fxq 'ColorScheme=InfinityBlueDarkColor' "$DEFAULTS" || {
+    echo "E: [ailinux-wallpaper] falscher Infinity-Farbschema-Identifier in $DEFAULTS"
+    exit 1
+}
+[ -f "$COLOR_SCHEME" ] && grep -Fxq 'BackgroundNormal=30,33,41' "$COLOR_SCHEME" || {
+    echo "E: [ailinux-wallpaper] dunkles Infinity-Farbschema fehlt - Abbruch"
     exit 1
 }
 echo "I: [ailinux-wallpaper] Plasma-Default: $WPNAME"

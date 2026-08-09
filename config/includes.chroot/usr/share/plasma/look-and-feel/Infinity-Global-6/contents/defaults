@@ -8,7 +8,7 @@ LayoutName=org.kde.breeze.desktop
 LayoutName=org.kde.breeze.desktop
 
 [kdeglobals][General]
-ColorScheme=InfinityDarkColor
+ColorScheme=InfinityBlueDarkColor
 
 [kdeglobals][Icons]
 Theme=Infinity-Dark-Icons
