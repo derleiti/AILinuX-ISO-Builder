@@ -10,6 +10,7 @@ cd "$project_dir"
 # has the cache to build while repo.ailinux.me is unavailable.
 AILINUX_OFFLINE=${AILINUX_OFFLINE:-0}
 AILINUX_RESET_ONLY=${AILINUX_RESET_ONLY:-0}
+AILINUX_SMOKE_TESTS=${AILINUX_SMOKE_TESTS:-auto}
 case "$AILINUX_OFFLINE" in
     0|1) ;;
     *)
@@ -21,6 +22,13 @@ case "$AILINUX_RESET_ONLY" in
     0|1) ;;
     *)
         echo "AILINUX_RESET_ONLY must be 0 or 1." >&2
+        exit 1
+        ;;
+esac
+case "$AILINUX_SMOKE_TESTS" in
+    auto|0|1) ;;
+    *)
+        echo "AILINUX_SMOKE_TESTS must be auto, 0 or 1." >&2
         exit 1
         ;;
 esac
@@ -37,19 +45,33 @@ active_build_pid() {
     kill -0 "$pid" 2>/dev/null
 }
 
-clear_stale_build_lock() {
-    test -e "$lock_file" || return 0
-    if active_build_pid; then
-        echo "Build already active with PID $pid: $lock_file" >&2
-        exit 1
+acquire_build_lock() {
+    attempts=0
+    while [ "$attempts" -lt 2 ]; do
+        if (set -C; printf '%s\n' "$$" > "$lock_file") 2>/dev/null; then
+            return 0
+        fi
+        if active_build_pid; then
+            echo "Build already active with PID $pid: $lock_file" >&2
+            exit 1
+        fi
+        rm -f "$lock_file"
+        echo "Removed stale build lock: $lock_file"
+        attempts=$((attempts + 1))
+    done
+    echo "Unable to acquire build lock: $lock_file" >&2
+    exit 1
+}
+
+release_build_lock() {
+    test -s "$lock_file" || return 0
+    lock_pid=$(sed -n '1p' "$lock_file")
+    if [ "$lock_pid" = "$$" ]; then
+        rm -f "$lock_file"
     fi
-    rm -f "$lock_file"
-    echo "Removed stale build lock: $lock_file"
 }
 
 reset_build_state() {
-    clear_stale_build_lock
-
     # A clean create must never publish an ISO left by an earlier failed build.
     # The reusable rootless builder lives below ~/.cache and is intentionally
     # retained; only live-build's project-local state and published artifacts
@@ -74,23 +96,30 @@ reset_build_state() {
     echo "Previous build tree and ISO artifacts removed."
 }
 
-check_rootless_user_namespace() {
-    if unshare --user --map-root-user --map-auto true >/dev/null 2>&1; then
-        return 0
+manage_output=0
+artifact_ready=0
+finish() {
+    status=$1
+    trap - EXIT HUP INT TERM
+    if [ "$manage_output" -eq 1 ] && [ "$artifact_ready" -ne 1 ]; then
+        rm -f \
+            "$project_dir"/output/ailinux-26.04-amd64-*.iso \
+            "$project_dir"/output/ailinux-26.04-amd64-*.iso.sha256
+        echo "Incomplete ISO artifacts removed after build failure." >&2
+    elif [ "$manage_output" -eq 1 ] && [ "$artifact_ready" -eq 1 ] && [ "$status" -ne 0 ]; then
+        echo "The structurally verified ISO was retained despite a later test failure." >&2
     fi
-
-    restriction=$(sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null || true)
-    if [ "$restriction" = "1" ]; then
-        echo "Rootless build blocked by kernel.apparmor_restrict_unprivileged_userns=1." >&2
-        echo "Temporarily enable it with:" >&2
-        echo "  sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0" >&2
-    else
-        echo "Rootless user namespaces are unavailable; check unshare and /etc/subuid." >&2
-    fi
-    exit 1
+    release_build_lock
+    exit "$status"
 }
+trap 'finish "$?"' EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
-clear_stale_build_lock
+acquire_build_lock
+AILINUX_BUILD_LOCK_PID=$$
+export AILINUX_BUILD_LOCK_PID
 
 if [ "$AILINUX_RESET_ONLY" = "1" ]; then
     reset_build_state
@@ -106,26 +135,32 @@ else
     echo "Repository mode: refresh AILinuX metadata online"
 fi
 
+./scripts/preflight-build.sh rootless
 ./scripts/validate-project.sh
-reset_build_state
-check_rootless_user_namespace
 
-verified=0
-cleanup_unverified_output() {
-    status=$1
-    trap - EXIT HUP INT TERM
-    if [ "$verified" -ne 1 ]; then
-        rm -f \
-            "$project_dir"/output/ailinux-26.04-amd64-*.iso \
-            "$project_dir"/output/ailinux-26.04-amd64-*.iso.sha256
-        echo "Unverified ISO artifacts removed after build failure." >&2
-    fi
-    exit "$status"
-}
-trap 'cleanup_unverified_output "$?"' EXIT
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
+run_smoke_tests=0
+case "$AILINUX_SMOKE_TESTS" in
+    1)
+        ./scripts/preflight-build.sh smoke
+        run_smoke_tests=1
+        ;;
+    auto)
+        if smoke_preflight=$(./scripts/preflight-build.sh smoke 2>&1); then
+            echo "$smoke_preflight"
+            run_smoke_tests=1
+        else
+            echo "QEMU smoke tests skipped automatically:"
+            printf '%s\n' "$smoke_preflight" | sed 's/^/  /'
+            echo "Set AILINUX_SMOKE_TESTS=1 to require them."
+        fi
+        ;;
+    0)
+        echo "QEMU smoke tests disabled (AILINUX_SMOKE_TESTS=0)."
+        ;;
+esac
+
+reset_build_state
+manage_output=1
 
 # build.sh interprets this as `lb clean --purge`, so no previous chroot,
 # binary tree or downloaded live-build package cache is reused. The rootless
@@ -139,17 +174,22 @@ test -L "$latest_iso" || {
 }
 test -s "$latest_iso"
 (cd "$project_dir/output" && sha256sum --check "$(basename "$latest_iso.sha256")")
+artifact_ready=1
 
-for firmware_mode in bios uefi; do
-    for media_mode in cdrom usb; do
-        AILINUX_QEMU_MODE="$firmware_mode" \
-            AILINUX_QEMU_MEDIA="$media_mode" \
-            ./scripts/smoke-test-iso.sh "$latest_iso"
+if [ "$run_smoke_tests" -eq 1 ]; then
+    for firmware_mode in bios uefi; do
+        for media_mode in cdrom usb; do
+            AILINUX_QEMU_MODE="$firmware_mode" \
+                AILINUX_QEMU_MEDIA="$media_mode" \
+                ./scripts/smoke-test-iso.sh "$latest_iso"
+        done
     done
-done
+fi
 
-verified=1
-trap - EXIT HUP INT TERM
-
-echo "Verified ISO: $(readlink -f "$latest_iso")"
+echo "Created and structurally verified ISO: $(readlink -f "$latest_iso")"
+if [ "$run_smoke_tests" -eq 1 ]; then
+    echo "QEMU verification: BIOS/UEFI and CD-ROM/USB passed."
+else
+    echo "QEMU verification: skipped."
+fi
 echo "Checksum: $latest_iso.sha256"

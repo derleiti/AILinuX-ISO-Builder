@@ -10,7 +10,7 @@ case "$offline" in
     *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;;
 esac
 
-for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg python3; do
+for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg python3 tee mktemp; do
     command -v "$tool" >/dev/null 2>&1 || {
         echo "Missing build dependency: $tool" >&2
         exit 1
@@ -53,7 +53,16 @@ release_build_lock() {
     fi
 }
 
-acquire_build_lock
+owns_build_lock=0
+if [ -n "${AILINUX_BUILD_LOCK_PID:-}" ]; then
+    read_lock_pid && [ "$lock_pid" = "$AILINUX_BUILD_LOCK_PID" ] || {
+        echo "Inherited build lock does not match $lock_file." >&2
+        exit 1
+    }
+else
+    acquire_build_lock
+    owns_build_lock=1
+fi
 cleanup_build() {
     status=$?
     trap - EXIT HUP INT TERM
@@ -61,7 +70,9 @@ cleanup_build() {
     if [ -d "$project_dir/.offline-build-state" ]; then
         ./scripts/prepare-offline-build.sh cleanup || cleanup_status=$?
     fi
-    release_build_lock
+    if [ "$owns_build_lock" -eq 1 ]; then
+        release_build_lock
+    fi
     if [ "$status" -eq 0 ] && [ "$cleanup_status" -ne 0 ]; then
         status=$cleanup_status
     fi
@@ -99,12 +110,29 @@ run_as_root() {
 }
 
 run_logged() {
-    if run_as_root "$@" >"$log_file" 2>&1; then
-        status=0
+    status_file=$(mktemp "${TMPDIR:-/tmp}/ailinux-build-status.XXXXXX")
+    if (
+        set +e
+        run_as_root "$@"
+        command_status=$?
+        printf '%s\n' "$command_status" > "$status_file"
+        exit 0
+    ) 2>&1 | tee "$log_file"; then
+        tee_status=0
     else
-        status=$?
+        tee_status=$?
     fi
-    cat "$log_file"
+    test -s "$status_file" || {
+        rm -f "$status_file"
+        echo "Build command ended without recording its status." >&2
+        return 1
+    }
+    status=$(sed -n '1p' "$status_file")
+    rm -f "$status_file"
+    if [ "$tee_status" -ne 0 ]; then
+        echo "Unable to write the complete build log: $log_file" >&2
+        return "$tee_status"
+    fi
     return "$status"
 }
 
@@ -175,6 +203,7 @@ install -m 0644 "$iso_path" "$final_iso"
 if [ "$iso_path" != "$final_iso" ]; then
     rm -f "$iso_path"
 fi
+./scripts/validate-iso-boot.sh "$final_iso"
 (cd "$project_dir/output" && sha256sum "$(basename "$final_iso")" > "$(basename "$final_iso").sha256")
 # Only touch artifacts created by this build. Historical root-owned test ISOs
 # must not turn an otherwise successful rootless build into a failure.

@@ -9,28 +9,12 @@ bootstrap_marker="$rootfs/.ailinux-builder-ready"
 mirror="https://archive.ubuntu.com/ubuntu"
 ubuntu_keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg
 
-command -v unshare >/dev/null 2>&1 || {
-    echo "unshare is required for the rootless builder." >&2
-    exit 1
-}
-command -v apt-get >/dev/null 2>&1 || {
-    echo "apt-get is required to download debootstrap." >&2
-    exit 1
-}
-command -v dpkg-deb >/dev/null 2>&1 || {
-    echo "dpkg-deb is required to unpack debootstrap." >&2
-    exit 1
-}
-test -r "$ubuntu_keyring" || {
-    echo "Ubuntu archive keyring is required: $ubuntu_keyring" >&2
-    exit 1
-}
-
-unshare --user --map-root-user --map-auto true
-./scripts/resolve-latest-kernel.sh
-./scripts/prepare-keyrings.sh
-./scripts/sync-repositories.sh
+./scripts/preflight-build.sh rootless
 ./scripts/validate-project.sh
+test -s "$project_dir/config/archives/ailinux.key.chroot" || {
+    echo "Repository-pinned AILinuX keyring is missing." >&2
+    exit 1
+}
 mkdir -p "$cache_dir"
 
 if [ ! -x "$debootstrap_root/usr/sbin/debootstrap" ]; then
