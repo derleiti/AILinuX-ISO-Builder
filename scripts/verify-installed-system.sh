@@ -254,12 +254,13 @@ if [ "$package_db" = true ]; then
         pass 'no Firefox snap payload is present'
     fi
 
-    # Ubuntu Server is the base; Plasma is layered explicitly on top.
-    for required_package in ubuntu-server plasma-desktop plasma-workspace sddm; do
+    # Ubuntu Server is the base; Plasma and AILinuX products are layered
+    # explicitly on top.
+    for required_package in ubuntu-server plasma-desktop plasma-workspace sddm aicoder copa; do
         if package_installed "$required_package"; then
-            pass "required server/Plasma package is installed: $required_package"
+            pass "required image package is installed: $required_package"
         else
-            fail "required server/Plasma package is missing: $required_package"
+            fail "required image package is missing: $required_package"
         fi
     done
 

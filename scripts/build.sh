@@ -160,10 +160,11 @@ if [ "$retry_build" = "1" ]; then
         exit 1
     }
     # Reusing live-build's stage markers directly is unsafe: bootstrap-cache
-    # restore can replace the populated chroot while later stages remain
-    # marked as complete. Rebuild the chroot, but retain downloaded packages.
-    echo "Retrying with the existing package cache and a fresh chroot."
-    run_as_root lb clean --chroot
+    # restore can replace the populated chroot while later chroot or binary
+    # stages remain marked as complete. Rebuild both the chroot and binary
+    # tree, but retain downloaded packages.
+    echo "Retrying with the existing package cache and fresh chroot/binary trees."
+    run_as_root lb clean --chroot --binary
     # live-build 3.x leaves this marker behind although --chroot removed the
     # restored tree. Force the cached bootstrap to be unpacked again.
     run_as_root rm -f .build/bootstrap_cache.restore

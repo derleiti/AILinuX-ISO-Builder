@@ -162,7 +162,7 @@ Oxygen defaults and generated GRUB menu.
 - A generated AILinuX logo is installed in the hicolor icon theme at six
   raster sizes and selected through `LOGO=ailinux-logo` in KDE System Information
 - Official Ubuntu bootstrap with signed AILinuX mirrors for all image packages
-- All current AILinuX packages from `repo.ailinux.me`
+- AICoder and Copa from the signed `repo.ailinux.me` AILinuX repository
 - Active third-party repositories from the reference AILinuX workstation
 - NetworkManager, SDDM, PipeWire, printing, Bluetooth and common filesystem tools
 

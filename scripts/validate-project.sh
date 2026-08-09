@@ -156,7 +156,7 @@ done
 grep -Fq 'AILINUX_BUILD_LOCK_PID' scripts/build.sh
 grep -Fq 'AILINUX_RETRY_BUILD must be 0 or 1.' scripts/build.sh
 grep -Fq 'AILINUX_RETRY_BUILD requires an existing live-build package cache.' scripts/build.sh
-grep -Fq 'lb clean --chroot' scripts/build.sh
+grep -Fq 'lb clean --chroot --binary' scripts/build.sh
 grep -Fq 'rm -f .build/bootstrap_cache.restore' scripts/build.sh
 grep -Fq '| tee "$log_file"' scripts/build.sh
 grep -Fq './scripts/validate-iso-boot.sh "$final_iso"' scripts/build.sh
@@ -220,6 +220,7 @@ grep -Fq '/usr/share/plymouth/themes/bgrt/bgrt.plymouth' \
 grep -Fq '/usr/share/plymouth/themes/ubuntu-text/ubuntu-text.plymouth' \
     config/hooks/0150-remove-kubuntu.chroot
 grep -q '^copa$' config/package-lists/ailinux.list.chroot
+grep -q '^aicoder$' config/package-lists/ailinux.list.chroot
 grep -q '^python3$' config/package-lists/productivity.list.chroot
 grep -q '^set timeout=5$' config/binary_grub/grub.cfg
 grep -q '^serial --unit=0 --speed=115200' config/binary_grub/grub.cfg
@@ -293,34 +294,34 @@ if grep -Eq '(^|[[:space:]"])boot=live([[:space:]"]|$)' auto/config config/binar
 fi
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
-# Seed Breeze Dark through normal per-user configuration plus Plasma's reset
+# Seed Oxygen through normal per-user configuration plus Plasma's reset
 # defaults. These files are copied from /etc/skel only when a user is created,
 # so choosing another Global Theme later replaces them normally; no login-time
-# service may force Breeze Dark.
-breeze_skel=config/includes.chroot/etc/skel/.config
-grep -Fqx 'LookAndFeelPackage=org.kde.breezedark.desktop' "$breeze_skel/kdeglobals"
-grep -Fqx 'ColorScheme=BreezeDark' "$breeze_skel/kdeglobals"
-grep -Fqx 'Theme=breeze-dark' "$breeze_skel/kdeglobals"
-grep -Fqx 'widgetStyle=Breeze' "$breeze_skel/kdeglobals"
-grep -Fqx 'cursorTheme=breeze_cursors' "$breeze_skel/kcminputrc"
-grep -Fqx 'Theme=org.kde.breezedark.desktop' "$breeze_skel/ksplashrc"
-grep -Fqx 'library=org.kde.breeze' "$breeze_skel/kwinrc"
-grep -Fqx 'name=breeze-dark' "$breeze_skel/plasmarc"
-grep -Fqx 'ColorScheme=BreezeDark' "$breeze_skel/kdedefaults/kdeglobals"
-grep -Fqx 'Theme=breeze-dark' "$breeze_skel/kdedefaults/kdeglobals"
-grep -Fqx 'widgetStyle=Breeze' "$breeze_skel/kdedefaults/kdeglobals"
-grep -Fqx 'cursorTheme=breeze_cursors' "$breeze_skel/kdedefaults/kcminputrc"
-grep -Fqx 'Theme=org.kde.breezedark.desktop' "$breeze_skel/kdedefaults/ksplashrc"
-grep -Fqx 'library=org.kde.breeze' "$breeze_skel/kdedefaults/kwinrc"
-grep -Fqx 'NoPlugin=false' "$breeze_skel/kdedefaults/kwinrc"
-grep -Fqx 'org.kde.breezedark.desktop' "$breeze_skel/kdedefaults/package"
-grep -Fqx 'name=breeze-dark' "$breeze_skel/kdedefaults/plasmarc"
-if grep -RqsE 'plasma-apply-lookandfeel.*org\.kde\.breezedark|lookandfeeltool.*org\.kde\.breezedark' \
+# service may force Oxygen.
+oxygen_skel=config/includes.chroot/etc/skel/.config
+grep -Fqx 'LookAndFeelPackage=org.kde.oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdeglobals"
+grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kcminputrc"
+grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/ksplashrc"
+grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kwinrc"
+grep -Fqx 'name=oxygen' "$oxygen_skel/plasmarc"
+grep -Fqx 'ColorScheme=Oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'widgetStyle=oxygen' "$oxygen_skel/kdedefaults/kdeglobals"
+grep -Fqx 'cursorTheme=Oxygen_Black' "$oxygen_skel/kdedefaults/kcminputrc"
+grep -Fqx 'Theme=org.kde.oxygen' "$oxygen_skel/kdedefaults/ksplashrc"
+grep -Fqx 'library=org.kde.oxygen' "$oxygen_skel/kdedefaults/kwinrc"
+grep -Fqx 'NoPlugin=false' "$oxygen_skel/kdedefaults/kwinrc"
+grep -Fqx 'org.kde.oxygen' "$oxygen_skel/kdedefaults/package"
+grep -Fqx 'name=oxygen' "$oxygen_skel/kdedefaults/plasmarc"
+if grep -RqsE 'plasma-apply-lookandfeel.*org\.kde\.oxygen|lookandfeeltool.*org\.kde\.oxygen' \
         config/includes.chroot/etc/xdg/autostart \
         config/includes.chroot/etc/systemd \
         config/includes.chroot/usr/lib/systemd \
         config/includes.chroot/usr/local 2>/dev/null; then
-    echo "Breeze Dark must be a user-changeable default, not a login-time override." >&2
+    echo "Oxygen must be a user-changeable default, not a login-time override." >&2
     exit 1
 fi
 
@@ -580,7 +581,7 @@ for package in $hard_removals; do
     fi
 done
 
-for excluded_product in triforce aicoder kimi; do
+for excluded_product in triforce kimi; do
     if grep -Riq --include='*.list.chroot' -- "$excluded_product" config/package-lists; then
         echo "Excluded product found in package lists: $excluded_product" >&2
         exit 1

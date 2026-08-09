@@ -1,9 +1,9 @@
 [General]
-ColorScheme=BreezeDark
+ColorScheme=Oxygen
 
 [Icons]
-Theme=breeze-dark
+Theme=oxygen
 
 [KDE]
-LookAndFeelPackage=org.kde.breezedark.desktop
-widgetStyle=Breeze
+LookAndFeelPackage=org.kde.oxygen
+widgetStyle=oxygen
