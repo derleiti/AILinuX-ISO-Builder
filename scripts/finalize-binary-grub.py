@@ -158,7 +158,7 @@ def split_config(text: str) -> list[str | MenuBlock]:
     return segments
 
 
-def live_entry(block: MenuBlock) -> tuple[str, bool, int] | None:
+def live_entry(block: MenuBlock) -> tuple[str | None, bool, int] | None:
     debian_match = DEBIAN_LIVE_RE.fullmatch(block.title)
     ailinux_match = AILINUX_LIVE_RE.fullmatch(block.title)
     if not debian_match and not ailinux_match:
@@ -172,10 +172,21 @@ def live_entry(block: MenuBlock) -> tuple[str, bool, int] | None:
     )
     path_match = KERNEL_PATH_RE.search(block.text)
     path_version = path_match.group("version") if path_match else None
-    version = title_version or path_version
 
-    if not version or not VERSION_RE.fullmatch(version):
-        raise ValueError(f"Cannot determine a safe kernel version for {block.title!r}")
+    if title_version and not VERSION_RE.fullmatch(title_version):
+        raise ValueError(f"Unsafe kernel version in {block.title!r}")
+    if path_version and not VERSION_RE.fullmatch(path_version):
+        # live-build 3.x derives its generic entry from LB_LINUX_FLAVOURS.
+        # With a metapackage flavour it can emit a non-bootable wildcard such
+        # as vmlinuz-*7.2.0-rc5-ailinux. Keep the entry marked as live so it is
+        # removed, but let the explicit per-kernel entries define the version.
+        if title_version:
+            raise ValueError(f"Unsafe kernel path in {block.title!r}")
+        return None, safe_mode, 0
+
+    version = title_version or path_version
+    if not version:
+        return None, safe_mode, 0
     if title_version and path_version and title_version != path_version:
         raise ValueError(
             f"Kernel title/path mismatch in {block.title!r}: {title_version!r} != {path_version!r}"
@@ -210,6 +221,8 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
             continue
         version, safe_mode, priority = details
         live_indexes.append(index)
+        if version is None:
+            continue
         if version not in kernel_order:
             kernel_order.append(version)
         key = (version, safe_mode)
@@ -219,6 +232,8 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
 
     if not live_indexes:
         raise ValueError("No live-build GRUB live entries were found")
+    if not kernel_order:
+        raise ValueError("No safe explicit GRUB kernel entries were found")
 
     for version in kernel_order:
         missing = [
@@ -254,10 +269,10 @@ def canonicalize(text: str) -> tuple[str, list[str]]:
 def self_test() -> int:
     fixture = """set timeout=5
 menuentry "Debian GNU/Linux - live" {
-linux /casper/vmlinuz-7.2.0-test boot=casper
+linux /casper/vmlinuz-*7.2.0-meta boot=casper
 }
 menuentry "Debian GNU/Linux - live (fail-safe mode)" {
-linux /casper/vmlinuz-7.2.0-test boot=casper nomodeset
+linux /casper/vmlinuz-*7.2.0-meta boot=casper nomodeset
 }
 menuentry "Debian GNU/Linux - live, kernel 7.2.0-test" {
 linux /casper/vmlinuz-7.2.0-test boot=casper
