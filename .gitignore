@@ -33,3 +33,6 @@
 # Build locks
 /.build.lock
 /.lock
+
+__pycache__/
+*.py[cod]
