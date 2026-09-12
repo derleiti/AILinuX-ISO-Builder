@@ -1,0 +1,7 @@
+# AILinuX live-session default. Calamares' keyboard module overwrites the
+# installed target according to the user's installer selection.
+XKBMODEL="pc105"
+XKBLAYOUT="us"
+XKBVARIANT=""
+XKBOPTIONS=""
+BACKSPACE="guess"

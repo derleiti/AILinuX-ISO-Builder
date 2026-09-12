@@ -31,8 +31,8 @@ images:
 
 style:
   SidebarBackground:        "#131822"
-  SidebarText:              "#a9b3c0"
-  SidebarTextCurrent:       "#0e1116"
+  SidebarText:              "#cbd5e1"
+  SidebarTextCurrent:       "#05080c"
   SidebarBackgroundCurrent: "#3aa0ff"
 
 slideshow: "show.qml"

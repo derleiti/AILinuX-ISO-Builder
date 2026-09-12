@@ -42,3 +42,6 @@ sudo
 systemsettings
 ubuntu-server
 xdg-desktop-portal-kde
+console-setup
+keyboard-configuration
+xkb-data

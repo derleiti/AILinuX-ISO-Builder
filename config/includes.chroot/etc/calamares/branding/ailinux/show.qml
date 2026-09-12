@@ -19,21 +19,27 @@ Presentation {
             anchors.fill: parent
             source: "website-hero.jpg"
             fillMode: Image.PreserveAspectCrop
-            opacity: 0.19
+            opacity: 0.42
         }
         Rectangle {
             anchors.fill: parent
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#C90e1116" }
-                GradientStop { position: 1.0; color: "#E60e1116" }
-            }
+            color: "#8F0e1116"
+        }
+        Rectangle {
+            width: parent.width * 0.82
+            height: parent.height * 0.68
+            anchors.centerIn: parent
+            radius: 24
+            color: "#131822"
+            border.color: "#475569"
+            border.width: 1
         }
         Column {
-            width: parent.width * 0.78
+            width: parent.width * 0.70
             spacing: 18
             anchors.centerIn: parent
             Image {
-                width: 132; height: 132
+                width: 126; height: 126
                 anchors.horizontalCenter: parent.horizontalCenter
                 source: "ailinux-logo.svg"
                 fillMode: Image.PreserveAspectFit
@@ -41,7 +47,7 @@ Presentation {
             Text {
                 width: parent.width
                 text: "AILinuX 26.04 LTS"
-                color: "#e3e8f1"
+                color: "#ffffff"
                 font.pixelSize: 42
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
@@ -49,7 +55,7 @@ Presentation {
             Text {
                 width: parent.width
                 text: "AI-vernetztes Linux. Deine Freiheit bleibt."
-                color: "#7bd7ff"
+                color: "#bae6fd"
                 font.pixelSize: 22
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
@@ -59,12 +65,20 @@ Presentation {
 
     Slide {
         Rectangle { anchors.fill: parent; color: "#0e1116" }
+        Image {
+            anchors.fill: parent
+            source: "installer-wallpaper.svg"
+            fillMode: Image.PreserveAspectCrop
+            opacity: 0.48
+        }
+        Rectangle { anchors.fill: parent; color: "#990e1116" }
         Rectangle {
-            width: parent.width * 0.84; height: parent.height * 0.70
+            width: parent.width * 0.84
+            height: parent.height * 0.70
             anchors.centerIn: parent
             radius: 22
-            color: "#D9131822"
-            border.color: "#263040"
+            color: "#131822"
+            border.color: "#475569"
             border.width: 1
         }
         Column {
@@ -74,15 +88,15 @@ Presentation {
             Text {
                 width: parent.width
                 text: "Wayland. Direkt ab Werk."
-                color: "#e3e8f1"
+                color: "#ffffff"
                 font.pixelSize: 38
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
             }
             Text {
                 width: parent.width
-                text: "Plasma Wayland, aktueller AILinuX-Kernel und ein Desktop ohne Legacy-Zwang."
-                color: "#a9b3c0"
+                text: "Plasma Wayland, aktueller AILinuX-Kernel und ein moderner Desktop mit voller Linux-Kontrolle."
+                color: "#dbe4ee"
                 font.pixelSize: 21
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
@@ -91,16 +105,16 @@ Presentation {
                 spacing: 16
                 anchors.horizontalCenter: parent.horizontalCenter
                 Repeater {
-                    model: [ "WAYLAND", "PLASMA", "KERNEL 7.2", "KVM READY" ]
+                    model: [ "WAYLAND", "PLASMA", "AILINUX KERNEL", "KVM READY" ]
                     Rectangle {
-                        width: 132; height: 46; radius: 12
-                        color: "#1b2330"
-                        border.color: index % 2 === 0 ? "#3aa0ff" : "#44d19a"
+                        width: 142; height: 46; radius: 12
+                        color: "#1e293b"
+                        border.color: index % 2 === 0 ? "#7dd3fc" : "#6ee7b7"
                         Text {
                             anchors.centerIn: parent
                             text: modelData
-                            color: index % 2 === 0 ? "#7bd7ff" : "#7bdcb5"
-                            font.pixelSize: 14
+                            color: index % 2 === 0 ? "#e0f2fe" : "#d1fae5"
+                            font.pixelSize: 13
                             font.bold: true
                         }
                     }
@@ -111,6 +125,22 @@ Presentation {
 
     Slide {
         Rectangle { anchors.fill: parent; color: "#0e1116" }
+        Image {
+            anchors.fill: parent
+            source: "website-hero.jpg"
+            fillMode: Image.PreserveAspectCrop
+            opacity: 0.34
+        }
+        Rectangle { anchors.fill: parent; color: "#A60e1116" }
+        Rectangle {
+            width: parent.width * 0.88
+            height: parent.height * 0.72
+            anchors.centerIn: parent
+            radius: 22
+            color: "#131822"
+            border.color: "#475569"
+            border.width: 1
+        }
         Column {
             width: parent.width * 0.80
             spacing: 22
@@ -118,7 +148,7 @@ Presentation {
             Text {
                 width: parent.width
                 text: "Deine AI-Werkzeuge sind schon da."
-                color: "#e3e8f1"
+                color: "#ffffff"
                 font.pixelSize: 36
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
@@ -126,7 +156,7 @@ Presentation {
             Text {
                 width: parent.width
                 text: "AICoder, Copa OCR und das AILinuX-Ökosystem verbinden Desktop, Terminal und Modelle — ohne dich an einen Anbieter zu ketten."
-                color: "#a9b3c0"
+                color: "#dbe4ee"
                 font.pixelSize: 20
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
@@ -142,13 +172,13 @@ Presentation {
                     ]
                     Rectangle {
                         width: 210; height: 126; radius: 16
-                        color: "#131822"
-                        border.color: "#263040"
+                        color: "#1e293b"
+                        border.color: "#64748b"
                         Column {
                             anchors.centerIn: parent
                             spacing: 8
-                            Text { text: modelData.title; color: "#7bd7ff"; font.pixelSize: 22; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                            Text { text: modelData.sub; color: "#a9b3c0"; font.pixelSize: 15; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: modelData.title; color: "#bae6fd"; font.pixelSize: 22; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: modelData.sub; color: "#e2e8f0"; font.pixelSize: 15; anchors.horizontalCenter: parent.horizontalCenter }
                         }
                     }
                 }
@@ -158,8 +188,24 @@ Presentation {
 
     Slide {
         Rectangle { anchors.fill: parent; color: "#0e1116" }
+        Image {
+            anchors.fill: parent
+            source: "installer-wallpaper.svg"
+            fillMode: Image.PreserveAspectCrop
+            opacity: 0.46
+        }
+        Rectangle { anchors.fill: parent; color: "#A60e1116" }
+        Rectangle {
+            width: parent.width * 0.80
+            height: parent.height * 0.66
+            anchors.centerIn: parent
+            radius: 22
+            color: "#131822"
+            border.color: "#475569"
+            border.width: 1
+        }
         Column {
-            width: parent.width * 0.76
+            width: parent.width * 0.70
             spacing: 20
             anchors.centerIn: parent
             Image {
@@ -171,7 +217,7 @@ Presentation {
             Text {
                 width: parent.width
                 text: "Dein System. Deine Regeln."
-                color: "#e3e8f1"
+                color: "#ffffff"
                 font.pixelSize: 40
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
@@ -179,16 +225,16 @@ Presentation {
             Text {
                 width: parent.width
                 text: "Offene Paketquellen, lokale Kontrolle und volle Linux-Freiheit. Die Installation ist gleich abgeschlossen."
-                color: "#a9b3c0"
+                color: "#dbe4ee"
                 font.pixelSize: 21
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
             }
             Rectangle {
-                width: 320; height: 4; radius: 2
-                color: "#263040"
+                width: 320; height: 5; radius: 2
+                color: "#334155"
                 anchors.horizontalCenter: parent.horizontalCenter
-                Rectangle { width: parent.width * 0.72; height: parent.height; radius: 2; color: "#44d19a" }
+                Rectangle { width: parent.width * 0.72; height: parent.height; radius: 2; color: "#6ee7b7" }
             }
         }
     }

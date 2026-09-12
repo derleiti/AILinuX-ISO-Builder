@@ -50,3 +50,22 @@ LockOnResume=false
 LOCK
 chown "$live_user:$live_user" "/home/$live_user/.config/kscreenlockerrc"
 chmod 0600 "/home/$live_user/.config/kscreenlockerrc"
+
+# Plasma Wayland does not reliably inherit an X11 setxkbmap state. Seed an
+# explicit, known-good keyboard layout for the live user so symbols such as @
+# work immediately after autologin. Calamares remains free to configure the
+# installed system from the keyboard page.
+cat > "/home/$live_user/.config/kxkbrc" <<KEYBOARD
+[Layout]
+DisplayNames=
+LayoutList=us
+LayoutLoopCount=-1
+Model=pc105
+Options=
+ResetOldOptions=true
+SwitchMode=Global
+Use=true
+VariantList=
+KEYBOARD
+chown "$live_user:$live_user" "/home/$live_user/.config/kxkbrc"
+chmod 0600 "/home/$live_user/.config/kxkbrc"

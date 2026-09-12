@@ -1,45 +1,102 @@
 /*
- * AILinuX Calamares branding.
+ * AILinuX Calamares dark branding.
  *
- * Keep this stylesheet deliberately narrow. The partition module uses
- * custom-painted C++ delegates for its device tree, partition bar and choice
- * widgets. Generic QWidget / item-view rules override their palette and can
- * produce dark-on-dark or light-on-light text. The native Breeze palette is
- * therefore authoritative for all module content.
+ * Contrast policy:
+ * - module content is rendered on an opaque near-black surface, never directly
+ *   on the branded wallpaper;
+ * - primary text is near-white and secondary/disabled text stays deliberately
+ *   bright enough for a dark background;
+ * - item views are intentionally left to the native Breeze palette because
+ *   Calamares' partition module uses custom-painted delegates.
  */
 
-/* Calamares' stable application-shell object names only. */
 #sidebarApp {
     background-color: #131822;
-    color: #a9b3c0;
-    border-right: 1px solid #263040;
+    color: #cbd5e1;
+    border-right: 1px solid #334155;
 }
 
 #logoApp {
     background-color: #131822;
 }
 
-/*
- * Module pages use the dark branded wallpaper, while Breeze supplies a dark
- * foreground for ordinary labels. Scope the contrast correction to labels in
- * the content pane; partition tables and their custom delegates stay native.
- */
-#mainApp QLabel {
+/* Make installer pages independent of wallpaper/image brightness. */
+#mainApp {
+    background-color: #0e1116;
+    color: #f8fafc;
+}
+
+#mainApp QLabel,
+#mainApp QCheckBox,
+#mainApp QRadioButton,
+#mainApp QGroupBox {
     background-color: transparent;
-    color: #7cff00;
+    color: #f8fafc;
 }
 
-#mainApp QLabel:disabled {
-    color: #54b300;
+#mainApp QLabel:disabled,
+#mainApp QCheckBox:disabled,
+#mainApp QRadioButton:disabled {
+    color: #aeb9c8;
 }
 
-#mainApp QCheckBox {
-    color: #7cff00;
+/* Standard form controls only; do not style QAbstractItemView/QTreeView/etc. */
+#mainApp QLineEdit,
+#mainApp QTextEdit,
+#mainApp QPlainTextEdit,
+#mainApp QSpinBox,
+#mainApp QDoubleSpinBox,
+#mainApp QComboBox {
+    background-color: #171e29;
+    color: #f8fafc;
+    border: 1px solid #64748b;
+    border-radius: 5px;
+    padding: 5px 7px;
+    selection-background-color: #2563eb;
+    selection-color: #ffffff;
+}
+
+#mainApp QLineEdit:focus,
+#mainApp QTextEdit:focus,
+#mainApp QPlainTextEdit:focus,
+#mainApp QSpinBox:focus,
+#mainApp QDoubleSpinBox:focus,
+#mainApp QComboBox:focus {
+    border-color: #60a5fa;
+}
+
+#mainApp QPushButton {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #64748b;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+#mainApp QPushButton:hover {
+    background-color: #263449;
+    border-color: #7dd3fc;
+}
+
+#mainApp QPushButton:pressed {
+    background-color: #172033;
+}
+
+#mainApp QPushButton:disabled {
+    background-color: #202733;
+    color: #aeb9c8;
+    border-color: #475569;
+}
+
+QToolTip {
+    background-color: #111827;
+    color: #ffffff;
+    border: 1px solid #64748b;
+    padding: 4px;
 }
 
 /*
- * Sidebar row colors are supplied by branding.desc. Do not add selectors for
- * QWidget, unscoped QLabel, QAbstractItemView, QListView, QTreeView,
- * QTableView or
- * ::item here: those selectors also affect the partitioning module.
+ * branding.desc supplies selected/current sidebar-row colors. Keep unscoped
+ * QWidget, QAbstractItemView, QListView, QTreeView, QTableView and ::item
+ * selectors out of this file to preserve Calamares partition delegates.
  */
