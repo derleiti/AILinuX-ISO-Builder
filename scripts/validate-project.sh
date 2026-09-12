@@ -16,6 +16,7 @@ config/ailinux-kernel.env
 config/offline-packages.sha256
 config/package-lists/desktop.list.chroot
 config/package-lists/ailinux.list.chroot
+config/mirror-repos.tsv
 config/archives/ailinux-mirrors.list.chroot
 config/archives/mozilla.list.chroot
 config/archives/mozilla.key.chroot
@@ -68,6 +69,7 @@ scripts/prepare-offline-build.sh
 scripts/preflight-build.sh
 scripts/resolve-latest-kernel.sh
 scripts/sync-repositories.sh
+scripts/sync-repositories-v7.py
 scripts/finalize-binary-grub.py
 scripts/validate-iso-boot.sh
 scripts/verify-installed-system.sh
@@ -75,7 +77,6 @@ config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
 config/hooks/0200-ailinux-initramfs.chroot
 config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
-config/third-party-repos.json
 config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list
 scripts/patch-live-build-mounts.sh
 scripts/patch-live-build-squashfs.sh
@@ -115,6 +116,7 @@ for script in \
     config/hooks/live/0100-ailinux-config.hook.chroot \
     config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0145-ailinux-unpackfs-nosparse.chroot \
+    config/hooks/0190-final-full-upgrade.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
     config/hooks/normal/9500-ailinux-wallpaper.hook.chroot \
     config/includes.binary/live/tools.conf \
@@ -211,10 +213,13 @@ grep -q 'repo.ailinux.me/mirror/repo.ailinux.me' config/archives/ailinux-mirrors
 grep -q '^calamares$' config/package-lists/desktop.list.chroot
 grep -q '^ubuntu-server$' config/package-lists/desktop.list.chroot
 grep -q '^plasma-desktop$' config/package-lists/desktop.list.chroot
-grep -q '^plasma-session-wayland$' config/package-lists/desktop.list.chroot
+grep -q '^neon-desktop$' config/package-lists/desktop.list.chroot
+grep -q '^neon-desktop-all$' config/package-lists/desktop.list.chroot
+if grep -q '^kde-standard$' config/package-lists/desktop.list.chroot; then echo "Ubuntu kde-standard is forbidden; use Neon meta packages." >&2; exit 1; fi
+grep -q '^plasma-workspace-wayland$' config/package-lists/desktop.list.chroot
 grep -q '^live-tools$' config/package-lists/desktop.list.chroot
 for oxygen_package in \
-    kde-style-oxygen-qt6 \
+    kde-style-oxygen \
     kwin-decoration-oxygen \
     oxygen-sounds \
     plasma-theme-oxygen
@@ -241,6 +246,25 @@ grep -Fq '/usr/share/plymouth/themes/ubuntu-text/ubuntu-text.plymouth' \
 grep -q '^copa$' config/package-lists/ailinux.list.chroot
 grep -q '^aicoder$' config/package-lists/ailinux.list.chroot
 grep -q '^python3$' config/package-lists/productivity.list.chroot
+for desktop_app in google-chrome-stable gimp libreoffice obs-studio thunderbird vlc; do grep -Fqx "$desktop_app" config/package-lists/productivity.list.chroot; done
+for kde_app in ark dolphin dolphin-plugins gwenview kate kcalc kcharselect kcolorchooser kfind okular filelight kdf kgpg ktimer kwalletmanager sweeper kdeconnect krdc krfb kget elisa dragonplayer juk kamoso kde-spectacle kmail kontact korganizer kaddressbook akregator kleopatra konversation ktorrent partitionmanager isoimagewriter kolourpaint skanpage kdenlive; do
+    grep -Fqx "$kde_app" config/package-lists/kde-applications.list.chroot || {
+        echo "Missing required KDE application baseline package: $kde_app" >&2
+        exit 1
+    }
+done
+
+for final_upgrade_fragment in \
+    'apt-get update' \
+    'full-upgrade' \
+    'remaining=$(apt-get -s full-upgrade' \
+    'refusing to freeze stale ISO'
+do
+    grep -Fq "$final_upgrade_fragment" config/hooks/0190-final-full-upgrade.chroot || {
+        echo "Final full-upgrade hook is missing required guard: $final_upgrade_fragment" >&2
+        exit 1
+    }
+done
 grep -q '^set timeout=5$' config/binary_grub/grub.cfg
 grep -q '^serial --unit=0 --speed=115200' config/binary_grub/grub.cfg
 grep -q '^terminal_input console serial; terminal_output console serial$' config/binary_grub/grub.cfg
@@ -260,8 +284,8 @@ if grep -RqsE 'plasma-session-x11|startplasma-x11|plasmax11' config/package-list
     exit 1
 fi
 
-grep -Fq 'add-ailinux-repo.sh' scripts/sync-repositories.sh
-grep -Fq 'third-party-repos.json' scripts/sync-repositories.sh
+grep -Fq 'mirror-repos.tsv' scripts/sync-repositories.sh
+grep -Fq 'kde-neon-resolute' scripts/sync-repositories.sh
 grep -Fq 'update-initramfs.orig.initramfs-tools' config/hooks/0200-ailinux-initramfs.chroot
 grep -Fq 'for kernel_image in /boot/vmlinuz-*ailinux*' config/hooks/0200-ailinux-initramfs.chroot
 grep -Fq 'for kernel_file in "$root"/boot/vmlinuz-*ailinux*' scripts/verify-installed-system.sh
@@ -276,18 +300,10 @@ do
     }
 done
 
-third_party_count=$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["repos"]))' config/third-party-repos.json)
-test "$third_party_count" -ge 11 || {
-    echo "Incomplete third-party repository manifest: $third_party_count" >&2
-    exit 1
-}
-# 11 statt 12: mozilla-firefox aus dem Manifest wird bewusst nicht als
-# .sources ausgerollt, weil config/archives/mozilla.list.chroot dieselbe
-# Quelle bereits vor der Paketinstallation bereitstellt.
-test "$(find config/includes.chroot/etc/apt/sources.list.d -maxdepth 1 -type f | wc -l)" -ge 11 || {
-    echo "Repository include tree is incomplete." >&2
-    exit 1
-}
+grep -Fq 'kde-neon-resolute' config/mirror-repos.tsv
+grep -Fq 'archive.neon.kde.org/stable' config/archives/ailinux-mirrors.list.chroot
+grep -Fq 'repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu' config/archives/ailinux-mirrors.list.chroot
+grep -Fq 'repo.ailinux.me/mirror/dl.google.com/linux/chrome/deb' config/archives/ailinux-mirrors.list.chroot
 
 grep -Fq 'DisplayServer=wayland' config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 grep -Fq 'Session=$wayland_session' config/includes.chroot/usr/local/sbin/ailinux-live-autologin
@@ -298,7 +314,7 @@ grep -Fq 'managed=true' config/includes.chroot/etc/NetworkManager/conf.d/20-aili
 # media path device-independent lets casper scan Ventoy's mapped ISO.
 grep -Fq 'live-media-path=casper noprompt debug=1' auto/config.in
 grep -Fq "pinned_keyring=\"\$archive_dir/ailinux.key.chroot\"" scripts/prepare-keyrings.sh
-grep -Fq "[ \"\$probe_dist\" = '@flat' ]" scripts/sync-repositories.sh
+grep -Fq 'sync-repositories-v7.py' scripts/sync-repositories.sh
 if grep -Eq '(^|[[:space:]])boot=(live|casper)([[:space:]]|$)' auto/config.in; then
     echo "Do not override live-build's boot=casper prefix in --bootappend-live." >&2
     exit 1
@@ -376,6 +392,7 @@ do
 done
 grep -Fq 'Theme=Infinity-Plasma-Splash-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
 grep -Fq 'Current=Infinity-SDDM-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
+grep -Fq 'Current=Infinity-SDDM-6' config/includes.chroot/etc/sddm.conf.d/90-ailinux-theme.conf
 ./scripts/prepare-infinity-theme.sh verify >/dev/null
 
 # KDE's about-distro KCM resolves LOGO through the hicolor icon theme. Keep

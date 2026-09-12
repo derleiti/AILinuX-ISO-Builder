@@ -217,7 +217,10 @@ if grep -q '^LB_BOOTLOADER="grub2"$' config/binary; then
     }
     grub_iso="$project_dir/ailinux-26.04-amd64-$timestamp.iso"
     rm -f "$project_dir/binary/boot/grub/grub_eltorito" "$grub_iso"
-    grub-mkrescue -o "$grub_iso" "$project_dir/binary" -- -volid AILINUX_2604
+    # ISO9660 level 3 permits individual files above 4 GiB. This is required
+    # for the full AILinux squashfs and remains a normal ISO9660 image for
+    # direct USB boot and Ventoy. Keep native xorriso options after --.
+    grub-mkrescue -o "$grub_iso" -iso-level 3 "$project_dir/binary" -- -volid AILINUX_2604
     iso_path="$grub_iso"
 fi
 

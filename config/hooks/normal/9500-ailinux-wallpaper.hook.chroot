@@ -47,7 +47,7 @@ echo "I: [ailinux-wallpaper] Plasma-Default: $WPNAME"
     exit 1
 }
 mkdir -p /etc/sddm.conf.d
-cat > /etc/sddm.conf.d/10-ailinux-theme.conf <<EOF
+cat > /etc/sddm.conf.d/90-ailinux-theme.conf <<EOF
 [Theme]
 Current=Infinity-SDDM-6
 EOF

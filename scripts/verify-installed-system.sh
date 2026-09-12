@@ -256,7 +256,7 @@ if [ "$package_db" = true ]; then
 
     # Ubuntu Server is the base; Plasma and AILinuX products are layered
     # explicitly on top.
-    for required_package in ubuntu-server plasma-desktop plasma-workspace sddm qt-style-kvantum aicoder copa; do
+    for required_package in ubuntu-server neon-desktop neon-desktop-all plasma-desktop plasma-workspace sddm qt-style-kvantum aicoder copa google-chrome-stable gimp libreoffice obs-studio thunderbird vlc; do
         if package_installed "$required_package"; then
             pass "required image package is installed: $required_package"
         else
@@ -264,7 +264,15 @@ if [ "$package_db" = true ]; then
         fi
     done
 
-    for oxygen_package in kde-style-oxygen-qt6 kwin-decoration-oxygen oxygen-sounds plasma-theme-oxygen; do
+    for kde_app in ark dolphin gwenview kate okular kcalc filelight kdeconnect krdc elisa kde-spectacle kmail kontact korganizer kaddressbook akregator kleopatra konversation ktorrent isoimagewriter kolourpaint skanpage kdenlive; do
+        if package_installed "$kde_app"; then
+            pass "required KDE application is installed: $kde_app"
+        else
+            fail "required KDE application is missing: $kde_app"
+        fi
+    done
+
+    for oxygen_package in kde-style-oxygen kwin-decoration-oxygen oxygen-sounds plasma-theme-oxygen; do
         if package_installed "$oxygen_package"; then
             pass "required Oxygen package is installed: $oxygen_package"
         else
@@ -433,7 +441,7 @@ check_ini_value 'Infinity wallpaper default' \
     "$root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults" \
     Wallpaper Image Infinity-World-Wallpaper
 check_ini_value 'Infinity SDDM default' \
-    "$root/etc/sddm.conf.d/10-ailinux-theme.conf" Theme Current Infinity-SDDM-6
+    "$root/etc/sddm.conf.d/90-ailinux-theme.conf" Theme Current Infinity-SDDM-6
 
 # GRUB defaults can be checked in both image and installed targets.
 grub_defaults="$root/etc/default/grub.d/99-ailinux.cfg"

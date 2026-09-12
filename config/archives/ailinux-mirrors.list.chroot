@@ -1,1 +1,23 @@
-deb [arch=amd64] https://repo.ailinux.me/mirror/repo.ailinux.me resolute main
+# Build-time AILinux mirror repositories
+# Generated from https://repo.ailinux.me/mirror/mirror-repos.tsv
+
+# AILinux Local [ailinux-resolute]
+deb [arch=amd64,i386] https://repo.ailinux.me/mirror/repo.ailinux.me resolute main
+
+# KDE neon Stable [kde-neon-resolute]
+deb [arch=amd64] https://repo.ailinux.me/mirror/archive.neon.kde.org/stable resolute main
+
+# Google Chrome [chrome-stable]
+deb [arch=amd64] https://repo.ailinux.me/mirror/dl.google.com/linux/chrome/deb stable main
+
+# LibreOffice PPA [libreoffice-resolute]
+deb [arch=amd64] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/libreoffice/ppa/ubuntu resolute main
+
+# Ubuntu Archive [ubuntu-resolute]
+deb [arch=amd64] https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu resolute main restricted universe multiverse
+
+# Ubuntu Archive [ubuntu-resolute-updates]
+deb [arch=amd64] https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu resolute-updates main restricted universe multiverse
+
+# Ubuntu Security [ubuntu-security-resolute-security]
+deb [arch=amd64] https://repo.ailinux.me/mirror/security.ubuntu.com/ubuntu resolute-security main restricted universe multiverse

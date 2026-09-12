@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+export DEBIAN_FRONTEND=noninteractive
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+echo "AILinux final package refresh: apt-get update"
+apt-get update
+
+echo "AILinux final package refresh: apt-get full-upgrade"
+apt-get -y -o Dpkg::Options::="--force-confold" full-upgrade
+
+# Verify that the exact package state is converged before the initramfs and
+# SquashFS are generated. Any remaining upgrade indicates a moving or broken
+# repository snapshot and must fail the image build instead of shipping stale.
+remaining=$(apt-get -s full-upgrade 2>/dev/null | awk '/^[0-9]+ upgraded,/{print $1; exit}')
+case "${remaining:-0}" in
+    0) ;;
+    *)
+        echo "Final full-upgrade left ${remaining} upgrade(s) pending; refusing to freeze stale ISO." >&2
+        exit 1
+        ;;
+esac
+
+apt-get clean
+rm -rf /var/lib/apt/lists/partial/*
+echo "AILinux final package refresh complete: system is fully upgraded before ISO compression."

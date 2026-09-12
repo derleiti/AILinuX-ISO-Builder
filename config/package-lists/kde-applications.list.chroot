@@ -1,0 +1,42 @@
+# Full KDE/Neon application baseline.
+# neon-desktop-all is the official Neon applications meta-package; this
+# explicit baseline prevents a thin meta-package from silently producing an
+# incomplete desktop image. Packages are resolved from the mirrored Neon repo.
+ark
+dolphin
+dolphin-plugins
+gwenview
+kate
+kcalc
+kcharselect
+kcolorchooser
+kfind
+okular
+filelight
+kdf
+kgpg
+ktimer
+kwalletmanager
+sweeper
+kdeconnect
+krdc
+krfb
+kget
+elisa
+dragonplayer
+juk
+kamoso
+kde-spectacle
+kmail
+kontact
+korganizer
+kaddressbook
+akregator
+kleopatra
+konversation
+ktorrent
+partitionmanager
+isoimagewriter
+kolourpaint
+skanpage
+kdenlive

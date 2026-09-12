@@ -26,7 +26,19 @@ elif command -v gtk-update-icon-cache >/dev/null 2>&1; then
 fi
 
 systemctl enable NetworkManager.service
+
+# Some dependency paths (notably transitional desktop packages) can install
+# GDM before this hook runs. AILinux is a KDE Neon image: make SDDM the
+# deterministic display manager instead of failing on an existing alias.
+if systemctl list-unit-files gdm3.service >/dev/null 2>&1; then
+    systemctl disable gdm3.service 2>/dev/null || true
+fi
+rm -f /etc/systemd/system/display-manager.service
 systemctl enable sddm.service
+if [ -x /usr/bin/sddm ]; then
+    printf '%s\n' /usr/bin/sddm > /etc/X11/default-display-manager
+fi
+
 systemctl enable ssh.service
 systemctl enable ailinux-graphical-ready.service
 

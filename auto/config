@@ -16,18 +16,18 @@ lb config noauto \
     --archive-areas "main restricted universe multiverse" \
     --mirror-bootstrap "https://archive.ubuntu.com/ubuntu" \
     --parent-mirror-bootstrap "https://archive.ubuntu.com/ubuntu" \
-    --parent-mirror-chroot "https://archive.ubuntu.com/ubuntu" \
-    --parent-mirror-chroot-security "https://security.ubuntu.com/ubuntu" \
-    --parent-mirror-chroot-volatile "https://archive.ubuntu.com/ubuntu" \
-    --parent-mirror-binary "https://archive.ubuntu.com/ubuntu" \
-    --parent-mirror-binary-security "https://security.ubuntu.com/ubuntu" \
-    --parent-mirror-binary-volatile "https://archive.ubuntu.com/ubuntu" \
-    --mirror-chroot "https://archive.ubuntu.com/ubuntu" \
-    --mirror-chroot-security "https://security.ubuntu.com/ubuntu" \
-    --mirror-chroot-volatile "https://archive.ubuntu.com/ubuntu" \
-    --mirror-binary "https://archive.ubuntu.com/ubuntu" \
-    --mirror-binary-security "https://security.ubuntu.com/ubuntu" \
-    --mirror-binary-volatile "https://archive.ubuntu.com/ubuntu" \
+    --parent-mirror-chroot "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
+    --parent-mirror-chroot-security "https://repo.ailinux.me/mirror/security.ubuntu.com/ubuntu" \
+    --parent-mirror-chroot-volatile "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
+    --parent-mirror-binary "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
+    --parent-mirror-binary-security "https://repo.ailinux.me/mirror/security.ubuntu.com/ubuntu" \
+    --parent-mirror-binary-volatile "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
+    --mirror-chroot "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
+    --mirror-chroot-security "https://repo.ailinux.me/mirror/security.ubuntu.com/ubuntu" \
+    --mirror-chroot-volatile "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
+    --mirror-binary "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
+    --mirror-binary-security "https://repo.ailinux.me/mirror/security.ubuntu.com/ubuntu" \
+    --mirror-binary-volatile "https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu" \
     --linux-packages "linux-image" \
     --linux-flavours "$AILINUX_KERNEL_FLAVOUR" \
     --binary-images iso-hybrid \

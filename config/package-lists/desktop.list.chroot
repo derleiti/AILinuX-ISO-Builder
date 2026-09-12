@@ -7,8 +7,7 @@ grub2-common
 grub-efi-amd64-bin
 grub-pc-bin
 kde-config-sddm
-kde-standard
-kde-style-oxygen-qt6
+kde-style-oxygen
 konsole
 kwin-decoration-oxygen
 kwin-wayland
@@ -16,6 +15,8 @@ live-config
 live-config-systemd
 live-tools
 lvm2
+neon-desktop
+neon-desktop-all
 network-manager
 network-manager-openvpn
 ntfs-3g
@@ -28,7 +29,7 @@ plasma-desktop
 plasma-discover
 plasma-nm
 plasma-pa
-plasma-session-wayland
+plasma-workspace-wayland
 plasma-theme-oxygen
 plasma-workspace
 polkitd

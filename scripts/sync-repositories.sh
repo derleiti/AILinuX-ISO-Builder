@@ -1,184 +1,51 @@
 #!/bin/sh
 set -eu
-
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-codename=${AILINUX_CODENAME:-resolute}
+codename=${AILINUX_TARGET_CODENAME:-resolute}
 base_url=${AILINUX_REPO_BASE:-https://repo.ailinux.me/mirror}
-include_root="$project_dir/config/includes.chroot"
-source_dir="$include_root/etc/apt/sources.list.d"
-manifest_copy="$project_dir/config/third-party-repos.json"
+manifest="$project_dir/config/mirror-repos.tsv"
+archive_key="$project_dir/config/archives/ailinux.key.chroot"
+share_key="$project_dir/config/includes.chroot/usr/share/keyrings/ailinux-archive-keyring.gpg"
+final_list="$project_dir/config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list"
+archive_list="$project_dir/config/archives/ailinux-mirrors.list.chroot"
 offline=${AILINUX_OFFLINE:-0}
-
-case "$offline" in
-    0|1) ;;
-    *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;;
-esac
-
-if [ "$offline" = "1" ]; then
-    command -v python3 >/dev/null 2>&1 || {
-        echo "python3 is required to validate cached repository metadata." >&2
-        exit 1
-    }
-    python3 - "$manifest_copy" "$include_root" <<'PY'
-import json
-import pathlib
-import sys
-
-manifest_path = pathlib.Path(sys.argv[1])
-include_root = pathlib.Path(sys.argv[2])
-if not manifest_path.is_file():
-    raise SystemExit(f"Missing cached repository manifest: {manifest_path}")
-
-data = json.loads(manifest_path.read_text(encoding="utf-8"))
-repos = data.get("repos")
-if not isinstance(repos, list) or not repos:
-    raise SystemExit("Cached third-party repository manifest is empty")
-
-for repo in repos:
-    # mozilla-firefox (KDE-neon-Erbe) beschreibt dieselbe Quelle wie
-    # config/archives/mozilla.list.chroot, aber mit abweichendem Signed-By.
-    # Beide zusammen machen die gesamte apt-Sourceliste unlesbar.
-    if repo["id"] == "mozilla-firefox":
-        continue
-    source_file = include_root / repo["source_file"].lstrip("/")
-    key_file = include_root / repo["key_dest"].lstrip("/")
-    if not source_file.is_file():
-        raise SystemExit(f"Missing cached repository source: {source_file}")
-    expected = repo["source_content"].strip()
-    actual = source_file.read_text(encoding="utf-8").strip()
-    if actual != expected:
-        raise SystemExit(f"Cached repository source differs from manifest: {source_file}")
-    if not key_file.is_file() or key_file.stat().st_size == 0:
-        raise SystemExit(f"Missing cached repository key: {key_file}")
-
-print(f"Offline repository metadata validated: {len(repos)} repositories")
-PY
-    test -s "$source_dir/ailinux-mirror.list" || {
-        echo "Cached AILinuX mirror source list is missing." >&2
-        exit 1
-    }
+required_ids=${AILINUX_MIRROR_IDS:-ailinux-resolute,kde-neon-resolute,chrome-stable,libreoffice-resolute,ubuntu-resolute,ubuntu-resolute-updates,ubuntu-security-resolute-security}
+case "$offline" in 0|1) ;; *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;; esac
+[ "$codename" = resolute ] || { echo "Unsupported ISO target codename: $codename" >&2; exit 1; }
+mkdir -p "$(dirname "$share_key")" "$(dirname "$final_list")"
+if [ "$offline" = 0 ]; then
+    curl -4 -fsSL --retry 3 --connect-timeout 15 "$base_url/mirror-repos.tsv" -o "$manifest.tmp"
+    curl -4 -fsSL --retry 3 --connect-timeout 15 "$base_url/ailinux-archive-key.gpg" -o "$archive_key.tmp"
+    mv "$manifest.tmp" "$manifest"
+    mv "$archive_key.tmp" "$archive_key"
+else
+    test -s "$manifest" || { echo "Missing cached mirror manifest: $manifest" >&2; exit 1; }
+    test -s "$archive_key" || { echo "Missing cached AILinux keyring: $archive_key" >&2; exit 1; }
     echo "Using existing checked repository configuration without network refresh."
-    exit 0
 fi
-
-for tool in bash curl python3 mktemp; do
-    command -v "$tool" >/dev/null 2>&1 || {
-        echo "Missing repository sync dependency: $tool" >&2
-        exit 1
-    }
-done
-
-mkdir -p "$source_dir"
-tmp_dir=$(mktemp -d)
-trap 'rm -rf "$tmp_dir"' EXIT HUP INT TERM
-
-installer="$tmp_dir/add-ailinux-repo.sh"
-installer_lib="$tmp_dir/add-ailinux-repo.lib.sh"
-manifest="$tmp_dir/third-party-repos.json"
-specs="$tmp_dir/mirror-specs"
-mirror_list="$source_dir/ailinux-mirror.list"
-
-curl -fsSL --retry 3 --connect-timeout 15 \
-    "$base_url/add-ailinux-repo.sh" -o "$installer"
-curl -fsSL --retry 3 --connect-timeout 15 \
-    "$base_url/shared_keys/third-party-repos.json" -o "$manifest"
-
-# Load the canonical mirror specification function without executing main().
-sed '/^main "\$@"$/d' "$installer" > "$installer_lib"
-bash -eu -o pipefail -c '. "$1"; get_mirror_repo_specs "$2"' \
-    sync-repositories "$installer_lib" "$codename" > "$specs"
-
-{
-    echo "# AILinuX mirror repositories"
-    echo "# Generated from $base_url/add-ailinux-repo.sh"
-    echo "# Codename: $codename"
-} > "$mirror_list"
-
-mirror_count=0
-while IFS='|' read -r repo_path suites components archs probe_dist label signed_by key_url; do
-    case "$repo_path" in
-        ''|'#'*) continue ;;
-    esac
-    signed_by=${signed_by:-/usr/share/keyrings/ailinux-archive-keyring.gpg}
-    if [ "$probe_dist" = '@flat' ]; then
-        release_url="$base_url/$repo_path/Release"
-    else
-        release_url="$base_url/$repo_path/dists/$probe_dist/Release"
-    fi
-    if ! curl -fsSL --retry 2 --connect-timeout 10 \
-        "$release_url" -o /dev/null; then
-        echo "Skipping unavailable mirror: $repo_path ($probe_dist)" >&2
-        continue
-    fi
-    echo >> "$mirror_list"
-    echo "# $label ($repo_path)" >> "$mirror_list"
-    if [ "$probe_dist" = '@flat' ]; then
-        echo "deb [arch=$archs signed-by=$signed_by] $base_url/$repo_path /" >> "$mirror_list"
-        mirror_count=$((mirror_count + 1))
-        continue
-    fi
-    old_ifs=$IFS
-    IFS=,
-    for suite in $suites; do
-        line="deb [arch=$archs signed-by=$signed_by] $base_url/$repo_path $suite"
-        for component in $(printf '%s' "$components" | tr ',' ' '); do
-            line="$line $component"
-        done
-        echo "$line" >> "$mirror_list"
-    done
-    IFS=$old_ifs
-    mirror_count=$((mirror_count + 1))
-done < "$specs"
-
-python3 - "$manifest" "$include_root" "$base_url" "$manifest_copy" <<'PY'
-import json
-import pathlib
-import sys
-import urllib.request
-
-manifest_path = pathlib.Path(sys.argv[1])
-include_root = pathlib.Path(sys.argv[2])
-base_url = sys.argv[3].rstrip("/")
-manifest_copy = pathlib.Path(sys.argv[4])
-
-data = json.loads(manifest_path.read_text(encoding="utf-8"))
-repos = data.get("repos", [])
-if not repos:
-    raise SystemExit("Third-party repository manifest is empty")
-
-for repo in repos:
-    # mozilla-firefox (KDE-neon-Erbe) beschreibt dieselbe Quelle wie
-    # config/archives/mozilla.list.chroot, aber mit abweichendem Signed-By.
-    # Beide zusammen machen die gesamte apt-Sourceliste unlesbar.
-    if repo["id"] == "mozilla-firefox":
-        continue
-    source_file = include_root / repo["source_file"].lstrip("/")
-    key_file = include_root / repo["key_dest"].lstrip("/")
-    source_file.parent.mkdir(parents=True, exist_ok=True)
-    key_file.parent.mkdir(parents=True, exist_ok=True)
-
-    source_file.write_text(repo["source_content"].rstrip() + "\n", encoding="utf-8")
-    key_url = f"{base_url}/shared_keys/{repo['key']}"
-    with urllib.request.urlopen(key_url, timeout=30) as response:
-        key_data = response.read()
-    if not key_data:
-        raise SystemExit(f"Empty key download for {repo['id']}")
-    key_file.write_bytes(key_data)
-    key_file.chmod(0o644)
-
-manifest_copy.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-print(f"Third-party repositories synchronized: {len(repos)}")
-PY
-
-# Remove superseded handwritten names from earlier iterations.
-rm -f \
-    "$source_dir/ailinux-mirrors.list" \
-    "$source_dir/third-party.list" \
-    "$source_dir/mozilla.sources"
-
-third_party_count=$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["repos"]))' "$manifest_copy")
-test "$mirror_count" -gt 0
-test "$third_party_count" -gt 0
-
-echo "Mirror repositories synchronized: $mirror_count"
-echo "Repository include tree ready: $source_dir"
+install -m 0644 "$archive_key" "$share_key"
+python3 "$project_dir/scripts/sync-repositories-v7.py" \
+    "$manifest" "$final_list" "$archive_list" "$base_url" "$codename" "$required_ids"
+rm -f "$project_dir/config/third-party-repos.json" \
+    "$project_dir/config/includes.chroot/etc/apt/sources.list.d/ailinux-mirrors.list" \
+    "$project_dir/config/includes.chroot/etc/apt/sources.list.d/third-party.list" \
+    "$project_dir/config/includes.chroot/etc/apt/sources.list.d/mozilla.sources"
+if [ "$offline" = 0 ]; then
+    while IFS='|' read -r repo_id path suite; do
+        if [ "$suite" = / ]; then release="$base_url/$path/Release"; else release="$base_url/$path/dists/$suite/Release"; fi
+        curl -4 -fsSL --retry 2 --connect-timeout 10 "$release" -o /dev/null || {
+            echo "Mirror probe failed: $repo_id ($release)" >&2
+            exit 1
+        }
+    done <<'PROBES'
+ailinux-resolute|repo.ailinux.me|resolute
+kde-neon-resolute|archive.neon.kde.org/stable|resolute
+chrome-stable|dl.google.com/linux/chrome/deb|stable
+libreoffice-resolute|ppa.launchpadcontent.net/libreoffice/ppa/ubuntu|resolute
+ubuntu-resolute|archive.ubuntu.com/ubuntu|resolute
+ubuntu-resolute-updates|archive.ubuntu.com/ubuntu|resolute-updates
+ubuntu-security-resolute-security|security.ubuntu.com/ubuntu|resolute-security
+PROBES
+fi
+test -s "$final_list" && test -s "$archive_list"
+echo "Repository configuration ready: $final_list"
