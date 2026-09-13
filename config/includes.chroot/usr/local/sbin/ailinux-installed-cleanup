@@ -70,6 +70,24 @@ find /home -mindepth 3 -maxdepth 3 -type f \
 # A server-based Plasma image must not start Kubuntu's first-run assistant.
 rm -f /usr/share/applications/org.kde.plasma-welcome.desktop
 
+# Live-session autologin helpers must never survive on the installed target.
+# Their units are guarded by boot=casper, but leaving them behind still creates
+# confusing SDDM dependencies and exposes live-only sudo/autologin policy.
+rm -f \
+    /etc/systemd/system/sddm.service.d/10-ailinux-live-autologin.conf \
+    /etc/systemd/system/getty@tty1.service.d/10-ailinux-live-autologin.conf \
+    /etc/systemd/system/serial-getty@ttyS0.service.d/10-ailinux-live-autologin.conf \
+    /etc/sddm.conf.d/99-ailinux-live-autologin.conf \
+    /etc/sudoers.d/99-ailinux-live \
+    /usr/lib/systemd/system/ailinux-live-autologin.service \
+    /usr/local/sbin/ailinux-live-autologin
+
+# pam-pkcs11 can be pulled in by the desktop stack with no event-manager
+# configuration. Do not leave an enabled service which can only fail at boot.
+if [ ! -s /etc/pam_pkcs11/pkcs11_eventmgr.conf ]; then
+    rm -f /etc/systemd/system/multi-user.target.wants/pkcs11-eventmgr.service
+fi
+
 # Das vorangehende packages-Modul entfernt casper, live-boot und live-tools.
 # Bis dahin ist /usr/sbin/update-initramfs eine Diversion von live-tools, die
 # nichts tut - der initramfs-Schritt des Installers bleibt deshalb wirkungslos

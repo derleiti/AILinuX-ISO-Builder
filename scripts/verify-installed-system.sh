@@ -452,6 +452,17 @@ check_ini_value 'GRUB flat kernel list' "$grub_defaults" '' GRUB_DISABLE_SUBMENU
 check_ini_value 'GRUB recovery entries enabled' "$grub_defaults" '' GRUB_DISABLE_RECOVERY false
 check_ini_value 'GRUB safe-mode title' "$grub_defaults" '' GRUB_RECOVERY_TITLE '"Safe Mode"'
 
+for apparmor_local in \
+    etc/apparmor.d/local/usr.sbin.rsyslogd \
+    etc/apparmor.d/local/ubuntu_pro_esm_cache
+do
+    if [ -s "$root/$apparmor_local" ]; then
+        fail "AppArmor local override is unexpectedly non-empty: /$apparmor_local"
+    else
+        pass "AppArmor local override is clean: /$apparmor_local"
+    fi
+done
+
 if [ "$mode" = installed ] && [ -n "$selected_user" ]; then
     # The target user's Desktop must be genuinely empty.  Check both KDE's
     # untranslated and German directory names, plus the system skeleton.
@@ -473,7 +484,14 @@ if [ "$mode" = installed ] && [ -n "$selected_user" ]; then
 
     for live_path in \
         /usr/share/applications/ailinux-installer.desktop \
-        /usr/local/bin/ailinux-installer; do
+        /usr/local/bin/ailinux-installer \
+        /etc/systemd/system/sddm.service.d/10-ailinux-live-autologin.conf \
+        /etc/systemd/system/getty@tty1.service.d/10-ailinux-live-autologin.conf \
+        /etc/systemd/system/serial-getty@ttyS0.service.d/10-ailinux-live-autologin.conf \
+        /etc/sddm.conf.d/99-ailinux-live-autologin.conf \
+        /etc/sudoers.d/99-ailinux-live \
+        /usr/lib/systemd/system/ailinux-live-autologin.service \
+        /usr/local/sbin/ailinux-live-autologin; do
         if [ -e "$root$live_path" ] || [ -L "$root$live_path" ]; then
             fail "live installer artifact remains in installed target: $live_path"
         else
@@ -537,12 +555,12 @@ if [ "$mode" = installed ] && [ -n "$selected_user" ]; then
         for kernel_file in "$root"/boot/vmlinuz-*ailinux*; do
             [ -f "$kernel_file" ] || continue
             kernel_version=${kernel_file##*/vmlinuz-}
-            if grep -F "AILinuX $kernel_version" "$grub_cfg" | grep -Fvq '(Safe Mode)'; then
+            if grep -F "AILinuX GNU/Linux $kernel_version" "$grub_cfg" | grep -Fvq '(Safe Mode)'; then
                 pass "GRUB has normal AILinuX entry for $kernel_version"
             else
                 fail "GRUB lacks normal AILinuX entry for $kernel_version"
             fi
-            if grep -Fq "AILinuX $kernel_version (Safe Mode)" "$grub_cfg"; then
+            if grep -Fq "AILinuX GNU/Linux $kernel_version (Safe Mode)" "$grub_cfg"; then
                 pass "GRUB has Safe Mode entry for $kernel_version"
             else
                 fail "GRUB lacks Safe Mode entry for $kernel_version"

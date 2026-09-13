@@ -116,6 +116,7 @@ for script in \
     config/hooks/live/0100-ailinux-config.hook.chroot \
     config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0145-ailinux-unpackfs-nosparse.chroot \
+    config/hooks/0195-runtime-sanity.chroot \
     config/hooks/0190-final-full-upgrade.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
     config/hooks/normal/9500-ailinux-wallpaper.hook.chroot \
@@ -453,6 +454,11 @@ grep -Fq 'SidebarBackground:' config/includes.chroot/etc/calamares/branding/aili
 grep -Fq 'slideshowAPI: 2' config/includes.chroot/etc/calamares/branding/ailinux/branding.desc
 grep -Fq 'restartNowMode: user-checked' config/includes.chroot/etc/calamares/modules/finished.conf
 grep -Fq 'restartNowCommand: "systemctl -i reboot"' config/includes.chroot/etc/calamares/modules/finished.conf
+grep -Fq '[ ! -c /dev/null ]' config/hooks/0195-runtime-sanity.chroot
+grep -Fq 'apparmor_parser -Q -K' config/hooks/0195-runtime-sanity.chroot
+grep -Fq 'pkcs11-eventmgr.service' config/hooks/0195-runtime-sanity.chroot
+grep -Fq '/etc/systemd/system/sddm.service.d/10-ailinux-live-autologin.conf' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq '/etc/sudoers.d/99-ailinux-live' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 grep -Fxq 'LIVE_MEDIUM_EJECT_VERBOSE=false' config/includes.binary/live/tools.conf
 awk '
     $1 == "-" && $2 == "id:" { instance_id = $3 }
@@ -606,7 +612,7 @@ grep -Fq '/usr/lib/firefox/firefox-bin' config/hooks/0125-verify-native-firefox.
 grep -Fq 'packages.mozilla.org' config/hooks/0125-verify-native-firefox.chroot
 grep -Fq 'Pin-Priority: 1001' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 grep -Fq '#mainApp QLabel' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
-grep -Fq 'color: #7cff00;' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq 'color: #f8fafc;' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq 'GRUB_DISTRIBUTOR="AILinuX"' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 grep -Fq 'GRUB_TIMEOUT_STYLE=menu' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
 grep -Fq 'GRUB_TIMEOUT=10' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg

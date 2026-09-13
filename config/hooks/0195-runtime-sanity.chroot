@@ -1,0 +1,44 @@
+#!/bin/sh
+set -eu
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# A rootless live-build must execute package maintainer scripts with a real
+# /dev mounted. If /dev/null is only debootstrap's placeholder file, output
+# redirected there can later be copied by dh_apparmor into local profiles.
+if [ ! -c /dev/null ]; then
+    echo "AILinux runtime sanity: /dev/null is not a character device inside the build chroot." >&2
+    exit 1
+fi
+
+# These files are package-created local override placeholders. In an image
+# build there are no administrator customizations to preserve, so normalize
+# them to genuinely empty files after all main package-list installs.
+mkdir -p /etc/apparmor.d/local
+for profile in \
+    /etc/apparmor.d/local/usr.sbin.rsyslogd \
+    /etc/apparmor.d/local/ubuntu_pro_esm_cache
+do
+    if [ -e "$profile" ]; then
+        install -o root -g root -m 0644 /dev/null "$profile"
+    fi
+done
+
+# Parse the affected profiles without loading them into the build host kernel.
+if command -v apparmor_parser >/dev/null 2>&1; then
+    for profile in \
+        /etc/apparmor.d/usr.sbin.rsyslogd \
+        /etc/apparmor.d/ubuntu_pro_esm_cache
+    do
+        [ ! -f "$profile" ] || apparmor_parser -Q -K "$profile"
+    done
+fi
+
+# pam-pkcs11 currently enables its event manager even when no usable eventmgr
+# configuration is shipped. Do not carry a guaranteed failed unit into the
+# installed system. A future image that ships a real configuration keeps it.
+if [ ! -s /etc/pam_pkcs11/pkcs11_eventmgr.conf ]; then
+    rm -f /etc/systemd/system/multi-user.target.wants/pkcs11-eventmgr.service
+fi
+
+echo "AILinux runtime sanity complete: device, AppArmor and optional PKCS#11 state validated."
