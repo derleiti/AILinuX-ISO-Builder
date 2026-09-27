@@ -1,22 +1,28 @@
 id	label	category	path	suite	components	architectures	source_url	target_codename
+claude-desktop-stable	Claude Desktop	ai	downloads.claude.ai/claude-desktop/apt/stable	stable	main	amd64	https://downloads.claude.ai/claude-desktop/apt/stable	*
+antigravity-antigravity-debian	Google Antigravity	ai	us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev	antigravity-debian	main	amd64	https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev	*
 cuda	NVIDIA CUDA 26.04	ai	developer.download.nvidia.com/compute/cuda/repos/ubuntu2604/x86_64	/	-	amd64	https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2604/x86_64	resolute
 ailinux-noble	AILinux Local	ailinux	repo.ailinux.me	noble	main	amd64,i386	local://repo.ailinux.me	noble
 ailinux-resolute	AILinux Local	ailinux	repo.ailinux.me	resolute	main	amd64,i386	local://repo.ailinux.me	resolute
 chrome-stable	Google Chrome	desktop	dl.google.com/linux/chrome/deb	stable	main	amd64	https://dl.google.com/linux/chrome/deb	*
 kde-neon-resolute	KDE neon Stable	desktop	archive.neon.kde.org/stable	resolute	main	amd64	https://archive.neon.kde.org/stable	resolute
 libreoffice-resolute	LibreOffice PPA	desktop	ppa.launchpadcontent.net/libreoffice/ppa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/libreoffice/ppa/ubuntu	resolute
+mozilla-mozilla	Mozilla	desktop	packages.mozilla.org/apt	mozilla	main	amd64	https://packages.mozilla.org/apt	*
+teamviewer-stable	TeamViewer	desktop	linux.teamviewer.com/deb	stable	main	amd64	https://linux.teamviewer.com/deb	*
 cappelikan-resolute	Cappelikan PPA	dev	ppa.launchpadcontent.net/cappelikan/ppa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/cappelikan/ppa/ubuntu	resolute
+cursor-stable	Cursor	dev	downloads.cursor.com/aptrepo	stable	main	amd64	https://downloads.cursor.com/aptrepo	*
 docker-resolute	Docker CE	dev	download.docker.com/linux/ubuntu	resolute	stable	amd64	https://download.docker.com/linux/ubuntu	resolute
-nodesource-nodistro	NodeSource 22.x	dev	deb.nodesource.com/node_22.x	nodistro	main	amd64	https://deb.nodesource.com/node_22.x	*
+nodesource-20-nodistro	NodeSource 20.x	dev	deb.nodesource.com/node_20.x	nodistro	main	amd64	https://deb.nodesource.com/node_20.x	*
+nodesource-22-nodistro	NodeSource 22.x	dev	deb.nodesource.com/node_22.x	nodistro	main	amd64	https://deb.nodesource.com/node_22.x	*
 unity-stable	Unity Hub	dev	hub.unity3d.com/linux/repos/deb	stable	main	amd64	https://hub.unity3d.com/linux/repos/deb	*
 vscode-stable	Visual Studio Code	dev	packages.microsoft.com/repos/code	stable	main	amd64	https://packages.microsoft.com/repos/code	*
+windsurf-stable	Windsurf	dev	windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt	stable	main	amd64	https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt	*
+amd-graphics-7-2-noble	AMD Graphics 7.2	drivers	repo.radeon.com/graphics/7.2/ubuntu	noble	main	amd64	https://repo.radeon.com/graphics/7.2/ubuntu	*
+rocm-7-2-noble	AMD ROCm 7.2	drivers	repo.radeon.com/rocm/apt/7.2	noble	main	amd64	https://repo.radeon.com/rocm/apt/7.2	*
 graphics-drivers-resolute	Graphics Drivers PPA	drivers	ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu	resolute
 kisak-mesa-resolute	Kisak Mesa	drivers	ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute
-steam-stable	Steam	gaming	repo.steampowered.com/steam	stable	steam	amd64	https://repo.steampowered.com/steam	*
+steam-stable	Steam	gaming	repo.steampowered.com/steam	stable	steam	amd64,i386	https://repo.steampowered.com/steam	*
 winehq-resolute	WineHQ	gaming	dl.winehq.org/wine-builds/ubuntu	resolute	main	amd64	https://dl.winehq.org/wine-builds/ubuntu	resolute
-downloads-cursor-com-aptrepo-stable	downloads.cursor.com	other	downloads.cursor.com/aptrepo	stable	main	amd64	https://downloads.cursor.com/aptrepo	*
-persistent-oaistatic-com-codex-app-prod-linux-deb-stable	persistent.oaistatic.com	other	persistent.oaistatic.com/codex-app-prod/linux/deb	stable	main	amd64	https://persistent.oaistatic.com/codex-app-prod/linux/deb	*
-windsurf-stable-codeiumdata-com-wvxqeiwkwpueagf3-apt-stable	windsurf-stable.codeiumdata.com	other	windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt	stable	main	amd64	https://windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt	*
 ubuntu-resolute	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute	main restricted universe multiverse	amd64	https://archive.ubuntu.com/ubuntu	resolute
 ubuntu-resolute-updates	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute-updates	main restricted universe multiverse	amd64	https://archive.ubuntu.com/ubuntu	resolute
 ubuntu-security-resolute-security	Ubuntu Security	ubuntu	security.ubuntu.com/ubuntu	resolute-security	main restricted universe multiverse	amd64	https://security.ubuntu.com/ubuntu	resolute

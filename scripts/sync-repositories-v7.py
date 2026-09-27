@@ -13,6 +13,18 @@ required = [item for item in sys.argv[6].split(',') if item]
 with manifest_path.open(encoding='utf-8', newline='') as handle:
     rows = list(csv.DictReader(handle, delimiter='\t'))
 by_id = {row['id']: row for row in rows}
+
+# "__all__" mirrors the default behaviour of add-ailinux-repo.sh: include every
+# published mirror entry that targets this codename (plus entries targeting "*"
+# or no specific codename). This keeps the ISO build-time and installed runtime
+# repository sets aligned with the full AILinux mirror.
+if required == ['__all__']:
+    required = [
+        row['id']
+        for row in rows
+        if (row.get('target_codename') or '').strip() in ('', '*', codename)
+    ]
+
 missing = [repo_id for repo_id in required if repo_id not in by_id]
 if missing:
     raise SystemExit('Required mirror entries missing: ' + ', '.join(missing))

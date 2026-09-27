@@ -135,7 +135,3 @@ LB_BOOTSTRAP_QEMU_EXCLUDE=""
 # $LB_BOOTSTRAP_QEMU_STATIC: static qemu binary for foreign bootstrap
 # (Default: )
 LB_BOOTSTRAP_QEMU_STATIC=""
-
-# $LB_BOOTSTRAP_ARCH: Pass this as --arch to debootstrap instead of the default.
-# (Default: )
-LB_BOOTSTRAP_ARCH=""

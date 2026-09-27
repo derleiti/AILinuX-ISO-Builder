@@ -2,17 +2,74 @@
 # Generated from https://repo.ailinux.me/mirror/mirror-repos.tsv
 # Target codename: resolute
 
+# Claude Desktop [claude-desktop-stable]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/downloads.claude.ai/claude-desktop/apt/stable stable main
+
+# Google Antigravity [antigravity-antigravity-debian]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev antigravity-debian main
+
+# NVIDIA CUDA 26.04 [cuda]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/developer.download.nvidia.com/compute/cuda/repos/ubuntu2604/x86_64 /
+
 # AILinux Local [ailinux-resolute]
 deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.ailinux.me resolute main
-
-# KDE neon Stable [kde-neon-resolute]
-deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.neon.kde.org/stable resolute main
 
 # Google Chrome [chrome-stable]
 deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/dl.google.com/linux/chrome/deb stable main
 
+# KDE neon Stable [kde-neon-resolute]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.neon.kde.org/stable resolute main
+
 # LibreOffice PPA [libreoffice-resolute]
 deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/libreoffice/ppa/ubuntu resolute main
+
+# Mozilla [mozilla-mozilla]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/packages.mozilla.org/apt mozilla main
+
+# TeamViewer [teamviewer-stable]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/linux.teamviewer.com/deb stable main
+
+# Cappelikan PPA [cappelikan-resolute]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/cappelikan/ppa/ubuntu resolute main
+
+# Cursor [cursor-stable]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/downloads.cursor.com/aptrepo stable main
+
+# Docker CE [docker-resolute]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/download.docker.com/linux/ubuntu resolute stable
+
+# NodeSource 20.x [nodesource-20-nodistro]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/deb.nodesource.com/node_20.x nodistro main
+
+# NodeSource 22.x [nodesource-22-nodistro]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/deb.nodesource.com/node_22.x nodistro main
+
+# Unity Hub [unity-stable]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/hub.unity3d.com/linux/repos/deb stable main
+
+# Visual Studio Code [vscode-stable]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/packages.microsoft.com/repos/code stable main
+
+# Windsurf [windsurf-stable]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/apt stable main
+
+# AMD Graphics 7.2 [amd-graphics-7-2-noble]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.radeon.com/graphics/7.2/ubuntu noble main
+
+# AMD ROCm 7.2 [rocm-7-2-noble]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.radeon.com/rocm/apt/7.2 noble main
+
+# Graphics Drivers PPA [graphics-drivers-resolute]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu resolute main
+
+# Kisak Mesa [kisak-mesa-resolute]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu resolute main
+
+# Steam [steam-stable]
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.steampowered.com/steam stable steam
+
+# WineHQ [winehq-resolute]
+deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/dl.winehq.org/wine-builds/ubuntu resolute main
 
 # Ubuntu Archive [ubuntu-resolute]
 deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.ubuntu.com/ubuntu resolute main restricted universe multiverse

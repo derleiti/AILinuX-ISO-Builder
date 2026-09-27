@@ -31,8 +31,8 @@ test "$candidate" = "$version" || {
     exit 1
 }
 
-apt-cache policy "$package" | grep -Fq 'packages.mozilla.org' || {
-    echo "Mozilla APT origin is absent from Firefox policy." >&2
+apt-cache policy "$package" | grep -Fq 'repo.ailinux.me' || {
+    echo "AILinux Mozilla mirror is absent from Firefox policy." >&2
     exit 1
 }
 

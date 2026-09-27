@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+required='copa aicoder ailinux-kernel-ai-gaming linux-libc-dev'
+for package in $required; do
+    status=$(dpkg-query -W -f='${Status}' "$package" 2>/dev/null || true)
+    [ "$status" = 'install ok installed' ] || {
+        echo "Required AILinux package is missing or not configured: $package" >&2
+        exit 1
+    }
+done
+
+. /etc/os-release 2>/dev/null || true
+kernel_meta_version=$(dpkg-query -W -f='${Version}' ailinux-kernel-ai-gaming)
+image=$(dpkg-query -W -f='${Depends}' ailinux-kernel-ai-gaming | sed -n 's/^\(linux-image-[^ ,]*(=\?[^,]*\)\?.*$/\1/p' || true)
+
+echo "AILinux required packages verified: copa, aicoder, kernel meta, linux-libc-dev ($kernel_meta_version)"

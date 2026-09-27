@@ -9,7 +9,9 @@ share_key="$project_dir/config/includes.chroot/usr/share/keyrings/ailinux-archiv
 final_list="$project_dir/config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list"
 archive_list="$project_dir/config/archives/ailinux-mirrors.list.chroot"
 offline=${AILINUX_OFFLINE:-0}
-required_ids=${AILINUX_MIRROR_IDS:-ailinux-resolute,kde-neon-resolute,chrome-stable,libreoffice-resolute,ubuntu-resolute,ubuntu-resolute-updates,ubuntu-security-resolute-security}
+# Default to the complete published mirror set for the target codename. Set
+# AILINUX_MIRROR_IDS explicitly only for diagnostic/minimal builds.
+required_ids=${AILINUX_MIRROR_IDS:-__all__}
 case "$offline" in 0|1) ;; *) echo "AILINUX_OFFLINE must be 0 or 1." >&2; exit 1 ;; esac
 [ "$codename" = resolute ] || { echo "Unsupported ISO target codename: $codename" >&2; exit 1; }
 mkdir -p "$(dirname "$share_key")" "$(dirname "$final_list")"

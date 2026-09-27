@@ -24,7 +24,7 @@ if [ "$resume_binary" = "1" ] && [ "$retry_build" = "1" ]; then
     exit 1
 fi
 
-for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg python3 tee mktemp; do
+for tool in lb debootstrap xorriso mksquashfs sha256sum md5sum find sort xargs curl gzip dpkg python3 tee mktemp mformat; do
     command -v "$tool" >/dev/null 2>&1 || {
         echo "Missing build dependency: $tool" >&2
         exit 1
@@ -154,6 +154,28 @@ run_logged() {
     return "$status"
 }
 
+# Old live-build copies /etc/resolv.conf verbatim. On systemd-resolved hosts
+# that is often the 127.0.0.53 stub, which is unreachable from the chroot.
+run_as_root ./scripts/patch-live-build-resolv.sh
+run_as_root ./scripts/patch-live-build-hosts.sh
+run_as_root ./scripts/patch-live-build-permissions.sh
+run_as_root ./scripts/patch-live-build-grub-efi-api.sh
+run_as_root ./scripts/patch-live-build-iso.sh
+
+prepare_build_mirror_host() {
+    mirror_ip=${AILINUX_BUILD_MIRROR_IP:-}
+    if [ -z "$mirror_ip" ]; then
+        mirror_ip=$(getent ahostsv4 repo.ailinux.me 2>/dev/null | sed -n '1{s/[[:space:]].*//;p;q;}')
+    fi
+    [ -n "$mirror_ip" ] || {
+        echo "Unable to resolve repo.ailinux.me on the build host." >&2
+        exit 1
+    }
+    mkdir -p .build
+    printf '%s\n' "$mirror_ip" | run_as_root tee .build/ailinux-mirror-ip >/dev/null
+    echo "Pinned build mirror: repo.ailinux.me -> $mirror_ip"
+}
+
 if [ "$retry_build" = "1" ]; then
     test -d "$project_dir/cache" || {
         echo "AILINUX_RETRY_BUILD requires an existing live-build package cache." >&2
@@ -165,10 +187,12 @@ if [ "$retry_build" = "1" ]; then
     # tree, but retain downloaded packages.
     echo "Retrying with the existing package cache and fresh chroot/binary trees."
     run_as_root lb clean --chroot --binary
+    run_as_root ./scripts/repair-bootstrap-devices.sh cache/bootstrap/dev
     # live-build 3.x leaves this marker behind although --chroot removed the
     # restored tree. Force the cached bootstrap to be unpacked again.
     run_as_root rm -f .build/bootstrap_cache.restore
     run_as_root ./auto/config
+    prepare_build_mirror_host
     run_logged lb build
 elif [ "$resume_binary" = "1" ]; then
     run_logged lb binary
@@ -179,7 +203,12 @@ else
         run_as_root lb clean
     fi
     run_as_root ./auto/config
+    prepare_build_mirror_host
     run_logged lb build
+fi
+
+if [ ! -s "$project_dir/binary/casper/filesystem.squashfs" ] || [ ! -s "$project_dir/binary/boot/grub/grub.cfg" ]; then
+    ./scripts/rebuild-binary-tree.sh
 fi
 
 python3 ./scripts/finalize-binary-grub.py "$project_dir/binary/boot/grub/grub.cfg"

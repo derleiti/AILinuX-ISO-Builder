@@ -18,9 +18,6 @@ config/package-lists/desktop.list.chroot
 config/package-lists/ailinux.list.chroot
 config/mirror-repos.tsv
 config/archives/ailinux-mirrors.list.chroot
-config/archives/mozilla.list.chroot
-config/archives/mozilla.key.chroot
-config/archives/mozilla.pref.chroot
 config/includes.binary/live/tools.conf
 config/includes.chroot/etc/calamares/settings.conf
 config/includes.chroot/etc/calamares/modules/partition.conf
@@ -244,8 +241,13 @@ grep -Fq '/usr/share/plymouth/themes/bgrt/bgrt.plymouth' \
     config/hooks/0150-remove-kubuntu.chroot
 grep -Fq '/usr/share/plymouth/themes/ubuntu-text/ubuntu-text.plymouth' \
     config/hooks/0150-remove-kubuntu.chroot
-grep -q '^copa$' config/package-lists/ailinux.list.chroot
-grep -q '^aicoder$' config/package-lists/ailinux.list.chroot
+for ailinux_required in copa aicoder ailinux-kernel-ai-gaming linux-libc-dev; do
+    grep -Fqx "$ailinux_required" config/package-lists/ailinux.list.chroot || {
+        echo "Missing required AILinux package: $ailinux_required" >&2
+        exit 1
+    }
+done
+test -x config/hooks/0188-verify-ailinux-required-packages.chroot
 grep -q '^python3$' config/package-lists/productivity.list.chroot
 for desktop_app in google-chrome-stable gimp libreoffice obs-studio thunderbird vlc; do grep -Fqx "$desktop_app" config/package-lists/productivity.list.chroot; done
 for kde_app in ark dolphin dolphin-plugins gwenview kate kcalc kcharselect kcolorchooser kfind okular filelight kdf kgpg ktimer kwalletmanager sweeper kdeconnect krdc krfb kget elisa dragonplayer juk kamoso kde-spectacle kmail kontact korganizer kaddressbook akregator kleopatra konversation ktorrent partitionmanager isoimagewriter kolourpaint skanpage kdenlive; do
@@ -591,26 +593,16 @@ grep -Fq 'skipping the integrity check' \
 test -x scripts/test-verify-live-medium.sh
 grep -Fq 'AILINUX_LIVE_MEDIA' scripts/test-verify-live-medium.sh
 
-# Firefox must resolve from Mozilla while live-build installs packages. Files in
-# includes.chroot arrive too late for dependency resolution, so the source, key
-# and pin are deliberately duplicated under config/archives.
-grep -Fxq 'deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/mozilla.gpg] https://packages.mozilla.org/apt mozilla main' \
-    config/archives/mozilla.list.chroot
-cmp -s config/archives/mozilla.pref.chroot \
-    config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
-grep -Fxq 'Package: firefox*' config/archives/mozilla.pref.chroot
-grep -Fxq 'Pin: origin packages.mozilla.org' config/archives/mozilla.pref.chroot
-grep -Fxq 'Pin-Priority: 1001' config/archives/mozilla.pref.chroot
-test "$(sha256sum config/archives/mozilla.key.chroot | awk '{ print $1 }')" = \
-    'a22e1a7885381e4005b61884a5205892c39d15f5c262555e38b4fe5402ca8895'
-gpg --batch --show-keys --with-colons config/archives/mozilla.key.chroot 2>/dev/null | \
-    grep -Fq 'fpr:::::::::35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3:'
+# Firefox must resolve through the AILinux-hosted Mozilla mirror while live-build
+# installs packages. The full mirror manifest is already available to the chroot.
+grep -Fq 'mozilla-mozilla' config/archives/ailinux-mirrors.list.chroot
+grep -Fq 'repo.ailinux.me/mirror/packages.mozilla.org/apt' config/archives/ailinux-mirrors.list.chroot
+grep -Fxq 'Package: firefox*' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
+grep -Fxq 'Pin: release n=mozilla' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
+grep -Fxq 'Pin-Priority: 1001' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
 grep -Fq '*snap*)' config/hooks/0125-verify-native-firefox.chroot
-grep -Fq "maintainer=\$(dpkg-query -W -f='\${Maintainer}'" \
-    config/hooks/0125-verify-native-firefox.chroot
 grep -Fq '/usr/lib/firefox/firefox-bin' config/hooks/0125-verify-native-firefox.chroot
-grep -Fq 'packages.mozilla.org' config/hooks/0125-verify-native-firefox.chroot
-grep -Fq 'Pin-Priority: 1001' config/includes.chroot/etc/apt/preferences.d/firefox-mozilla
+grep -Fq 'repo.ailinux.me' config/hooks/0125-verify-native-firefox.chroot
 grep -Fq '#mainApp QLabel' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq 'color: #f8fafc;' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq 'GRUB_DISTRIBUTOR="AILinuX"' config/includes.chroot/etc/default/grub.d/99-ailinux.cfg
