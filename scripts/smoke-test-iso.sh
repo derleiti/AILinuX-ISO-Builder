@@ -5,6 +5,7 @@ project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 iso_path=${1:-}
 firmware_mode=${AILINUX_QEMU_MODE:-bios}
 media_mode=${AILINUX_QEMU_MEDIA:-cdrom}
+target_disk_size=${AILINUX_QEMU_TARGET_DISK_SIZE:-}
 
 # OVMF is substantially slower than SeaBIOS when GRUB reads a large initrd
 # from an emulated optical drive, especially when QEMU falls back to TCG.
@@ -43,12 +44,20 @@ command -v qemu-system-x86_64 >/dev/null 2>&1 || {
     exit 1
 }
 
+ovmf_vars=
 if [ "$firmware_mode" = "uefi" ]; then
     firmware=${AILINUX_OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.fd}
+    firmware_vars_template=${AILINUX_OVMF_VARS:-/usr/share/OVMF/OVMF_VARS_4M.fd}
     test -r "$firmware" || {
         echo "UEFI firmware not found: $firmware" >&2
         exit 1
     }
+    test -r "$firmware_vars_template" || {
+        echo "UEFI variables template not found: $firmware_vars_template" >&2
+        exit 1
+    }
+    ovmf_vars=$(mktemp "${TMPDIR:-/tmp}/ailinux-ovmf-vars.XXXXXX.fd")
+    cp "$firmware_vars_template" "$ovmf_vars"
 fi
 
 case "$media_mode" in
@@ -64,6 +73,17 @@ esac
 serial_log="$project_dir/output/qemu-$firmware_mode-$media_mode-serial.log"
 rm -f "$serial_log"
 
+target_disk=
+if [ -n "$target_disk_size" ]; then
+    command -v qemu-img >/dev/null 2>&1 || {
+        echo "qemu-img is required when AILINUX_QEMU_TARGET_DISK_SIZE is set." >&2
+        exit 1
+    }
+    target_disk=$(mktemp "${TMPDIR:-/tmp}/ailinux-target.XXXXXX.qcow2")
+    rm -f "$target_disk"
+    qemu-img create -q -f qcow2 "$target_disk" "$target_disk_size"
+fi
+
 set -- qemu-system-x86_64 \
     -machine accel=kvm:tcg \
     -m 4096 \
@@ -71,6 +91,10 @@ set -- qemu-system-x86_64 \
     -display none \
     -serial "file:$serial_log" \
     -no-reboot
+
+if [ -n "$target_disk" ]; then
+    set -- "$@" -drive "if=virtio,format=qcow2,file=$target_disk"
+fi
 
 if [ "$media_mode" = "cdrom" ]; then
     set -- "$@" -boot d -cdrom "$iso_path"
@@ -82,7 +106,9 @@ else
 fi
 
 if [ "$firmware_mode" = "uefi" ]; then
-    set -- "$@" -drive "if=pflash,format=raw,readonly=on,file=$firmware"
+    set -- "$@" \
+        -drive "if=pflash,format=raw,readonly=on,file=$firmware" \
+        -drive "if=pflash,format=raw,file=$ovmf_vars"
 fi
 
 failure_pattern='kernel panic|not syncing|unable to mount root fs|unable to find a medium containing a live file system|can.t open /root/dev/console|entered emergency mode'
@@ -94,6 +120,12 @@ cleanup() {
     if kill -0 "$qemu_pid" 2>/dev/null; then
         kill "$qemu_pid" 2>/dev/null || true
         wait "$qemu_pid" 2>/dev/null || true
+    fi
+    if [ -n "$target_disk" ]; then
+        rm -f "$target_disk"
+    fi
+    if [ -n "$ovmf_vars" ]; then
+        rm -f "$ovmf_vars"
     fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -122,6 +154,7 @@ if [ "$success" = true ]; then
     trap - EXIT HUP INT TERM
     echo "QEMU $firmware_mode smoke test reached the graphical live system."
     echo "Boot medium: $media_mode"
+    [ -z "$target_disk_size" ] || echo "Installer target disk: VirtIO $target_disk_size"
     exit 0
 fi
 

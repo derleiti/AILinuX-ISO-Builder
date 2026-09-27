@@ -442,6 +442,8 @@ grep -Fq 'efiBootLoader: "grub"' config/includes.chroot/etc/calamares/modules/bo
 grep -Fq 'grubInstall: "grub-install"' config/includes.chroot/etc/calamares/modules/bootloader.conf
 grep -Fq 'userSwapChoices: [ file ]' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'initialSwapChoice: file' config/includes.chroot/etc/calamares/modules/partition.conf
+grep -Fq 'initialPartitioningChoice: erase' config/includes.chroot/etc/calamares/modules/partition.conf
+grep -Fq 'defaultPartitionTableType: gpt' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'mountPoint: "/"' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'filesystem: "ext4"' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'directory: "efi"' config/includes.chroot/etc/calamares/modules/partition.conf
