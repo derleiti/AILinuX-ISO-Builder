@@ -1,12 +1,26 @@
 #!/bin/sh
 set -eu
 
+# Calamares/KPMcore invokes block-device helpers (blockdev, sfdisk, lvm)
+# by command name. Plasma/pkexec environments are not guaranteed to include
+# the sbin directories, which makes KPMcore silently drop otherwise visible
+# disks. Keep a deterministic system PATH before and after privilege elevation.
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+for helper in lsblk blockdev sfdisk; do
+    command -v "$helper" >/dev/null 2>&1 || {
+        echo "AILinuX installer: required storage helper not found in PATH: $helper" >&2
+        exit 1
+    }
+done
+
 if [ "$(id -u)" -ne 0 ]; then
     exec pkexec env \
         DISPLAY="${DISPLAY:-}" \
         WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}" \
         XAUTHORITY="${XAUTHORITY:-}" \
         XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-}" \
+        PATH="$PATH" \
         "$0" "$@"
 fi
 

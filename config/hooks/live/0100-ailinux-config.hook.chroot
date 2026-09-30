@@ -6,6 +6,13 @@ chmod 0755 /etc/skel/Desktop/ailinux-installer.desktop
 chmod 0755 /usr/local/sbin/ailinux-live-autologin
 chmod 0755 /usr/local/sbin/ailinux-installed-cleanup
 
+# sudo refuses all drop-ins when this directory or its files are not owned by root.
+# Rootless live-build can otherwise preserve the invoking host user ownership.
+chown root:root /etc/sudoers.d
+find /etc/sudoers.d -maxdepth 1 -type f -exec chown root:root {} +
+chmod 0755 /etc/sudoers.d
+find /etc/sudoers.d -maxdepth 1 -type f -exec chmod 0440 {} +
+
 rm -f \
     /etc/skel/Desktop/org.kfocus.web.howtos.desktop \
     /etc/skel/Desktop/org.kubuntu.web.home.desktop \

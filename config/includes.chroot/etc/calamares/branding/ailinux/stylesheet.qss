@@ -40,6 +40,42 @@
     color: #aeb9c8;
 }
 
+/*
+ * Calamares' partition module contains custom QWidget subclasses which may
+ * paint with the desktop palette instead of inheriting #mainApp's background.
+ * Scope the dark surface to those concrete widgets only. Do not apply a broad
+ * QWidget/QAbstractItemView rule: PartitionBarsView and PartitionLabelsView
+ * are custom-painted views whose delegates must keep their native behavior.
+ */
+#mainApp ChoicePage,
+#mainApp PartitionPage,
+#mainApp BootInfoWidget,
+#mainApp DeviceInfoWidget,
+#mainApp EncryptWidget,
+#mainApp PartitionSplitterWidget {
+    background-color: #0e1116;
+    color: #f8fafc;
+}
+
+#mainApp ChoicePage QLabel,
+#mainApp PartitionPage QLabel,
+#mainApp BootInfoWidget QLabel,
+#mainApp DeviceInfoWidget QLabel,
+#mainApp EncryptWidget QLabel,
+#mainApp PartitionSplitterWidget QLabel {
+    background-color: transparent;
+    color: #f8fafc;
+}
+
+#mainApp ChoicePage QLabel:disabled,
+#mainApp PartitionPage QLabel:disabled,
+#mainApp BootInfoWidget QLabel:disabled,
+#mainApp DeviceInfoWidget QLabel:disabled,
+#mainApp EncryptWidget QLabel:disabled,
+#mainApp PartitionSplitterWidget QLabel:disabled {
+    color: #aeb9c8;
+}
+
 /* Standard form controls only; do not style QAbstractItemView/QTreeView/etc. */
 #mainApp QLineEdit,
 #mainApp QTextEdit,
@@ -63,6 +99,37 @@
 #mainApp QDoubleSpinBox:focus,
 #mainApp QComboBox:focus {
     border-color: #60a5fa;
+}
+
+/*
+ * QComboBox popups are separate item views. Without an explicit palette Qt can
+ * combine our white combo text with Breeze's light popup background, making
+ * unselected rows effectively invisible (for example the timezone selector).
+ * Scope this narrowly to combo popups so partition/file views keep their native
+ * delegate styling.
+ */
+#mainApp QComboBox QAbstractItemView {
+    background-color: #171e29;
+    color: #f8fafc;
+    border: 1px solid #64748b;
+    outline: 0;
+    selection-background-color: #2563eb;
+    selection-color: #ffffff;
+}
+
+#mainApp QComboBox QAbstractItemView::item {
+    min-height: 24px;
+    padding: 3px 7px;
+}
+
+#mainApp QComboBox QAbstractItemView::item:hover {
+    background-color: #263449;
+    color: #ffffff;
+}
+
+#mainApp QComboBox QAbstractItemView::item:selected {
+    background-color: #2563eb;
+    color: #ffffff;
 }
 
 #mainApp QPushButton {

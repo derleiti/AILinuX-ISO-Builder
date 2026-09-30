@@ -195,6 +195,7 @@ if [ "$run_smoke_tests" -eq 1 ]; then
         for media_mode in cdrom usb; do
             AILINUX_QEMU_MODE="$firmware_mode" \
                 AILINUX_QEMU_MEDIA="$media_mode" \
+                AILINUX_QEMU_TARGET_DISK_SIZE="${AILINUX_QEMU_TARGET_DISK_SIZE:-25G}" \
                 ./scripts/smoke-test-iso.sh "$latest_iso"
         done
     done

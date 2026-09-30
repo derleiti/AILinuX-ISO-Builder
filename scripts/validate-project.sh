@@ -443,6 +443,15 @@ grep -Fq 'grubInstall: "grub-install"' config/includes.chroot/etc/calamares/modu
 grep -Fq 'userSwapChoices: [ file ]' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'initialSwapChoice: file' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'initialPartitioningChoice: erase' config/includes.chroot/etc/calamares/modules/partition.conf
+grep -Fq '#mainApp QComboBox QAbstractItemView {' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq '#mainApp ChoicePage,' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq '#mainApp PartitionPage,' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' config/includes.chroot/usr/local/bin/ailinux-installer
+grep -Fq 'for helper in lsblk blockdev sfdisk' config/includes.chroot/usr/local/bin/ailinux-installer
+grep -Fq 'PATH="$PATH"' config/includes.chroot/usr/local/bin/ailinux-installer
+grep -Fq 'chown root:root /etc/sudoers.d' config/hooks/0100-ailinux-config.chroot
+grep -Fq 'chmod 0755 /' config/hooks/0050-apt-network.chroot_early
+grep -Fq 'chown root:root /etc/sudoers.d' config/hooks/live/0100-ailinux-config.hook.chroot
 grep -Fq 'defaultPartitionTableType: gpt' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'mountPoint: "/"' config/includes.chroot/etc/calamares/modules/partition.conf
 grep -Fq 'filesystem: "ext4"' config/includes.chroot/etc/calamares/modules/partition.conf
@@ -620,8 +629,18 @@ grep -Fq 'gettext_printf "%s %s (%s)"' config/hooks/0140-ailinux-grub-titles.chr
 # widget/view rules can make their text unreadable, even when other pages look
 # correct. Branding must remain scoped to the application shell.
 calamares_qss=config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
-if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|QTableView)([[:space:],:{]|$)|^[[:space:]]*[A-Za-z#][^{]*::item' "$calamares_qss"; then
+if grep -Eq '^[[:space:]]*(QWidget|QLabel|QAbstractItemView|QListView|QTreeView|QTableView)([[:space:],:{]|$)' "$calamares_qss"; then
     echo "Unsafe broad Calamares selector in $calamares_qss" >&2
+    exit 1
+fi
+# Item rules are only permitted for the QComboBox popup. Calamares partition
+# views use custom delegates and must not inherit generic ::item styling.
+if awk '
+    /^[[:space:]]*\*/ || /^[[:space:]]*\// { next }
+    /::item/ && $0 !~ /^[[:space:]]*#mainApp[[:space:]]+QComboBox[[:space:]]+QAbstractItemView::item([[:space:]]*\{|:|$)/ { bad=1 }
+    END { exit bad ? 0 : 1 }
+' "$calamares_qss"; then
+    echo "Unsafe Calamares item selector in $calamares_qss" >&2
     exit 1
 fi
 

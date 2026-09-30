@@ -36,3 +36,6 @@
 
 __pycache__/
 *.py[cod]
+# Local build/archive state
+/.final-ui-build.pid
+/output-archive/

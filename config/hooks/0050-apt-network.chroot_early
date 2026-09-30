@@ -1,6 +1,12 @@
 #!/bin/sh
 set -eu
 
+# Rootless live-build creates the chroot directory with the host umask. If the
+# filesystem root ends up 0750, package maintainer scripts which deliberately
+# drop privileges (for example SDDM using runuser) cannot even traverse /.
+# Make the installed filesystem root world-traversable before packages run.
+chmod 0755 /
+
 install -d -m 0755 /etc/apt/apt.conf.d
 printf '%s\n' \
     'Acquire::Retries "1";' \

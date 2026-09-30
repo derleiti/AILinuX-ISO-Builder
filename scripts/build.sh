@@ -234,6 +234,20 @@ generate_binary_checksums() {
 
 generate_binary_checksums
 
+# sudo rejects /etc/sudoers.d when its ownership is wrong. Verify the actual
+# squashfs metadata, not only the source tree or hook text.
+sudoers_meta=$(unsquashfs -ll "$project_dir/binary/casper/filesystem.squashfs" etc/sudoers.d etc/sudoers.d/README 2>/dev/null || true)
+printf '%s\n' "$sudoers_meta" | grep -Eq 'root/root[[:space:]]+[0-9]+ .*squashfs-root/etc/sudoers.d$' || {
+    echo "Built squashfs has non-root /etc/sudoers.d ownership." >&2
+    printf '%s\n' "$sudoers_meta" >&2
+    exit 1
+}
+printf '%s\n' "$sudoers_meta" | grep -Eq 'root/root[[:space:]]+[0-9]+ .*squashfs-root/etc/sudoers.d/README$' || {
+    echo "Built squashfs has non-root sudoers.d/README ownership." >&2
+    printf '%s\n' "$sudoers_meta" >&2
+    exit 1
+}
+
 iso_path=
 if grep -q '^LB_BOOTLOADER="grub2"$' config/binary; then
     command -v grub-mkrescue >/dev/null 2>&1 || {
