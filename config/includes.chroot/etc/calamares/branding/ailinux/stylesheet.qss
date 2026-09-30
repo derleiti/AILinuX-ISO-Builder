@@ -76,6 +76,24 @@
     color: #aeb9c8;
 }
 
+/*
+ * ChoicePage puts the automatic partitioning choices inside a QScrollArea.
+ * Its viewport/content widget uses QPalette::Base and otherwise stays light
+ * even when ChoicePage itself is dark. Target only Calamares' known object
+ * names so partition delegates and generic item views remain untouched.
+ */
+#mainApp QScrollArea#m_itemsScrollArea {
+    background-color: #0e1116;
+    color: #f8fafc;
+    border: 0;
+}
+
+#mainApp QScrollArea#m_itemsScrollArea QWidget#qt_scrollarea_viewport,
+#mainApp QWidget#scrollAreaWidgetContents {
+    background-color: #0e1116;
+    color: #f8fafc;
+}
+
 /* Standard form controls only; do not style QAbstractItemView/QTreeView/etc. */
 #mainApp QLineEdit,
 #mainApp QTextEdit,

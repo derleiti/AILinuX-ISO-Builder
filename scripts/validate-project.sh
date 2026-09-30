@@ -446,6 +446,8 @@ grep -Fq 'initialPartitioningChoice: erase' config/includes.chroot/etc/calamares
 grep -Fq '#mainApp QComboBox QAbstractItemView {' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq '#mainApp ChoicePage,' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq '#mainApp PartitionPage,' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq '#mainApp QScrollArea#m_itemsScrollArea {' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
+grep -Fq '#mainApp QWidget#scrollAreaWidgetContents {' config/includes.chroot/etc/calamares/branding/ailinux/stylesheet.qss
 grep -Fq 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' config/includes.chroot/usr/local/bin/ailinux-installer
 grep -Fq 'for helper in lsblk blockdev sfdisk' config/includes.chroot/usr/local/bin/ailinux-installer
 grep -Fq 'PATH="$PATH"' config/includes.chroot/usr/local/bin/ailinux-installer
