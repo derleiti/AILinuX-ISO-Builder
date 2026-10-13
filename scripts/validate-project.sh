@@ -679,6 +679,13 @@ for excluded_product in triforce kimi; do
     fi
 done
 
+# The installed source must be world-readable for python-apt/Steam clients.
+if [ "$(stat -c '%a' config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list)" != 644 ]; then
+    echo 'AILinux mirror list must be mode 0644 for unprivileged APT clients.' >&2
+    exit 1
+fi
+grep -Fq 'disable_direct_chrome_sources' config/hooks/0190-final-full-upgrade.chroot
+
 # Steam multiarch libraries must come from the signed AILinux mirror, not
 # from duplicate upstream Ubuntu sources. sync-repositories.sh regenerates
 # both lists from config/mirror-repos.tsv, so validate the generated contract.

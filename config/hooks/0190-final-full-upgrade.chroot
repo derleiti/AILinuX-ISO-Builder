@@ -3,6 +3,41 @@ set -eu
 export DEBIAN_FRONTEND=noninteractive
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# Google Chrome's package creates redundant upstream APT entries, which can
+# stall apt on HTTP/1.1 even though the signed AILinux Chrome mirror is healthy.
+# Preserve Chrome itself, and always prefer the versioned AILinux mirror.
+disable_direct_chrome_sources() {
+    if ! grep -Fq 'https://repo.ailinux.me/mirror/dl.google.com/linux/chrome/deb' \
+        /etc/apt/sources.list.d/ailinux-mirror.list; then
+        echo 'Chrome AILinux mirror missing; refusing to remove upstream sources' >&2
+        return 1
+    fi
+    # Avoid Chrome's own cron/postinst re-enabling the upstream source.
+    install -d -m 0755 /etc/default
+    if [ -f /etc/default/google-chrome ]; then
+        sed -i \
+            -e 's/^repo_add_once=.*/repo_add_once="false"/' \
+            -e 's/^repo_reenable_on_distupgrade=.*/repo_reenable_on_distupgrade="false"/' \
+            /etc/default/google-chrome
+    else
+        printf '%s\n' 'repo_add_once="false"' 'repo_reenable_on_distupgrade="false"' \
+            > /etc/default/google-chrome
+    fi
+    for source in \
+        /etc/apt/sources.list.d/google-chrome.list \
+        /etc/apt/sources.list.d/google-chrome.sources \
+        /etc/apt/sources.list.d/google-chrome-stable.list \
+        /etc/apt/sources.list.d/google-chrome-stable.sources; do
+        if [ -f "$source" ] && \
+            grep -Eq 'https?://dl\.google\.com/linux/chrome(-stable)?/deb' "$source"; then
+            rm -f -- "$source"
+            echo "AILinux: suppressed redundant direct Chrome repository: $source"
+        fi
+    done
+    chmod 0644 /etc/apt/sources.list.d/ailinux-mirror.list /etc/default/google-chrome
+}
+disable_direct_chrome_sources
+
 echo "AILinux final package refresh: apt-get update"
 apt-get update
 
@@ -51,6 +86,9 @@ rm -f "$resolver_log"
 echo "AILinux final package refresh: apt-get full-upgrade"
 apt-get -y -o Dpkg::Options::="--force-confold" full-upgrade
 
+# An updated Chrome .deb may recreate an upstream entry during full-upgrade.
+disable_direct_chrome_sources
+
 # Verify that the exact package state is converged before the initramfs and
 # SquashFS are generated. Any remaining upgrade indicates a moving or broken
 # repository snapshot and must fail the image build instead of shipping stale.
@@ -64,7 +102,8 @@ case "${remaining:-0}" in
 esac
 
 # APT configuration and preferences must be readable by unprivileged clients.
-for f in /etc/apt/apt.conf.d/99-ailinux-build-network /etc/apt/preferences.d/firefox-mozilla.pref; do
+for f in /etc/apt/apt.conf.d/99-ailinux-build-network /etc/apt/preferences.d/firefox-mozilla.pref \
+    /etc/apt/sources.list.d/ailinux-mirror.list; do
     if [ -f "$f" ]; then chmod 0644 "$f"; fi
 done
 

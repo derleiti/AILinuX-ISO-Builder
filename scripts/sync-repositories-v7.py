@@ -64,4 +64,7 @@ final_path.parent.mkdir(parents=True, exist_ok=True)
 archive_path.parent.mkdir(parents=True, exist_ok=True)
 final_path.write_text('\n'.join(final_lines) + '\n', encoding='utf-8')
 archive_path.write_text('\n'.join(archive_lines) + '\n', encoding='utf-8')
+# Build includes are also consumed by unprivileged apt clients after boot.
+final_path.chmod(0o644)
+archive_path.chmod(0o644)
 print('Selected mirror entries: ' + ', '.join(required))
