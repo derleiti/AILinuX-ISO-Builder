@@ -23,6 +23,6 @@ graphics-drivers-resolute	Graphics Drivers PPA	drivers	ppa.launchpadcontent.net/
 kisak-mesa-resolute	Kisak Mesa	drivers	ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute
 steam-stable	Steam	gaming	repo.steampowered.com/steam	stable	steam	amd64,i386	https://repo.steampowered.com/steam	*
 winehq-resolute	WineHQ	gaming	dl.winehq.org/wine-builds/ubuntu	resolute	main	amd64	https://dl.winehq.org/wine-builds/ubuntu	resolute
-ubuntu-resolute	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute	main restricted universe multiverse	amd64	https://archive.ubuntu.com/ubuntu	resolute
-ubuntu-resolute-updates	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute-updates	main restricted universe multiverse	amd64	https://archive.ubuntu.com/ubuntu	resolute
-ubuntu-security-resolute-security	Ubuntu Security	ubuntu	security.ubuntu.com/ubuntu	resolute-security	main restricted universe multiverse	amd64	https://security.ubuntu.com/ubuntu	resolute
+ubuntu-resolute	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute	main restricted universe multiverse	amd64,i386	https://archive.ubuntu.com/ubuntu	resolute
+ubuntu-resolute-updates	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute-updates	main restricted universe multiverse	amd64,i386	https://archive.ubuntu.com/ubuntu	resolute
+ubuntu-security-resolute-security	Ubuntu Security	ubuntu	security.ubuntu.com/ubuntu	resolute-security	main restricted universe multiverse	amd64,i386	https://security.ubuntu.com/ubuntu	resolute
