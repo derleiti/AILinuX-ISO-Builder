@@ -6,6 +6,15 @@ export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 echo "AILinux final package refresh: apt-get update"
 apt-get update
 
+# Fail the ISO build if the Steam/Proton multiarch prerequisites are missing.
+for pkg in libc6:i386 libegl1:i386 libgbm1:i386 libgl1:i386 libgl1-mesa-dri:i386; do
+    candidate=$(apt-cache policy "$pkg" | awk '/Candidate:|Installationskandidat:/ {print $2; exit}')
+    if [ -z "$candidate" ] || [ "$candidate" = "(none)" ] || [ "$candidate" = "(keine)" ]; then
+        echo "Steam multiarch dependency unavailable: $pkg" >&2
+        exit 1
+    fi
+done
+
 echo "AILinux final package refresh: apt-get full-upgrade"
 apt-get -y -o Dpkg::Options::="--force-confold" full-upgrade
 
@@ -20,6 +29,11 @@ case "${remaining:-0}" in
         exit 1
         ;;
 esac
+
+# APT configuration and preferences must be readable by unprivileged clients.
+for f in /etc/apt/apt.conf.d/99-ailinux-build-network /etc/apt/preferences.d/firefox-mozilla.pref; do
+    if [ -f "$f" ]; then chmod 0644 "$f"; fi
+done
 
 apt-get clean
 rm -rf /var/lib/apt/lists/partial/*

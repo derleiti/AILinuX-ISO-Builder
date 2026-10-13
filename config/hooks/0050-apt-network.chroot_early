@@ -14,3 +14,7 @@ printf '%s\n' \
     'Acquire::https::No-Cache "true";' \
     'Acquire::https::Timeout "20";' \
     > /etc/apt/apt.conf.d/99-ailinux-build-network
+chmod 0644 /etc/apt/apt.conf.d/99-ailinux-build-network
+
+# Steam/Proton requires Ubuntu i386 libraries.
+dpkg --add-architecture i386
