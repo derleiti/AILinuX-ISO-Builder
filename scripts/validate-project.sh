@@ -679,4 +679,30 @@ for excluded_product in triforce kimi; do
     fi
 done
 
+# Steam multiarch libraries must come from the signed AILinux mirror, not
+# from duplicate upstream Ubuntu sources. sync-repositories.sh regenerates
+# both lists from config/mirror-repos.tsv, so validate the generated contract.
+grep -Fq 'dpkg --add-architecture i386' config/hooks/0050-apt-network.chroot_early
+for apt_list in \
+    config/archives/ailinux-mirrors.list.chroot \
+    config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list; do
+    for entry in \
+        'archive.ubuntu.com/ubuntu resolute ' \
+        'archive.ubuntu.com/ubuntu resolute-updates ' \
+        'security.ubuntu.com/ubuntu resolute-security ' \
+        'archive.neon.kde.org/stable resolute ' \
+        'ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu resolute '; do
+        if ! grep -F "deb [arch=amd64,i386" "$apt_list" | grep -Fq "repo.ailinux.me/mirror/$entry"; then
+            echo "Missing signed Steam i386 mirror source: $entry in $apt_list" >&2
+            exit 1
+        fi
+    done
+done
+grep -Fq 'Steam Multi-Arch version mismatch' config/hooks/0190-final-full-upgrade.chroot
+grep -Fq 'apt-get -s install steam-libs-i386:i386 mesa-vulkan-drivers:i386' config/hooks/0190-final-full-upgrade.chroot
+if test -e config/includes.chroot/etc/apt/sources.list.d/ubuntu-i386.sources; then
+    echo 'Obsolete direct Ubuntu i386 sources conflict with the AILinux mirror.' >&2
+    exit 1
+fi
+
 echo "Project validation passed: Wayland autologin, managed networking, complete repositories, kernel $AILINUX_KERNEL_VERSION."

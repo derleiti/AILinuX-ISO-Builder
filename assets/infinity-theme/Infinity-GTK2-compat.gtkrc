@@ -1,0 +1,33 @@
+# AILinux Infinity GTK2 compatibility theme.
+# The upstream Infinity GTK2 pixmap engine files fail with the legacy GTK2
+# libraries bundled by Steam (unsupported direction rules, malformed include,
+# missing symbolic color). Keep the same dark palette without GTK2 engines.
+# GTK3/GTK4 and Plasma continue to use the complete Infinity theme suite.
+
+gtk-color-scheme = "fg_color:#d3dae3\nbg_color:#1e2129\nbase_color:#1e2129\ntext_color:#edf6ff\nselected_fg_color:#1e2129\nselected_bg_color:#08a19d\ninsensitive_fg_color:#9b9e9e\ninsensitive_bg_color:#1e2129"
+
+style "infinity-gtk2-dark" {
+  xthickness = 2
+  ythickness = 2
+  bg[NORMAL] = "#1e2129"
+  bg[ACTIVE] = "#2b2f3b"
+  bg[PRELIGHT] = "#2b2f3b"
+  bg[SELECTED] = "#08a19d"
+  bg[INSENSITIVE] = "#1e2129"
+  fg[NORMAL] = "#d3dae3"
+  fg[ACTIVE] = "#edf6ff"
+  fg[PRELIGHT] = "#edf6ff"
+  fg[SELECTED] = "#1e2129"
+  fg[INSENSITIVE] = "#9b9e9e"
+  base[NORMAL] = "#1e2129"
+  base[ACTIVE] = "#2b2f3b"
+  base[PRELIGHT] = "#2b2f3b"
+  base[SELECTED] = "#08a19d"
+  base[INSENSITIVE] = "#1e2129"
+  text[NORMAL] = "#edf6ff"
+  text[ACTIVE] = "#edf6ff"
+  text[PRELIGHT] = "#edf6ff"
+  text[SELECTED] = "#1e2129"
+  text[INSENSITIVE] = "#9b9e9e"
+}
+class "GtkWidget" style "infinity-gtk2-dark"

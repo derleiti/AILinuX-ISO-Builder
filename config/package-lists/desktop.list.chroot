@@ -7,6 +7,9 @@ grub2-common
 grub-efi-amd64-bin
 grub-pc-bin
 kde-config-sddm
+qml6-module-qt5compat-graphicaleffects
+qml6-module-qtquick-controls
+qml6-module-qtquick-layouts
 kde-style-oxygen
 konsole
 kwin-decoration-oxygen

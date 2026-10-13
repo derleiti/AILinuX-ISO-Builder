@@ -5,7 +5,7 @@ cuda	NVIDIA CUDA 26.04	ai	developer.download.nvidia.com/compute/cuda/repos/ubunt
 ailinux-noble	AILinux Local	ailinux	repo.ailinux.me	noble	main	amd64,i386	local://repo.ailinux.me	noble
 ailinux-resolute	AILinux Local	ailinux	repo.ailinux.me	resolute	main	amd64,i386	local://repo.ailinux.me	resolute
 chrome-stable	Google Chrome	desktop	dl.google.com/linux/chrome/deb	stable	main	amd64	https://dl.google.com/linux/chrome/deb	*
-kde-neon-resolute	KDE neon Stable	desktop	archive.neon.kde.org/stable	resolute	main	amd64	https://archive.neon.kde.org/stable	resolute
+kde-neon-resolute	KDE neon Stable	desktop	archive.neon.kde.org/stable	resolute	main	amd64,i386	https://archive.neon.kde.org/stable	resolute
 libreoffice-resolute	LibreOffice PPA	desktop	ppa.launchpadcontent.net/libreoffice/ppa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/libreoffice/ppa/ubuntu	resolute
 mozilla-mozilla	Mozilla	desktop	packages.mozilla.org/apt	mozilla	main	amd64	https://packages.mozilla.org/apt	*
 teamviewer-stable	TeamViewer	desktop	linux.teamviewer.com/deb	stable	main	amd64	https://linux.teamviewer.com/deb	*
@@ -20,9 +20,9 @@ windsurf-stable	Windsurf	dev	windsurf-stable.codeiumdata.com/wVxQEIWkwPUEAGf3/ap
 amd-graphics-7-2-noble	AMD Graphics 7.2	drivers	repo.radeon.com/graphics/7.2/ubuntu	noble	main	amd64	https://repo.radeon.com/graphics/7.2/ubuntu	*
 rocm-7-2-noble	AMD ROCm 7.2	drivers	repo.radeon.com/rocm/apt/7.2	noble	main	amd64	https://repo.radeon.com/rocm/apt/7.2	*
 graphics-drivers-resolute	Graphics Drivers PPA	drivers	ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu	resolute
-kisak-mesa-resolute	Kisak Mesa	drivers	ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute	main	amd64	https://ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute
+kisak-mesa-resolute	Kisak Mesa	drivers	ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute	main	amd64,i386	https://ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu	resolute
 steam-stable	Steam	gaming	repo.steampowered.com/steam	stable	steam	amd64,i386	https://repo.steampowered.com/steam	*
 winehq-resolute	WineHQ	gaming	dl.winehq.org/wine-builds/ubuntu	resolute	main	amd64	https://dl.winehq.org/wine-builds/ubuntu	resolute
-ubuntu-resolute	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute	main restricted universe multiverse	amd64	https://archive.ubuntu.com/ubuntu	resolute
-ubuntu-resolute-updates	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute-updates	main restricted universe multiverse	amd64	https://archive.ubuntu.com/ubuntu	resolute
-ubuntu-security-resolute-security	Ubuntu Security	ubuntu	security.ubuntu.com/ubuntu	resolute-security	main restricted universe multiverse	amd64	https://security.ubuntu.com/ubuntu	resolute
+ubuntu-resolute	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute	main restricted universe multiverse	amd64,i386	https://archive.ubuntu.com/ubuntu	resolute
+ubuntu-resolute-updates	Ubuntu Archive	ubuntu	archive.ubuntu.com/ubuntu	resolute-updates	main restricted universe multiverse	amd64,i386	https://archive.ubuntu.com/ubuntu	resolute
+ubuntu-security-resolute-security	Ubuntu Security	ubuntu	security.ubuntu.com/ubuntu	resolute-security	main restricted universe multiverse	amd64,i386	https://security.ubuntu.com/ubuntu	resolute
