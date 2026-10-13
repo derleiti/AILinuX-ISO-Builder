@@ -93,6 +93,12 @@ sync_themes() {
     done
     sync_directory "Infinity-SDDM/Infinity-SDDM-6" "usr/share/sddm/themes"
 
+    # Upstream GTK2 pixmap rules are incompatible with Steam's legacy GTK2
+    # runtime and contain a malformed include. Retain Infinity's dark palette
+    # via an engine-free GTK2 fallback; do not modify the pinned submodule.
+    cp -a "$project_dir/assets/infinity-theme/Infinity-GTK2-compat.gtkrc" \
+        "$include_root/usr/share/themes/Infinity-GTK/gtk-2.0/gtkrc"
+
     sync_wallpaper \
         "Infinity-World-Wallpaper" \
         "Infinity-World-Wallpaper With Plasma logo.png" \
@@ -148,6 +154,11 @@ verify_themes() {
         fi
     done
     [ "$missing" -eq 0 ] || exit 1
+    cmp -s "$project_dir/assets/infinity-theme/Infinity-GTK2-compat.gtkrc" \
+        "$include_root/usr/share/themes/Infinity-GTK/gtk-2.0/gtkrc" || {
+        echo 'Infinity GTK2 compatibility theme missing or stale' >&2
+        exit 1
+    }
     grep -Fxq 'widgetStyle=kvantum-dark' \
         "$include_root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults"
     grep -Fxq 'ColorScheme=InfinityBlueDarkColor' \
