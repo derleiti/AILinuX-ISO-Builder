@@ -18,7 +18,7 @@ deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] 
 deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/dl.google.com/linux/chrome/deb stable main
 
 # KDE neon Stable [kde-neon-resolute]
-deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.neon.kde.org/stable resolute main
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/archive.neon.kde.org/stable resolute main
 
 # LibreOffice PPA [libreoffice-resolute]
 deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/libreoffice/ppa/ubuntu resolute main
@@ -63,7 +63,7 @@ deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https
 deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/graphics-drivers/ppa/ubuntu resolute main
 
 # Kisak Mesa [kisak-mesa-resolute]
-deb [arch=amd64 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu resolute main
+deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/ppa.launchpadcontent.net/kisak/kisak-mesa/ubuntu resolute main
 
 # Steam [steam-stable]
 deb [arch=amd64,i386 signed-by=/usr/share/keyrings/ailinux-archive-keyring.gpg] https://repo.ailinux.me/mirror/repo.steampowered.com/steam stable steam

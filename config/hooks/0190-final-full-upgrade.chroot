@@ -7,13 +7,46 @@ echo "AILinux final package refresh: apt-get update"
 apt-get update
 
 # Fail the ISO build if the Steam/Proton multiarch prerequisites are missing.
-for pkg in libc6:i386 libegl1:i386 libgbm1:i386 libgl1:i386 libgl1-mesa-dri:i386; do
+for pkg in libc6:i386 libegl1:i386 libgbm1:i386 libgl1:i386 \
+    libgl1-mesa-dri:i386 libdrm2:i386 mesa-vulkan-drivers:i386; do
     candidate=$(apt-cache policy "$pkg" | awk '/Candidate:|Installationskandidat:/ {print $2; exit}')
     if [ -z "$candidate" ] || [ "$candidate" = "(none)" ] || [ "$candidate" = "(keine)" ]; then
         echo "Steam multiarch dependency unavailable: $pkg" >&2
         exit 1
     fi
 done
+
+# Multiarch libraries cannot be co-installed at different versions. AILinux
+# combines KDE neon's libdrm with Kisak Mesa, so check both architectures.
+for pkg in libdrm2 libgbm1 libegl-mesa0 libgl1-mesa-dri \
+    libglx-mesa0 mesa-libgallium mesa-vulkan-drivers; do
+    amd64_version=$(apt-cache policy "$pkg:amd64" | awk '/Candidate:|Installationskandidat:/ {print $2; exit}')
+    i386_version=$(apt-cache policy "$pkg:i386" | awk '/Candidate:|Installationskandidat:/ {print $2; exit}')
+    if [ -z "$amd64_version" ] || [ -z "$i386_version" ] || \
+       [ "$amd64_version" = "(none)" ] || [ "$i386_version" = "(none)" ] || \
+       [ "$amd64_version" = "(keine)" ] || [ "$i386_version" = "(keine)" ] || \
+       [ "$amd64_version" != "$i386_version" ]; then
+        echo "Steam Multi-Arch version mismatch for $pkg: amd64=$amd64_version i386=$i386_version" >&2
+        exit 1
+    fi
+done
+
+# A successful candidate lookup alone does not guarantee APT's dependency
+# solver can install Steam, especially when the desktop uses Kisak Mesa.
+resolver_log=$(mktemp)
+if ! apt-get -s install steam-libs-i386:i386 mesa-vulkan-drivers:i386 > "$resolver_log" 2>&1; then
+    echo "Steam Multi-Arch dependency simulation failed:" >&2
+    cat "$resolver_log" >&2
+    rm -f "$resolver_log"
+    exit 1
+fi
+if grep -q '^Remv ' "$resolver_log"; then
+    echo 'Steam Multi-Arch simulation proposes removing installed packages' >&2
+    cat "$resolver_log" >&2
+    rm -f "$resolver_log"
+    exit 1
+fi
+rm -f "$resolver_log"
 
 echo "AILinux final package refresh: apt-get full-upgrade"
 apt-get -y -o Dpkg::Options::="--force-confold" full-upgrade
