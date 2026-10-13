@@ -99,6 +99,11 @@ sync_themes() {
     cp -a "$project_dir/assets/infinity-theme/Infinity-GTK2-compat.gtkrc" \
         "$include_root/usr/share/themes/Infinity-GTK/gtk-2.0/gtkrc"
 
+    # Plasma 6.8 dropped VirtualKeyboardLoader; retain Infinity styling while
+    # using the supported KWinVirtualKeyboard and caps-lock QML singletons.
+    cp -a "$project_dir/assets/infinity-theme/Infinity-SDDM-6-Main.compat.qml" \
+        "$include_root/usr/share/sddm/themes/Infinity-SDDM-6/Main.qml"
+
     sync_wallpaper \
         "Infinity-World-Wallpaper" \
         "Infinity-World-Wallpaper With Plasma logo.png" \
@@ -157,6 +162,11 @@ verify_themes() {
     cmp -s "$project_dir/assets/infinity-theme/Infinity-GTK2-compat.gtkrc" \
         "$include_root/usr/share/themes/Infinity-GTK/gtk-2.0/gtkrc" || {
         echo 'Infinity GTK2 compatibility theme missing or stale' >&2
+        exit 1
+    }
+    cmp -s "$project_dir/assets/infinity-theme/Infinity-SDDM-6-Main.compat.qml" \
+        "$include_root/usr/share/sddm/themes/Infinity-SDDM-6/Main.qml" || {
+        echo 'Infinity SDDM Plasma 6.8 compatibility patch missing or stale' >&2
         exit 1
     }
     grep -Fxq 'widgetStyle=kvantum-dark' \

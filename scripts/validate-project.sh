@@ -11,6 +11,7 @@ assets/branding/ailinux-system-logo-source.png
 assets/branding/ailinux-system-logo.png
 assets/infinity-theme/Infinity-World-Wallpaper.metadata.json
 assets/infinity-theme/Infinity-World-Wallpaper-No-Logo.metadata.json
+assets/infinity-theme/Infinity-SDDM-6-Main.compat.qml
 auto/config.in
 config/ailinux-kernel.env
 config/offline-packages.sha256
@@ -678,6 +679,17 @@ for excluded_product in triforce kimi; do
         exit 1
     fi
 done
+
+# KDE Plasma 6.8 dropped VirtualKeyboardLoader. Reject stale SDDM QML
+# before a build so the graphical-ready signal cannot mask a broken greeter.
+sddm_main=config/includes.chroot/usr/share/sddm/themes/Infinity-SDDM-6/Main.qml
+grep -Fq 'import org.kde.plasma.workspace.keyboardlayout as Keyboards' "$sddm_main"
+grep -Fq 'Keyboards.KWinVirtualKeyboard.forceActivate()' "$sddm_main"
+grep -Fq 'KeyboardIndicator.KeyState {' "$sddm_main"
+if grep -Fq 'VirtualKeyboardLoader {' "$sddm_main"; then
+    echo 'Stale Infinity SDDM VirtualKeyboardLoader; Plasma 6.8 requires KWinVirtualKeyboard' >&2
+    exit 1
+fi
 
 # The installed source must be world-readable for python-apt/Steam clients.
 if [ "$(stat -c '%a' config/includes.chroot/etc/apt/sources.list.d/ailinux-mirror.list)" != 644 ]; then
