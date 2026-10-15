@@ -443,6 +443,23 @@ check_ini_value 'Infinity wallpaper default' \
 check_ini_value 'Infinity SDDM default' \
     "$root/etc/sddm.conf.d/90-ailinux-theme.conf" Theme Current Infinity-SDDM-6
 
+# The Calamares displaymanager module may create kde_settings.conf after
+# the distro's 90-ailinux-theme.conf. Verify the installation finalizer won.
+if [ "$mode" = installed ] && [ -f "$root/etc/sddm.conf.d/kde_settings.conf" ]; then
+    check_ini_value 'KDE SDDM installed theme selection' \
+        "$root/etc/sddm.conf.d/kde_settings.conf" Theme Current Infinity-SDDM-6
+fi
+sddm_qml="$root/usr/share/sddm/themes/Infinity-SDDM-6/Main.qml"
+if [ -f "$sddm_qml" ]; then
+    if grep -Fq 'VirtualKeyboardLoader {' "$sddm_qml"; then
+        fail 'Infinity SDDM still uses the removed VirtualKeyboardLoader'
+    elif grep -Fq 'Keyboards.KWinVirtualKeyboard.forceActivate()' "$sddm_qml"; then
+        pass 'Infinity SDDM uses Plasma 6.8 KWinVirtualKeyboard'
+    else
+        fail 'Infinity SDDM keyboard compatibility marker is missing'
+    fi
+fi
+
 # GRUB defaults can be checked in both image and installed targets.
 grub_defaults="$root/etc/default/grub.d/99-ailinux.cfg"
 check_ini_value 'GRUB distributor' "$grub_defaults" '' GRUB_DISTRIBUTOR '"AILinuX"'

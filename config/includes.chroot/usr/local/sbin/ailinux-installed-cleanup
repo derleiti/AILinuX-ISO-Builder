@@ -82,6 +82,16 @@ rm -f \
     /usr/lib/systemd/system/ailinux-live-autologin.service \
     /usr/local/sbin/ailinux-live-autologin
 
+# Keep Infinity as the initial SDDM theme after Calamares/KDE configures SDDM.
+# kde_settings.conf sorts after 90-ailinux-theme.conf and may select breeze.
+# Set KDE's own value rather than shipping a later zz override, so users can
+# still change their login theme normally in System Settings.
+if [ -f /usr/share/sddm/themes/Infinity-SDDM-6/Main.qml ] &&
+   [ -f /etc/sddm.conf.d/kde_settings.conf ]; then
+    sed -i '/^\[Theme\]/,/^\[/{s/^Current=.*/Current=Infinity-SDDM-6/;}' \
+        /etc/sddm.conf.d/kde_settings.conf
+fi
+
 # pam-pkcs11 can be pulled in by the desktop stack with no event-manager
 # configuration. Do not leave an enabled service which can only fail at boot.
 if [ ! -s /etc/pam_pkcs11/pkcs11_eventmgr.conf ]; then

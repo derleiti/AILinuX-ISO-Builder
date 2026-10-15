@@ -397,6 +397,15 @@ done
 grep -Fq 'Theme=Infinity-Plasma-Splash-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
 grep -Fq 'Current=Infinity-SDDM-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
 grep -Fq 'Current=Infinity-SDDM-6' config/includes.chroot/etc/sddm.conf.d/90-ailinux-theme.conf
+# Installer SDDM selection repair must run after Calamares rewrites KDE's
+# settings; a correct 90-ailinux-theme.conf alone can be overridden by breeze.
+grep -Fq 'kde_settings.conf' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq 'Current=Infinity-SDDM-6' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+# Do not permanently shadow the KDE login-screen settings with a later drop-in.
+if grep -Fq 'zz-ailinux-theme.conf' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup; then
+    echo 'SDDM KDE settings are overridden by an immutable local distro drop-in' >&2
+    exit 1
+fi
 ./scripts/prepare-infinity-theme.sh verify >/dev/null
 
 # KDE's about-distro KCM resolves LOGO through the hicolor icon theme. Keep
