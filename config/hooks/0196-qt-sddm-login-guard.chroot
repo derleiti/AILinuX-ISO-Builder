@@ -1,0 +1,50 @@
+#!/bin/sh
+set -eu
+
+# AILinux 26.05 release gate for the SDDM -> Plasma Wayland login path.
+# 2026-11-11: SDDM authenticated successfully, then KWin crashed in Qt6Gui.
+version_of() {
+    dpkg-query -W -f='${Version}' "$1" 2>/dev/null || true
+}
+qt_version=$(version_of qt6-base)
+kwin_version=$(version_of kwin-wayland)
+[ -n "$qt_version" ] && [ -n "$kwin_version" ] || {
+    echo "AILinux login gate: Qt6 or KWin package missing" >&2
+    exit 1
+}
+case "$qt_version:$kwin_version" in
+    '6.12.0-0zneon+26.04+resolute+stable+build20:4:6.8.2+p26.04+vstable+git20261028.0037-0')
+        echo "AILinux login gate: known-broken Qt/KWin login combination" >&2
+        echo "Qt=$qt_version KWin=$kwin_version" >&2
+        echo "KWin SIGSEGV in Qt6Gui on 2026-11-11; verify a corrected build." >&2
+        exit 1
+        ;;
+esac
+
+# GDM3 can remain installed, but SDDM must be selected.
+[ "$(cat /etc/X11/default-display-manager 2>/dev/null)" = /usr/bin/sddm ] || {
+    echo "AILinux login gate: default display manager is not SDDM" >&2
+    exit 1
+}
+[ "$(readlink -f /etc/systemd/system/display-manager.service 2>/dev/null)" = "$(readlink -f /usr/lib/systemd/system/sddm.service)" ] || {
+    echo "AILinux login gate: display-manager.service does not select SDDM" >&2
+    exit 1
+}
+[ -r /usr/share/wayland-sessions/plasma.desktop ] || {
+    echo "AILinux login gate: Plasma Wayland session missing" >&2
+    exit 1
+}
+for plugin in /usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/libqxcb.so \
+              /usr/lib/x86_64-linux-gnu/qt6/plugins/platforms/libqwayland.so; do
+    [ -r "$plugin" ] || {
+        echo "AILinux login gate: missing Qt plugin: $plugin" >&2
+        exit 1
+    }
+    if ldd "$plugin" | grep -q 'not found'; then
+        echo "AILinux login gate: unresolved dependencies in $plugin" >&2
+        ldd "$plugin" >&2
+        exit 1
+    fi
+done
+echo "AILinux login gate: static SDDM/Qt/Plasma checks passed."
+echo "A real Wayland login smoke test is still required before release."
