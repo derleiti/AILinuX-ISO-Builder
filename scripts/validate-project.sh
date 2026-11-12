@@ -71,6 +71,7 @@ scripts/sync-repositories-v7.py
 scripts/finalize-binary-grub.py
 scripts/validate-iso-boot.sh
 scripts/verify-installed-system.sh
+config/hooks/0196-qt-sddm-login-guard.chroot
 config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
 config/hooks/0200-ailinux-initramfs.chroot
@@ -115,6 +116,7 @@ for script in \
     config/hooks/0150-remove-kubuntu.chroot \
     config/hooks/0145-ailinux-unpackfs-nosparse.chroot \
     config/hooks/0195-runtime-sanity.chroot \
+    config/hooks/0196-qt-sddm-login-guard.chroot \
     config/hooks/0190-final-full-upgrade.chroot \
     config/hooks/0200-ailinux-initramfs.chroot \
     config/hooks/normal/9500-ailinux-wallpaper.hook.chroot \
