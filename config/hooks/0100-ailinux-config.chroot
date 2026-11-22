@@ -5,6 +5,7 @@ chmod 0755 /usr/local/bin/ailinux-installer
 chmod 0755 /etc/skel/Desktop/ailinux-installer.desktop
 chmod 0755 /usr/local/sbin/ailinux-live-autologin
 chmod 0755 /usr/local/sbin/ailinux-installed-cleanup
+chmod 0755 /usr/local/sbin/ailinux-apt-source-sanity
 
 # sudo refuses all drop-ins when this directory or its files are not owned by root.
 # Rootless live-build can otherwise preserve the invoking host user ownership.

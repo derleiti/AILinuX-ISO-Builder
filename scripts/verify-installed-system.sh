@@ -188,6 +188,37 @@ for logo_size in 32 48 64 128 256 512; do
     fi
 done
 
+# APT's unprivileged downloader needs traversable list and archive paths.
+# This check applies to both the live image and the Calamares-installed root.
+for apt_dir in /var/cache/apt /var/cache/apt/archives /var/lib/apt/lists; do
+    dir="$root$apt_dir"
+    if [ -d "$dir" ]; then
+        mode=$(stat -c %a "$dir" 2>/dev/null || true)
+        if [ "$mode" = 755 ]; then
+            pass "APT cache directory allows _apt traversal: $apt_dir"
+        else
+            fail "APT cache directory has mode ${mode:-unknown}, expected 755: $apt_dir"
+        fi
+    else
+        fail "APT cache directory missing: $apt_dir"
+    fi
+done
+apt_mirror="$root/etc/apt/sources.list.d/ailinux-mirror.list"
+apt_sources="$root/etc/apt/sources.list"
+if [ -r "$apt_mirror" ] &&
+   grep -q '^deb ' "$apt_mirror"; then
+    pass 'canonical AILinux mirror sources exist'
+else
+    fail 'canonical AILinux mirror sources missing'
+fi
+if [ -f "$apt_sources" ] && grep -Eq \
+    '^[[:space:]]*deb(-src)?[[:space:]]+.*https?://repo[.]ailinux[.]me/mirror/(archive[.]ubuntu[.]com|security[.]ubuntu[.]com)/ubuntu[[:space:]]' \
+    "$apt_sources"; then
+    fail 'APT has duplicate/unsupported Ubuntu sources in /etc/apt/sources.list'
+else
+    pass 'APT has no duplicate Ubuntu mirror entries in /etc/apt/sources.list'
+fi
+
 # The package database under ROOT is read directly; no package operation and
 # no target command is run here.
 status_file="$root/var/lib/dpkg/status"

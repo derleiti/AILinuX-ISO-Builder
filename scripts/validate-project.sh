@@ -54,6 +54,7 @@ config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
 config/includes.chroot/usr/local/bin/ailinux-installer
 config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+config/includes.chroot/usr/local/sbin/ailinux-apt-source-sanity
 config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
 config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
@@ -75,6 +76,7 @@ scripts/test-kde-login-guard-regressions.sh
 scripts/normalize-iso-include-perms.sh
 config/hooks/0197-verify-runtime-access.chroot
 scripts/test-iso-include-permissions.sh
+scripts/test-apt-source-sanity.sh
 scripts/validate-live-rootfs-permissions.sh
 config/hooks/0196-qt-sddm-login-guard.chroot
 config/hooks/0150-remove-kubuntu.chroot
@@ -115,6 +117,7 @@ for script in \
     scripts/test-kde-login-guard-regressions.sh \
     scripts/normalize-iso-include-perms.sh \
     scripts/test-iso-include-permissions.sh \
+    scripts/test-apt-source-sanity.sh \
     scripts/validate-live-rootfs-permissions.sh \
     config/hooks/0197-verify-runtime-access.chroot \
     scripts/validate-project.sh \
@@ -134,6 +137,7 @@ for script in \
     config/includes.chroot/usr/local/bin/ailinux-installer \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
     config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup \
+    config/includes.chroot/usr/local/sbin/ailinux-apt-source-sanity \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel \
     config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium \
     config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
@@ -742,6 +746,10 @@ if [ "$(stat -c '%a' config/includes.chroot/etc/apt/sources.list.d/ailinux-mirro
     exit 1
 fi
 grep -Fq 'disable_direct_chrome_sources' config/hooks/0190-final-full-upgrade.chroot
+grep -Fq '/usr/local/sbin/ailinux-apt-source-sanity' config/hooks/0190-final-full-upgrade.chroot
+grep -Fq '/usr/local/sbin/ailinux-apt-source-sanity' config/hooks/0197-verify-runtime-access.chroot
+grep -Fq '/usr/local/sbin/ailinux-apt-source-sanity' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq 'APT sanity' config/includes.chroot/usr/local/sbin/ailinux-apt-source-sanity
 
 # Steam multiarch libraries must come from the signed AILinux mirror, not
 # from duplicate upstream Ubuntu sources. sync-repositories.sh regenerates
@@ -769,8 +777,9 @@ if test -e config/includes.chroot/etc/apt/sources.list.d/ubuntu-i386.sources; th
     exit 1
 fi
 
-# Verify umask regression guard and intentional private files in isolation.
+# Verify umask and APT repository regressions against temporary files.
 sh scripts/test-iso-include-permissions.sh
+sh scripts/test-apt-source-sanity.sh
 
 # Test known-bad KDE package pairs without affecting the host desktop.
 sh scripts/test-kde-login-guard-regressions.sh

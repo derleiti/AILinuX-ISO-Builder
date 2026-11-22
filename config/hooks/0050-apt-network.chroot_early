@@ -6,6 +6,10 @@ set -eu
 # drop privileges (for example SDDM using runuser) cannot even traverse /.
 # Make the installed filesystem root world-traversable before packages run.
 chmod 0755 /
+# APT must be traversable by _apt even in a rootless/umask-0027 build.
+for apt_dir in /var/lib/apt/lists /var/cache/apt /var/cache/apt/archives; do
+    if [ -d "$apt_dir" ]; then chmod 0755 "$apt_dir"; fi
+done
 
 install -d -m 0755 /etc/apt/apt.conf.d
 printf '%s\n' \

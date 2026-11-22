@@ -1,0 +1,100 @@
+#!/bin/sh
+# AILinux 26.05+ ISO and installed-target APT invariants.
+# Canonical mirrored sources live in ailinux-mirror.list; never delete other
+# repositories, and never disable source entries unless the mirror exists.
+set -eu
+
+root=${1:-/}
+case "$root" in
+    /*) ;;
+    *) echo 'APT sanity: target root must be absolute' >&2; exit 2 ;;
+esac
+root=${root%/}
+[ -n "$root" ] || root=/
+if [ "$root" = / ] && [ "$(id -u)" -ne 0 ]; then
+    echo 'APT sanity requires root privileges on the live system.' >&2
+    exit 2
+fi
+path() {
+    if [ "$root" = / ]; then printf '/%s\n' "${1#/}"
+    else printf '%s/%s\n' "$root" "${1#/}"; fi
+}
+
+mirror=$(path /etc/apt/sources.list.d/ailinux-mirror.list)
+sources=$(path /etc/apt/sources.list)
+antigravity=$(path /etc/apt/sources.list.d/antigravity.list)
+test -s "$mirror" || {
+    echo "APT sanity: canonical AILinux mirror missing: $mirror" >&2
+    exit 1
+}
+# Do not remove fallback repos unless the signed mirror has every essential
+# Ubuntu suite represented with a binary 'deb' source.
+for suite in 'archive.ubuntu.com/ubuntu resolute ' \
+             'archive.ubuntu.com/ubuntu resolute-updates ' \
+             'security.ubuntu.com/ubuntu resolute-security '; do
+    if ! grep '^deb ' "$mirror" | grep -Fq "repo.ailinux.me/mirror/$suite"; then
+        echo "APT sanity: missing canonical mirror source: $suite" >&2
+        exit 1
+    fi
+done
+
+if [ -f "$sources" ]; then
+    temp=$(mktemp "${sources}.tmp.XXXXXXXX")
+    trap 'rm -f "$temp"' EXIT HUP INT TERM
+    awk '
+    /^[[:space:]]*deb(-src)?[[:space:]]/ &&
+    /https?:\/\/repo[.]ailinux[.]me\/mirror\/(archive[.]ubuntu[.]com\/ubuntu|security[.]ubuntu[.]com\/ubuntu)[[:space:]]+(resolute|resolute-updates|resolute-security)[[:space:]]/ {
+        print "# Canonical source in ailinux-mirror.list; disabled duplicate: " $0
+        next
+    }
+    {print}
+    ' "$sources" > "$temp"
+    if ! cmp -s "$sources" "$temp"; then
+        install -m 0644 "$temp" "$sources"
+        echo 'APT sanity: removed duplicate Ubuntu mirror and unsupported deb-src entries.'
+    fi
+    rm -f "$temp"
+    trap - EXIT HUP INT TERM
+else
+    install -d -m 0755 "$(path /etc/apt)"
+    printf '%s\n' '# Ubuntu sources are provided by /etc/apt/sources.list.d/ailinux-mirror.list' > "$sources"
+fi
+chmod 0644 "$sources" "$mirror"
+
+# The direct Google Antigravity source is sometimes installed alongside the
+# AILinux mirror; on multiarch systems it must not request unsupported i386.
+if [ -f "$antigravity" ]; then
+    temp=$(mktemp "${antigravity}.tmp.XXXXXXXX")
+    trap 'rm -f "$temp"' EXIT HUP INT TERM
+    awk '
+        /^deb[[:space:]]+\[[^]]*signed-by=[^]]*\][[:space:]]+https:\/\/us-central1-apt[.]pkg[.]dev\/projects\/antigravity-auto-updater-dev\/?[[:space:]]/ &&
+        !/\[([^]]* )?arch=/ {
+            sub(/^deb[[:space:]]+\[/, "deb [arch=amd64 ")
+        }
+        {print}
+    ' "$antigravity" > "$temp"
+    if ! cmp -s "$antigravity" "$temp"; then
+        install -m 0644 "$temp" "$antigravity"
+        echo 'APT sanity: restricted Antigravity direct source to amd64.'
+    fi
+    rm -f "$temp"
+    trap - EXIT HUP INT TERM
+fi
+
+# A restrictive ISO/rootless umask can create the parent APT cache dirs mode
+# 0750, preventing the unprivileged _apt fetcher from traversing them.
+for p in /var/lib/apt/lists /var/cache/apt /var/cache/apt/archives; do
+    dir=$(path "$p")
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir"
+    fi
+    chmod 0755 "$dir"
+done
+for p in /var/lib/apt/lists/partial /var/cache/apt/archives/partial; do
+    dir=$(path "$p")
+    if [ ! -d "$dir" ]; then mkdir -p "$dir"; fi
+    chmod 0700 "$dir"
+    # Test roots owned by unprivileged users must remain unprivileged.
+    if [ "$(id -u)" -eq 0 ]; then chown _apt:root "$dir"; fi
+done
+echo 'APT sanity: canonical sources and _apt directory permissions verified.'

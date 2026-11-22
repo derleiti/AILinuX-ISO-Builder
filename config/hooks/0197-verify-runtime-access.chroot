@@ -4,6 +4,9 @@
 # that root directory independently of the source includes tree.
 set -eu
 chmod 0755 /
+# The final package refresh may recreate _apt cache directories; reconcile
+# once more immediately before the runtime and image permission gate.
+/usr/local/sbin/ailinux-apt-source-sanity
 check_public_dir() {
     path=$1
     [ -d "$path" ] || { echo "AILinux runtime access gate: missing $path" >&2; exit 1; }
@@ -16,7 +19,9 @@ check_public_dir() {
 }
 for path in / /usr /usr/bin /usr/lib /usr/lib/systemd /usr/share \
     /usr/share/plasma /usr/share/sddm /usr/share/applications \
-    /etc /etc/pam.d /etc/xdg /etc/ssh; do
+    /etc /etc/pam.d /etc/xdg /etc/ssh \
+    /var /var/lib /var/lib/apt /var/lib/apt/lists \
+    /var/cache /var/cache/apt /var/cache/apt/archives; do
     check_public_dir "$path"
 done
 for path in /usr/bin/dbus-daemon /usr/bin/bash /usr/lib/systemd/systemd-logind; do
@@ -35,4 +40,15 @@ for path in /etc/os-release /usr/share/applications/ailinux-installer.desktop; d
         *) echo "AILinux runtime access gate: cannot read $path (mode $mode)" >&2; exit 1 ;;
     esac
 done
-echo 'AILinux runtime access gate: public paths traversable and readable.'
+for path in /var/lib/apt/lists/partial /var/cache/apt/archives/partial; do
+    mode=$(stat -c '%a:%U' "$path")
+    [ "$mode" = '700:_apt' ] || {
+        echo "AILinux runtime access gate: invalid _apt private directory $path ($mode)" >&2
+        exit 1
+    }
+done
+if grep -Eq '^[[:space:]]*deb(-src)?[[:space:]]+.*https?://repo[.]ailinux[.]me/mirror/(archive[.]ubuntu[.]com|security[.]ubuntu[.]com)/ubuntu[[:space:]]' /etc/apt/sources.list; then
+    echo 'AILinux runtime access gate: duplicate Ubuntu mirror sources in /etc/apt/sources.list' >&2
+    exit 1
+fi
+echo 'AILinux runtime access gate: public paths, canonical APT sources and _apt directories verified.'
