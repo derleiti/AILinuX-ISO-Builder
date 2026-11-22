@@ -102,6 +102,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 ./scripts/resolve-latest-kernel.sh
+./scripts/normalize-iso-include-perms.sh
 if [ ! -s config/archives/ailinux.key.chroot ]; then
     ./scripts/prepare-keyrings.sh
 fi

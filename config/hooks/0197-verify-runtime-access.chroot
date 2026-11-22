@@ -1,0 +1,38 @@
+#!/bin/sh
+# The project checkout's restrictive umask must not leak into the live root.
+# In a rootless build the live-build chroot directory itself is 0750; correct
+# that root directory independently of the source includes tree.
+set -eu
+chmod 0755 /
+check_public_dir() {
+    path=$1
+    [ -d "$path" ] || { echo "AILinux runtime access gate: missing $path" >&2; exit 1; }
+    mode=$(stat -c %a "$path")
+    other=${mode#${mode%?}}
+    case "$other" in
+        5|7) ;;
+        *) echo "AILinux runtime access gate: inaccessible $path (mode $mode)" >&2; exit 1 ;;
+    esac
+}
+for path in / /usr /usr/bin /usr/lib /usr/lib/systemd /usr/share \
+    /usr/share/plasma /usr/share/sddm /usr/share/applications \
+    /etc /etc/pam.d /etc/xdg /etc/ssh; do
+    check_public_dir "$path"
+done
+for path in /usr/bin/dbus-daemon /usr/bin/bash /usr/lib/systemd/systemd-logind; do
+    mode=$(stat -c %a "$path")
+    other=${mode#${mode%?}}
+    case "$other" in
+        5|7) ;;
+        *) echo "AILinux runtime access gate: cannot execute $path (mode $mode)" >&2; exit 1 ;;
+    esac
+done
+for path in /etc/os-release /usr/share/applications/ailinux-installer.desktop; do
+    mode=$(stat -c %a "$path")
+    other=${mode#${mode%?}}
+    case "$other" in
+        4|5|6|7) ;;
+        *) echo "AILinux runtime access gate: cannot read $path (mode $mode)" >&2; exit 1 ;;
+    esac
+done
+echo 'AILinux runtime access gate: public paths traversable and readable.'

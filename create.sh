@@ -148,6 +148,7 @@ else
 fi
 
 ./scripts/preflight-build.sh rootless
+./scripts/normalize-iso-include-perms.sh
 ./scripts/validate-project.sh
 AILINUX_CREATE_READY=1
 export AILINUX_CREATE_READY

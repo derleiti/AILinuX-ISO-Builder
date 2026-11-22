@@ -72,6 +72,9 @@ scripts/finalize-binary-grub.py
 scripts/validate-iso-boot.sh
 scripts/verify-installed-system.sh
 scripts/test-kde-login-guard-regressions.sh
+scripts/normalize-iso-include-perms.sh
+config/hooks/0197-verify-runtime-access.chroot
+scripts/test-iso-include-permissions.sh
 config/hooks/0196-qt-sddm-login-guard.chroot
 config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
@@ -109,6 +112,9 @@ for script in \
     scripts/validate-iso-boot.sh \
     scripts/verify-installed-system.sh \
     scripts/test-kde-login-guard-regressions.sh \
+    scripts/normalize-iso-include-perms.sh \
+    scripts/test-iso-include-permissions.sh \
+    config/hooks/0197-verify-runtime-access.chroot \
     scripts/validate-project.sh \
     config/hooks/0050-apt-network.chroot_early \
     config/hooks/0100-ailinux-config.chroot \
@@ -703,6 +709,20 @@ for excluded_product in triforce kimi; do
     fi
 done
 
+# Filesystem permissions are part of the ISO contract, not just package contents.
+for dir in config/includes.chroot config/includes.chroot/usr \
+           config/includes.chroot/usr/lib config/includes.chroot/usr/share \
+           config/includes.chroot/etc; do
+    [ "$(stat -c %a "$dir")" = 755 ] || {
+        echo "Unsafe ISO include directory mode: $dir" >&2
+        exit 1
+    }
+done
+[ "$(stat -c %a config/includes.chroot/etc/os-release)" = 644 ] || {
+    echo 'ISO os-release must be readable by ordinary users' >&2
+    exit 1
+}
+
 # KDE Plasma 6.8 dropped VirtualKeyboardLoader. Reject stale SDDM QML
 # before a build so the graphical-ready signal cannot mask a broken greeter.
 sddm_main=config/includes.chroot/usr/share/sddm/themes/Infinity-SDDM-6/Main.qml
@@ -746,6 +766,9 @@ if test -e config/includes.chroot/etc/apt/sources.list.d/ubuntu-i386.sources; th
     echo 'Obsolete direct Ubuntu i386 sources conflict with the AILinux mirror.' >&2
     exit 1
 fi
+
+# Verify umask regression guard and intentional private files in isolation.
+sh scripts/test-iso-include-permissions.sh
 
 # Test known-bad KDE package pairs without affecting the host desktop.
 sh scripts/test-kde-login-guard-regressions.sh
