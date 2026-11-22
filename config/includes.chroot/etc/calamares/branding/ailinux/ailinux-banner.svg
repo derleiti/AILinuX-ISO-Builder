@@ -18,7 +18,7 @@
     <circle cx="256" cy="282" r="70" fill="#3aa0ff"/>
     <path d="M256 146v272M142 344h228" stroke="#f9fafb" stroke-width="22" stroke-linecap="round"/>
   </g>
-  <text x="150" y="60" font-family="Inter,Segoe UI,sans-serif" font-size="38" font-weight="700" fill="#e3e8f1">AILinuX 26.04</text>
+  <text x="150" y="60" font-family="Inter,Segoe UI,sans-serif" font-size="38" font-weight="700" fill="#e3e8f1">AILinuX 26.05</text>
   <text x="152" y="91" font-family="Inter,Segoe UI,sans-serif" font-size="18" fill="#a9b3c0">AI-vernetztes Linux. Deine Freiheit bleibt.</text>
   <rect x="718" y="30" width="164" height="68" rx="16" fill="#0e1116" stroke="#263040"/>
   <text x="800" y="58" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="14" fill="#7bd7ff">WAYLAND</text>

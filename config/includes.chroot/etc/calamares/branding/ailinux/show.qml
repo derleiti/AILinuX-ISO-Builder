@@ -46,7 +46,7 @@ Presentation {
             }
             Text {
                 width: parent.width
-                text: "AILinuX 26.04 LTS"
+                text: "AILinuX 26.05 LTS"
                 color: "#ffffff"
                 font.pixelSize: 42
                 font.bold: true

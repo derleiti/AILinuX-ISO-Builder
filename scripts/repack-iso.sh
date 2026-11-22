@@ -47,7 +47,7 @@ echo "binary grub.cfg finalized"
 echo "binary checksums ok"
 
 # 5. Build the hybrid BIOS/UEFI ISO inside the builder root filesystem.
-final_iso="output/ailinux-26.04-amd64-${stamp}.iso"
+final_iso="output/ailinux-26.05-amd64-${stamp}.iso"
 rm -f binary/boot/grub/grub_eltorito
 test -x "$builder_rootfs/usr/bin/grub-mkrescue"
 test -e "$builder_rootfs/usr/bin/mformat"
@@ -73,7 +73,7 @@ unshare --user --map-root-user --map-auto --mount --pid --fork --mount-proc \
 
         chroot "$rootfs" /usr/bin/env HOME=/root \
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-            /bin/sh -eu -c "cd /workspace && grub-mkrescue -o \"\$1\" binary -- -volid AILINUX_2604" sh "$iso_rel"
+            /bin/sh -eu -c "cd /workspace && grub-mkrescue -o \"\$1\" binary -- -volid AILINUX_2605" sh "$iso_rel"
     ' sh "$builder_rootfs" "$project_dir" "$final_iso"
 
 test -s "$final_iso"
@@ -83,8 +83,8 @@ test -s "$final_iso"
     cd output
     iso_name=$(basename "$final_iso")
     sha256sum "$iso_name" > "$iso_name.sha256"
-    ln -sfn "$iso_name" ailinux-26.04-amd64-latest.iso
-    cp "$iso_name.sha256" ailinux-26.04-amd64-latest.iso.sha256
+    ln -sfn "$iso_name" ailinux-26.05-amd64-latest.iso
+    cp "$iso_name.sha256" ailinux-26.05-amd64-latest.iso.sha256
     sha256sum --check "$iso_name.sha256"
 )
 

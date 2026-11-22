@@ -104,16 +104,16 @@ ForegroundPositive=0,170,127
 ForegroundVisited=127,140,141
 
 [General]
-ColorScheme=InfinityBlueDarkColor
+ColorScheme=BreezeDark
 
 [Icons]
-Theme=Infinity-Dark-Icons
+Theme=breeze-dark
 
 [KDE]
-LookAndFeelPackage=Infinity-Global-6
+LookAndFeelPackage=org.kde.breezedark.desktop
 contrast=4
 frameContrast=0.2
-widgetStyle=kvantum-dark
+widgetStyle=Breeze
 
 [WM]
 activeBackground=30,33,41

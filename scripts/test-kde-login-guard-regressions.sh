@@ -15,6 +15,7 @@ case "$4" in
     kwin-wayland) printf '%s' "$FAKE_KWIN" ;;
     liblayershellqtinterface6) printf '%s' "$FAKE_LAYER" ;;
     qt6-wayland) printf '%s' "$FAKE_WAYLAND" ;;
+    plasma-integration) printf '%s' "$FAKE_PLASMA" ;;
     *) exit 1 ;;
 esac
 MOCK
@@ -26,7 +27,8 @@ FAKE_QT='6.12.0-0zneon+26.04+resolute+stable+build20'
 FAKE_KWIN='4:6.8.3-test'
 FAKE_LAYER='6.8.2+p26.04+vstable+git20261027.1611-0'
 FAKE_WAYLAND='6.12.0-0zneon+26.04+resolute+stable+build2'
-export FAKE_QT FAKE_KWIN FAKE_LAYER FAKE_WAYLAND
+FAKE_PLASMA='6.8.2+p26.04+vstable+git20261028.0034-0'
+export FAKE_QT FAKE_KWIN FAKE_LAYER FAKE_WAYLAND FAKE_PLASMA
 if sh "$tmp/gate.sh" > "$tmp/out" 2>&1; then echo 'FAIL: known bad LayerShellQt pair accepted'; exit 1; fi
 grep -q 'known-crashing LayerShellQt' "$tmp/out" || { cat "$tmp/out"; exit 1; }
 echo 'PASS: observed lockscreen/logout crash combination rejected'
@@ -36,6 +38,18 @@ export FAKE_LAYER FAKE_KWIN
 if sh "$tmp/gate.sh" > "$tmp/out" 2>&1; then echo 'FAIL: old known-bad KWin pair accepted'; exit 1; fi
 grep -q 'known-broken Qt/KWin login combination' "$tmp/out" || { cat "$tmp/out"; exit 1; }
 echo 'PASS: existing KWin login regression protection retained'
+FAKE_LAYER='6.8.2+p26.04+vstable+git20261027.1611-0+ailinuxqt612.1'
+FAKE_PLASMA='6.8.2+p26.04+vstable+git20261028.0034-0+ailinuxqt612.1'
+export FAKE_LAYER FAKE_PLASMA
+sh "$tmp/gate.sh" > "$tmp/out" 2>&1
+grep -q 'runtime login test still mandatory' "$tmp/out" || { cat "$tmp/out"; exit 1; }
+echo 'PASS: both Qt 6.12 rebuilt components pass version gate with runtime warning'
+FAKE_PLASMA='6.8.2+p26.04+vstable+git20261028.0034-0'
+export FAKE_PLASMA
+if sh "$tmp/gate.sh" > "$tmp/out" 2>&1; then echo 'FAIL: KWin pair accepted without rebuilt Plasma integration'; exit 1; fi
+grep -q 'known-broken Qt/KWin' "$tmp/out" || { cat "$tmp/out"; exit 1; }
+echo 'PASS: partial Qt 6.12 rebuild is rejected'
+
 FAKE_KWIN='4:6.8.3-test'
 export FAKE_KWIN
 sh "$tmp/gate.sh" > "$tmp/out" 2>&1

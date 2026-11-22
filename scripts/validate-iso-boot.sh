@@ -2,7 +2,7 @@
 set -eu
 
 project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-iso_path=${1:-"$project_dir/output/ailinux-26.04-amd64-latest.iso"}
+iso_path=${1:-"$project_dir/output/ailinux-26.05-amd64-latest.iso"}
 
 test -r "$iso_path" || {
     echo "ISO not found: $iso_path" >&2
@@ -28,8 +28,8 @@ grub_cfg="$work_dir/grub.cfg"
 
 xorriso -indev "$iso_path" -report_el_torito plain -report_system_area plain >"$boot_report" 2>&1
 
-grep -Eq '^Volume id[[:space:]]*: .AILINUX_2604.' "$boot_report" || {
-    echo "ISO volume ID is not AILINUX_2604." >&2
+grep -Eq '^Volume id[[:space:]]*: .AILINUX_2605.' "$boot_report" || {
+    echo "ISO volume ID is not AILINUX_2605." >&2
     exit 1
 }
 grep -Eq '^El Torito boot img :.* BIOS[[:space:]]+y[[:space:]]' "$boot_report" || {
@@ -56,7 +56,7 @@ done
 xorriso -osirrox on -indev "$iso_path" -extract /boot/grub/grub.cfg "$grub_cfg" >/dev/null 2>&1
 
 grep -Fq '# AILINUX_SEARCH_ROOT' "$grub_cfg"
-grep -Fq 'search --no-floppy --set=root --label AILINUX_2604' "$grub_cfg"
+grep -Fq 'search --no-floppy --set=root --label AILINUX_2605' "$grub_cfg"
 grep -Fq 'search --no-floppy --set=root --file /.disk/info' "$grub_cfg"
 
 if grep -Eq '(^|[[:space:]])boot=live([[:space:]]|$)' "$grub_cfg"; then

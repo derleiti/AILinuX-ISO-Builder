@@ -35,8 +35,8 @@ lb config noauto \
     --system live \
     --bootloader grub2 \
     --memtest none \
-    --iso-application "AILinuX 26.04" \
+    --iso-application "AILinuX 26.05" \
     --iso-publisher "AILinuX <admin@ailinux.me>" \
-    --iso-volume "AILINUX_2604" \
+    --iso-volume "AILINUX_2605" \
     --bootappend-live "live-media-path=casper noprompt debug=1 console=tty0 console=ttyS0,115200n8 username=ailinux hostname=ailinux locales=de_DE.UTF-8 keyboard-layouts=us timezone=Europe/Berlin" \
     "${@}"

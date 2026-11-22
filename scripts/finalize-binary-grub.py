@@ -40,7 +40,7 @@ SEARCH_BLOCK = (
     "# Datei nicht und GRUB meldet 'you need to load the kernel first'.\n"
     "# Schlaegt die Suche fehl, bleibt $root unveraendert - der direkte\n"
     "# Medienboot funktioniert dadurch unveraendert weiter.\n"
-    "search --no-floppy --set=root --label AILINUX_2604\n"
+    "search --no-floppy --set=root --label AILINUX_2605\n"
     "if [ ! -e /.disk/info ]; then\n"
     "    search --no-floppy --set=root --file /.disk/info\n"
     "fi\n"
