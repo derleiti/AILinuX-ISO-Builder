@@ -212,6 +212,8 @@ if [ ! -s "$project_dir/binary/casper/filesystem.squashfs" ] || [ ! -s "$project
     ./scripts/rebuild-binary-tree.sh
 fi
 
+./scripts/validate-live-rootfs-permissions.sh "$project_dir/binary/casper/filesystem.squashfs"
+
 python3 ./scripts/finalize-binary-grub.py "$project_dir/binary/boot/grub/grub.cfg"
 
 generate_binary_checksums() {

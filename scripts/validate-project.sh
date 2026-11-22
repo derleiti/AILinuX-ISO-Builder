@@ -75,6 +75,7 @@ scripts/test-kde-login-guard-regressions.sh
 scripts/normalize-iso-include-perms.sh
 config/hooks/0197-verify-runtime-access.chroot
 scripts/test-iso-include-permissions.sh
+scripts/validate-live-rootfs-permissions.sh
 config/hooks/0196-qt-sddm-login-guard.chroot
 config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
@@ -114,6 +115,7 @@ for script in \
     scripts/test-kde-login-guard-regressions.sh \
     scripts/normalize-iso-include-perms.sh \
     scripts/test-iso-include-permissions.sh \
+    scripts/validate-live-rootfs-permissions.sh \
     config/hooks/0197-verify-runtime-access.chroot \
     scripts/validate-project.sh \
     config/hooks/0050-apt-network.chroot_early \
