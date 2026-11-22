@@ -71,6 +71,7 @@ scripts/sync-repositories-v7.py
 scripts/finalize-binary-grub.py
 scripts/validate-iso-boot.sh
 scripts/verify-installed-system.sh
+scripts/test-kde-login-guard-regressions.sh
 config/hooks/0196-qt-sddm-login-guard.chroot
 config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
@@ -107,6 +108,7 @@ for script in \
     scripts/smoke-test-iso.sh \
     scripts/validate-iso-boot.sh \
     scripts/verify-installed-system.sh \
+    scripts/test-kde-login-guard-regressions.sh \
     scripts/validate-project.sh \
     config/hooks/0050-apt-network.chroot_early \
     config/hooks/0100-ailinux-config.chroot \
@@ -734,5 +736,8 @@ if test -e config/includes.chroot/etc/apt/sources.list.d/ubuntu-i386.sources; th
     echo 'Obsolete direct Ubuntu i386 sources conflict with the AILinux mirror.' >&2
     exit 1
 fi
+
+# Test known-bad KDE package pairs without affecting the host desktop.
+sh scripts/test-kde-login-guard-regressions.sh
 
 echo "Project validation passed: Wayland autologin, managed networking, complete repositories, kernel $AILINUX_KERNEL_VERSION."
