@@ -38,6 +38,10 @@ disable_direct_chrome_sources() {
 }
 disable_direct_chrome_sources
 
+# Remove duplicated mirrored Ubuntu sources and fix _apt traversal before
+# the last APT update. Re-run after Calamares to cover installed targets.
+/usr/local/sbin/ailinux-apt-source-sanity
+
 echo "AILinux final package refresh: apt-get update"
 apt-get update
 

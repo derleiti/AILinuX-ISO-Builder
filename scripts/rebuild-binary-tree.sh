@@ -98,7 +98,7 @@ text = text.replace('LINUX_INSTALL', '').replace('MEMTEST', '')
 PY
 
 if [ ! -s binary/.disk/info ]; then
-    printf '%s\n' 'AILinuX 26.04 amd64' > binary/.disk/info
+    printf '%s\n' 'AILinuX 26.05 amd64' > binary/.disk/info
 fi
 
 if [ -d config/includes.binary ]; then

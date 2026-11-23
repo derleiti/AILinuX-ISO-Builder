@@ -12,12 +12,44 @@ kwin_version=$(version_of kwin-wayland)
     echo "AILinux login gate: Qt6 or KWin package missing" >&2
     exit 1
 }
+# 2026-11-22 on zombie-pc: BOTH kscreenlocker_greet (display wake) and
+# ksmserver-logout-greeter (restart/shutdown UI) crashed at instruction
+# 0x108b1 in LayerShellQt::QWaylandLayerSurface::requestActivate().
+# This layer-shell-qt build uses QtWayland PRIVATE APIs. Do not freeze an ISO
+# with the exact pair demonstrated to crash. This is a *known-bad pair* check,
+# not a claim that every Qt minor-version mismatch is broken.
+layer_version=$(version_of liblayershellqtinterface6)
+wayland_version=$(version_of qt6-wayland)
+[ -n "$layer_version" ] && [ -n "$wayland_version" ] || {
+    echo "AILinux login gate: LayerShellQt or Qt Wayland package missing" >&2
+    exit 1
+}
+case "$layer_version:$wayland_version" in
+    '6.8.2+p26.04+vstable+git20261027.1611-0:6.12.0-0zneon+26.04+resolute+stable+build2')
+        echo "AILinux login gate: known-crashing LayerShellQt/QtWayland combination" >&2
+        echo "LayerShellQt=$layer_version QtWayland=$wayland_version" >&2
+        echo "Observed identical 0x108b1 SIGSEGV in lockscreen AND logout greeter on 2026-11-22." >&2
+        echo "Rebuild or obtain compatible binaries, then verify lock/unlock and shutdown UI in real Wayland session." >&2
+        exit 1
+        ;;
+esac
+
+# The historic KWin crash stack entered KDE's Qt platform theme code.
+# Permit the affected package pair only when the rebuilt Plasma platform theme
+# AND rebuilt QtWayland LayerShellQt are present. This only unblocks the build;
+# it does not certify the graphical desktop. Real Wayland login/logout and
+# lock/unlock tests remain mandatory before public release.
+plasma_version=$(version_of plasma-integration)
 case "$qt_version:$kwin_version" in
     '6.12.0-0zneon+26.04+resolute+stable+build20:4:6.8.2+p26.04+vstable+git20261028.0037-0')
-        echo "AILinux login gate: known-broken Qt/KWin login combination" >&2
-        echo "Qt=$qt_version KWin=$kwin_version" >&2
-        echo "KWin SIGSEGV in Qt6Gui on 2026-11-11; verify a corrected build." >&2
-        exit 1
+        if [ "$plasma_version" != '6.8.2+p26.04+vstable+git20261028.0034-0+ailinuxqt612.1' ] ||
+           [ "$layer_version" != '6.8.2+p26.04+vstable+git20261027.1611-0+ailinuxqt612.1' ]; then
+            echo "AILinux login gate: known-broken Qt/KWin login combination" >&2
+            echo "Qt=$qt_version KWin=$kwin_version PlasmaIntegration=$plasma_version" >&2
+            echo 'Compatible Qt 6.12 rebuilt platform theme AND layer shell are required.' >&2
+            exit 1
+        fi
+        echo 'AILinux login gate: Qt 6.12 rebuilt KDE theme/layer shell installed; runtime login test still mandatory.'
         ;;
 esac
 

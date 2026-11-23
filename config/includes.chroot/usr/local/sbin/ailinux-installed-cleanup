@@ -82,13 +82,10 @@ rm -f \
     /usr/lib/systemd/system/ailinux-live-autologin.service \
     /usr/local/sbin/ailinux-live-autologin
 
-# Keep Infinity as the initial SDDM theme after Calamares/KDE configures SDDM.
-# kde_settings.conf sorts after 90-ailinux-theme.conf and may select breeze.
-# Set KDE's own value rather than shipping a later zz override, so users can
-# still change their login theme normally in System Settings.
-if [ -f /usr/share/sddm/themes/Infinity-SDDM-6/Main.qml ] &&
-   [ -f /etc/sddm.conf.d/kde_settings.conf ]; then
-    sed -i '/^\[Theme\]/,/^\[/{s/^Current=.*/Current=Infinity-SDDM-6/;}' \
+# Use the supported KDE Breeze greeter after Calamares creates KDE settings.
+# Avoid custom Qt/QML SDDM themes in the default login path.
+if [ -f /etc/sddm.conf.d/kde_settings.conf ]; then
+    sed -i '/^\[Theme\]/,/^\[/{s/^Current=.*/Current=breeze/;}' \
         /etc/sddm.conf.d/kde_settings.conf
 fi
 
@@ -143,5 +140,9 @@ if [ -x /usr/local/sbin/ailinux-refill-sparse-boot ]; then
         exit 1
     }
 fi
+
+# Calamares may rewrite APT sources during installation. Check the installed
+# target *after* all package and network modules completed, not only the ISO.
+/usr/local/sbin/ailinux-apt-source-sanity
 
 exit 0

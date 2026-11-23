@@ -115,8 +115,8 @@ finish() {
     trap - EXIT HUP INT TERM
     if [ "$manage_output" -eq 1 ] && [ "$artifact_ready" -ne 1 ]; then
         rm -f \
-            "$project_dir"/output/ailinux-26.04-amd64-*.iso \
-            "$project_dir"/output/ailinux-26.04-amd64-*.iso.sha256
+            "$project_dir"/output/ailinux-26.05-amd64-*.iso \
+            "$project_dir"/output/ailinux-26.05-amd64-*.iso.sha256
         echo "Incomplete ISO artifacts removed after build failure." >&2
     elif [ "$manage_output" -eq 1 ] && [ "$artifact_ready" -eq 1 ] && [ "$status" -ne 0 ]; then
         echo "The structurally verified ISO was retained despite a later test failure." >&2
@@ -148,6 +148,7 @@ else
 fi
 
 ./scripts/preflight-build.sh rootless
+./scripts/normalize-iso-include-perms.sh
 ./scripts/validate-project.sh
 AILINUX_CREATE_READY=1
 export AILINUX_CREATE_READY
@@ -181,7 +182,7 @@ manage_output=1
 # wrapper may retain only its isolated Resolute builder environment.
 AILINUX_PURGE_CACHE=1 ./scripts/build-rootless.sh
 
-latest_iso="$project_dir/output/ailinux-26.04-amd64-latest.iso"
+latest_iso="$project_dir/output/ailinux-26.05-amd64-latest.iso"
 test -L "$latest_iso" || {
     echo "Build finished without the latest-ISO symlink." >&2
     exit 1

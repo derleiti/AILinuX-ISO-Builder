@@ -23,7 +23,7 @@ timeout_seconds=${AILINUX_QEMU_TIMEOUT:-$default_timeout_seconds}
 
 if [ -z "$iso_path" ]; then
     iso_path=$(find "$project_dir/output" -maxdepth 1 -type f \
-        -name 'ailinux-26.04-amd64-*.iso' -printf '%T@ %p\n' |
+        -name 'ailinux-26.05-amd64-*.iso' -printf '%T@ %p\n' |
         sort -nr | awk 'NR == 1 { print $2 }')
 fi
 

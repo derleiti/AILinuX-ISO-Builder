@@ -188,6 +188,37 @@ for logo_size in 32 48 64 128 256 512; do
     fi
 done
 
+# APT's unprivileged downloader needs traversable list and archive paths.
+# This check applies to both the live image and the Calamares-installed root.
+for apt_dir in /var/cache/apt /var/cache/apt/archives /var/lib/apt/lists; do
+    dir="$root$apt_dir"
+    if [ -d "$dir" ]; then
+        mode=$(stat -c %a "$dir" 2>/dev/null || true)
+        if [ "$mode" = 755 ]; then
+            pass "APT cache directory allows _apt traversal: $apt_dir"
+        else
+            fail "APT cache directory has mode ${mode:-unknown}, expected 755: $apt_dir"
+        fi
+    else
+        fail "APT cache directory missing: $apt_dir"
+    fi
+done
+apt_mirror="$root/etc/apt/sources.list.d/ailinux-mirror.list"
+apt_sources="$root/etc/apt/sources.list"
+if [ -r "$apt_mirror" ] &&
+   grep -q '^deb ' "$apt_mirror"; then
+    pass 'canonical AILinux mirror sources exist'
+else
+    fail 'canonical AILinux mirror sources missing'
+fi
+if [ -f "$apt_sources" ] && grep -Eq \
+    '^[[:space:]]*deb(-src)?[[:space:]]+.*https?://repo[.]ailinux[.]me/mirror/(archive[.]ubuntu[.]com|security[.]ubuntu[.]com)/ubuntu[[:space:]]' \
+    "$apt_sources"; then
+    fail 'APT has duplicate/unsupported Ubuntu sources in /etc/apt/sources.list'
+else
+    pass 'APT has no duplicate Ubuntu mirror entries in /etc/apt/sources.list'
+fi
+
 # The package database under ROOT is read directly; no package operation and
 # no target command is run here.
 status_file="$root/var/lib/dpkg/status"
@@ -367,21 +398,21 @@ if [ -n "$selected_user" ] && [ "$mode" = installed ]; then
 fi
 
 if [ -d "$infinity_config" ]; then
-    pass "Infinity configuration source is $infinity_origin"
-    check_ini_value 'Infinity global look-and-feel' "$infinity_config/kdeglobals" KDE LookAndFeelPackage Infinity-Global-6
-    check_ini_value 'Infinity color scheme' "$infinity_config/kdedefaults/kdeglobals" General ColorScheme InfinityBlueDarkColor
+    pass "Breeze configuration source is $infinity_origin"
+    check_ini_value 'Breeze global look-and-feel' "$infinity_config/kdeglobals" KDE LookAndFeelPackage org.kde.breezedark.desktop
+    check_ini_value 'Breeze color scheme' "$infinity_config/kdedefaults/kdeglobals" General ColorScheme BreezeDark
     check_ini_value 'Infinity dark window background' "$infinity_config/kdedefaults/kdeglobals" Colors:Window BackgroundNormal 30,33,41
     check_ini_value 'Infinity light window text' "$infinity_config/kdedefaults/kdeglobals" Colors:Window ForegroundNormal 211,218,227
-    check_ini_value 'Infinity icon theme' "$infinity_config/kdedefaults/kdeglobals" Icons Theme Infinity-Dark-Icons
-    check_ini_value 'Infinity widget style' "$infinity_config/kdedefaults/kdeglobals" KDE widgetStyle kvantum-dark
+    check_ini_value 'Breeze icon theme' "$infinity_config/kdedefaults/kdeglobals" Icons Theme breeze-dark
+    check_ini_value 'Breeze widget style' "$infinity_config/kdedefaults/kdeglobals" KDE widgetStyle Breeze
     check_ini_value 'Infinity cursor fallback' "$infinity_config/kdedefaults/kcminputrc" Mouse cursorTheme breeze_cursors
-    check_ini_value 'Infinity splash theme' "$infinity_config/kdedefaults/ksplashrc" KSplash Theme Infinity-Plasma-Splash-6
-    check_ini_value 'Infinity window decoration engine' "$infinity_config/kdedefaults/kwinrc" org.kde.kdecoration2 library org.kde.kwin.aurorae
-    check_ini_value 'Infinity window decoration' "$infinity_config/kdedefaults/kwinrc" org.kde.kdecoration2 theme __aurorae__svg__Infinity-Color-Aurorae-6
-    check_ini_value 'Infinity Plasma theme' "$infinity_config/kdedefaults/plasmarc" Theme name Infinity-Plasma
-    check_ini_value 'Infinity Kvantum theme' "$infinity_config/Kvantum/kvantum.kvconfig" General theme Infinity-Kvantum
-    check_ini_value 'Infinity GTK 3 theme' "$infinity_config/gtk-3.0/settings.ini" Settings gtk-theme-name Infinity-GTK
-    check_ini_value 'Infinity GTK 4 theme' "$infinity_config/gtk-4.0/settings.ini" Settings gtk-theme-name Infinity-GTK
+    check_ini_value 'Breeze splash theme' "$infinity_config/kdedefaults/ksplashrc" KSplash Theme org.kde.breeze.desktop
+    check_ini_value 'Breeze window decoration engine' "$infinity_config/kdedefaults/kwinrc" org.kde.kdecoration2 library org.kde.breeze
+    check_ini_value 'Breeze window decoration' "$infinity_config/kdedefaults/kwinrc" org.kde.kdecoration2 theme Breeze
+    check_ini_value 'Breeze Plasma theme' "$infinity_config/kdedefaults/plasmarc" Theme name default
+    check_ini_value 'Infinity Kvantum theme' "$infinity_config/Kvantum/kvantum.kvconfig" General theme Breeze
+    check_ini_value 'Breeze GTK 3 theme' "$infinity_config/gtk-3.0/settings.ini" Settings gtk-theme-name Breeze
+    check_ini_value 'Breeze GTK 4 theme' "$infinity_config/gtk-4.0/settings.ini" Settings gtk-theme-name Breeze
 else
     fail 'neither installed-user nor /etc/skel Infinity configuration is available'
 fi
@@ -437,17 +468,17 @@ do
         fail "Infinity payload is missing: /$infinity_payload"
     fi
 done
-check_ini_value 'Infinity wallpaper default' \
+check_ini_value 'Optional Infinity wallpaper payload' \
     "$root/usr/share/plasma/look-and-feel/Infinity-Global-6/contents/defaults" \
     Wallpaper Image Infinity-World-Wallpaper
-check_ini_value 'Infinity SDDM default' \
-    "$root/etc/sddm.conf.d/90-ailinux-theme.conf" Theme Current Infinity-SDDM-6
+check_ini_value 'Breeze SDDM default' \
+    "$root/etc/sddm.conf.d/90-ailinux-theme.conf" Theme Current breeze
 
 # The Calamares displaymanager module may create kde_settings.conf after
 # the distro's 90-ailinux-theme.conf. Verify the installation finalizer won.
 if [ "$mode" = installed ] && [ -f "$root/etc/sddm.conf.d/kde_settings.conf" ]; then
     check_ini_value 'KDE SDDM installed theme selection' \
-        "$root/etc/sddm.conf.d/kde_settings.conf" Theme Current Infinity-SDDM-6
+        "$root/etc/sddm.conf.d/kde_settings.conf" Theme Current breeze
 fi
 sddm_qml="$root/usr/share/sddm/themes/Infinity-SDDM-6/Main.qml"
 if [ -f "$sddm_qml" ]; then

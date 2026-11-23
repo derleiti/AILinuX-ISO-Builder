@@ -19,6 +19,7 @@ then
 fi
 if [ "$create_preflight_ready" -ne 1 ]; then
     ./scripts/preflight-build.sh rootless
+    ./scripts/normalize-iso-include-perms.sh
     ./scripts/validate-project.sh
 fi
 test -s "$project_dir/config/archives/ailinux.key.chroot" || {

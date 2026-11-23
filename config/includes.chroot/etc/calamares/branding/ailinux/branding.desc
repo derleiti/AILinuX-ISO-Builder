@@ -11,10 +11,10 @@ navigation: widget,bottom
 strings:
   productName:         AILinuX
   shortProductName:    AILinuX
-  version:             26.04 LTS
-  shortVersion:        26.04
-  versionedName:       AILinuX 26.04 LTS
-  shortVersionedName:  AILinuX 26.04
+  version:             26.05 LTS
+  shortVersion:        26.05
+  versionedName:       AILinuX 26.05 LTS
+  shortVersionedName:  AILinuX 26.05
   bootloaderEntryName: AILinuX
   productUrl:          https://ailinux.me
   supportUrl:          https://ailinux.me

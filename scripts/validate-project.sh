@@ -54,6 +54,7 @@ config/includes.chroot/etc/NetworkManager/conf.d/20-ailinux-managed-devices.conf
 config/includes.chroot/usr/local/bin/ailinux-installer
 config/includes.chroot/usr/local/sbin/ailinux-live-autologin
 config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+config/includes.chroot/usr/local/sbin/ailinux-apt-source-sanity
 config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel
 config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium
 config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
@@ -71,6 +72,12 @@ scripts/sync-repositories-v7.py
 scripts/finalize-binary-grub.py
 scripts/validate-iso-boot.sh
 scripts/verify-installed-system.sh
+scripts/test-kde-login-guard-regressions.sh
+scripts/normalize-iso-include-perms.sh
+config/hooks/0197-verify-runtime-access.chroot
+scripts/test-iso-include-permissions.sh
+scripts/test-apt-source-sanity.sh
+scripts/validate-live-rootfs-permissions.sh
 config/hooks/0196-qt-sddm-login-guard.chroot
 config/hooks/0150-remove-kubuntu.chroot
 config/hooks/0140-ailinux-grub-titles.chroot
@@ -107,6 +114,12 @@ for script in \
     scripts/smoke-test-iso.sh \
     scripts/validate-iso-boot.sh \
     scripts/verify-installed-system.sh \
+    scripts/test-kde-login-guard-regressions.sh \
+    scripts/normalize-iso-include-perms.sh \
+    scripts/test-iso-include-permissions.sh \
+    scripts/test-apt-source-sanity.sh \
+    scripts/validate-live-rootfs-permissions.sh \
+    config/hooks/0197-verify-runtime-access.chroot \
     scripts/validate-project.sh \
     config/hooks/0050-apt-network.chroot_early \
     config/hooks/0100-ailinux-config.chroot \
@@ -124,6 +137,7 @@ for script in \
     config/includes.chroot/usr/local/bin/ailinux-installer \
     config/includes.chroot/usr/local/sbin/ailinux-live-autologin \
     config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup \
+    config/includes.chroot/usr/local/sbin/ailinux-apt-source-sanity \
     config/includes.chroot/usr/local/sbin/ailinux-verify-target-kernel \
     config/includes.chroot/usr/local/sbin/ailinux-verify-live-medium \
     config/includes.chroot/usr/local/sbin/ailinux-refill-sparse-boot
@@ -335,44 +349,44 @@ if grep -Eq '(^|[[:space:]"])boot=live([[:space:]"]|$)' auto/config config/binar
 fi
 grep -Fxq 'LOGO=ailinux-logo' config/includes.chroot/etc/os-release
 
-# Seed Infinity through normal per-user configuration plus Plasma's reset
+# Seed supported Breeze Dark through normal per-user configuration plus Plasma's reset
 # defaults. These files are copied from /etc/skel only when a user is created,
 # so choosing another Global Theme later replaces them normally; no login-time
-# service may force Infinity.
+# service may force any custom skin.
 infinity_skel=config/includes.chroot/etc/skel/.config
-grep -Fqx 'LookAndFeelPackage=Infinity-Global-6' "$infinity_skel/kdeglobals"
-grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdeglobals"
+grep -Fqx 'LookAndFeelPackage=org.kde.breezedark.desktop' "$infinity_skel/kdeglobals"
+grep -Fqx 'ColorScheme=BreezeDark' "$infinity_skel/kdeglobals"
 grep -Fqx 'BackgroundNormal=30,33,41' "$infinity_skel/kdeglobals"
 grep -Fqx 'ForegroundNormal=211,218,227' "$infinity_skel/kdeglobals"
-grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdeglobals"
-grep -Fqx 'widgetStyle=kvantum-dark' "$infinity_skel/kdeglobals"
+grep -Fqx 'Theme=breeze-dark' "$infinity_skel/kdeglobals"
+grep -Fqx 'widgetStyle=Breeze' "$infinity_skel/kdeglobals"
 grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kcminputrc"
-grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/ksplashrc"
-grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kwinrc"
-grep -Fqx 'theme=__aurorae__svg__Infinity-Color-Aurorae-6' "$infinity_skel/kwinrc"
-grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/plasmarc"
-grep -Fqx 'ColorScheme=InfinityBlueDarkColor' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=org.kde.breeze.desktop' "$infinity_skel/ksplashrc"
+grep -Fqx 'library=org.kde.breeze' "$infinity_skel/kwinrc"
+grep -Fqx 'theme=Breeze' "$infinity_skel/kwinrc"
+grep -Fqx 'name=default' "$infinity_skel/plasmarc"
+grep -Fqx 'ColorScheme=BreezeDark' "$infinity_skel/kdedefaults/kdeglobals"
 grep -Fqx 'BackgroundNormal=30,33,41' "$infinity_skel/kdedefaults/kdeglobals"
 grep -Fqx 'ForegroundNormal=211,218,227' "$infinity_skel/kdedefaults/kdeglobals"
-grep -Fqx 'Theme=Infinity-Dark-Icons' "$infinity_skel/kdedefaults/kdeglobals"
-grep -Fqx 'widgetStyle=kvantum-dark' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'Theme=breeze-dark' "$infinity_skel/kdedefaults/kdeglobals"
+grep -Fqx 'widgetStyle=Breeze' "$infinity_skel/kdedefaults/kdeglobals"
 grep -Fqx 'cursorTheme=breeze_cursors' "$infinity_skel/kdedefaults/kcminputrc"
-grep -Fqx 'Theme=Infinity-Plasma-Splash-6' "$infinity_skel/kdedefaults/ksplashrc"
-grep -Fqx 'library=org.kde.kwin.aurorae' "$infinity_skel/kdedefaults/kwinrc"
-grep -Fqx 'theme=__aurorae__svg__Infinity-Color-Aurorae-6' "$infinity_skel/kdedefaults/kwinrc"
+grep -Fqx 'Theme=org.kde.breeze.desktop' "$infinity_skel/kdedefaults/ksplashrc"
+grep -Fqx 'library=org.kde.breeze' "$infinity_skel/kdedefaults/kwinrc"
+grep -Fqx 'theme=Breeze' "$infinity_skel/kdedefaults/kwinrc"
 grep -Fqx 'NoPlugin=false' "$infinity_skel/kdedefaults/kwinrc"
-grep -Fqx 'Infinity-Global-6' "$infinity_skel/kdedefaults/package"
-grep -Fqx 'name=Infinity-Plasma' "$infinity_skel/kdedefaults/plasmarc"
-grep -Fqx 'theme=Infinity-Kvantum' "$infinity_skel/Kvantum/kvantum.kvconfig"
-grep -Fqx 'gtk-theme-name=Infinity-GTK' "$infinity_skel/gtk-3.0/settings.ini"
-grep -Fqx 'gtk-theme-name=Infinity-GTK' "$infinity_skel/gtk-4.0/settings.ini"
-grep -Fqx 'gtk-theme-name="Infinity-GTK"' config/includes.chroot/etc/skel/.gtkrc-2.0
-if grep -RqsE 'plasma-apply-lookandfeel.*Infinity-Global-6|lookandfeeltool.*Infinity-Global-6' \
+grep -Fqx 'org.kde.breezedark.desktop' "$infinity_skel/kdedefaults/package"
+grep -Fqx 'name=default' "$infinity_skel/kdedefaults/plasmarc"
+grep -Fqx 'theme=Breeze' "$infinity_skel/Kvantum/kvantum.kvconfig"
+grep -Fqx 'gtk-theme-name=Breeze' "$infinity_skel/gtk-3.0/settings.ini"
+grep -Fqx 'gtk-theme-name=Breeze' "$infinity_skel/gtk-4.0/settings.ini"
+grep -Fqx 'gtk-theme-name="Breeze"' config/includes.chroot/etc/skel/.gtkrc-2.0
+if grep -RqsE 'plasma-apply-lookandfeel.*(Infinity|kvantum)|lookandfeeltool.*(Infinity|kvantum)' \
         config/includes.chroot/etc/xdg/autostart \
         config/includes.chroot/etc/systemd \
         config/includes.chroot/usr/lib/systemd \
         config/includes.chroot/usr/local 2>/dev/null; then
-    echo "Infinity must be a user-changeable default, not a login-time override." >&2
+    echo "Nonstandard global themes must not be forced at login." >&2
     exit 1
 fi
 
@@ -397,18 +411,28 @@ do
     }
 done
 grep -Fq 'Theme=Infinity-Plasma-Splash-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
-grep -Fq 'Current=Infinity-SDDM-6' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
-grep -Fq 'Current=Infinity-SDDM-6' config/includes.chroot/etc/sddm.conf.d/90-ailinux-theme.conf
-# Installer SDDM selection repair must run after Calamares rewrites KDE's
-# settings; a correct 90-ailinux-theme.conf alone can be overridden by breeze.
+grep -Fq 'Current=breeze' config/hooks/normal/9500-ailinux-wallpaper.hook.chroot
+grep -Fq 'Current=breeze' config/includes.chroot/etc/sddm.conf.d/90-ailinux-theme.conf
+# Installer selection repair must keep supported Breeze when Calamares overwrites settings.
 grep -Fq 'kde_settings.conf' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
-grep -Fq 'Current=Infinity-SDDM-6' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq 'Current=breeze' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
 # Do not permanently shadow the KDE login-screen settings with a later drop-in.
 if grep -Fq 'zz-ailinux-theme.conf' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup; then
     echo 'SDDM KDE settings are overridden by an immutable local distro drop-in' >&2
     exit 1
 fi
 ./scripts/prepare-infinity-theme.sh verify >/dev/null
+
+# New installs must never auto-enable nonstandard Qt/QML themes.
+for file in config/includes.chroot/etc/skel/.config/kdeglobals \
+            config/includes.chroot/etc/skel/.config/kdedefaults/kdeglobals \
+            config/includes.chroot/etc/skel/.config/ksplashrc \
+            config/includes.chroot/etc/skel/.config/kwinrc; do
+    if grep -Eqi 'Infinity|Kvantum|aurorae' "$file"; then
+        echo "Unsafe nonstandard Plasma default in $file" >&2
+        exit 1
+    fi
+done
 
 # KDE's about-distro KCM resolves LOGO through the hicolor icon theme. Keep
 # several native raster sizes so the logo stays sharp in normal and HiDPI UI.
@@ -691,6 +715,20 @@ for excluded_product in triforce kimi; do
     fi
 done
 
+# Filesystem permissions are part of the ISO contract, not just package contents.
+for dir in config/includes.chroot config/includes.chroot/usr \
+           config/includes.chroot/usr/lib config/includes.chroot/usr/share \
+           config/includes.chroot/etc; do
+    [ "$(stat -c %a "$dir")" = 755 ] || {
+        echo "Unsafe ISO include directory mode: $dir" >&2
+        exit 1
+    }
+done
+[ "$(stat -c %a config/includes.chroot/etc/os-release)" = 644 ] || {
+    echo 'ISO os-release must be readable by ordinary users' >&2
+    exit 1
+}
+
 # KDE Plasma 6.8 dropped VirtualKeyboardLoader. Reject stale SDDM QML
 # before a build so the graphical-ready signal cannot mask a broken greeter.
 sddm_main=config/includes.chroot/usr/share/sddm/themes/Infinity-SDDM-6/Main.qml
@@ -708,6 +746,10 @@ if [ "$(stat -c '%a' config/includes.chroot/etc/apt/sources.list.d/ailinux-mirro
     exit 1
 fi
 grep -Fq 'disable_direct_chrome_sources' config/hooks/0190-final-full-upgrade.chroot
+grep -Fq '/usr/local/sbin/ailinux-apt-source-sanity' config/hooks/0190-final-full-upgrade.chroot
+grep -Fq '/usr/local/sbin/ailinux-apt-source-sanity' config/hooks/0197-verify-runtime-access.chroot
+grep -Fq '/usr/local/sbin/ailinux-apt-source-sanity' config/includes.chroot/usr/local/sbin/ailinux-installed-cleanup
+grep -Fq 'APT sanity' config/includes.chroot/usr/local/sbin/ailinux-apt-source-sanity
 
 # Steam multiarch libraries must come from the signed AILinux mirror, not
 # from duplicate upstream Ubuntu sources. sync-repositories.sh regenerates
@@ -734,5 +776,12 @@ if test -e config/includes.chroot/etc/apt/sources.list.d/ubuntu-i386.sources; th
     echo 'Obsolete direct Ubuntu i386 sources conflict with the AILinux mirror.' >&2
     exit 1
 fi
+
+# Verify umask and APT repository regressions against temporary files.
+sh scripts/test-iso-include-permissions.sh
+sh scripts/test-apt-source-sanity.sh
+
+# Test known-bad KDE package pairs without affecting the host desktop.
+sh scripts/test-kde-login-guard-regressions.sh
 
 echo "Project validation passed: Wayland autologin, managed networking, complete repositories, kernel $AILINUX_KERNEL_VERSION."

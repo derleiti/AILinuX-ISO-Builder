@@ -49,8 +49,8 @@ echo "I: [ailinux-wallpaper] Plasma-Default: $WPNAME"
 mkdir -p /etc/sddm.conf.d
 cat > /etc/sddm.conf.d/90-ailinux-theme.conf <<EOF
 [Theme]
-Current=Infinity-SDDM-6
+Current=breeze
 EOF
-echo "I: [ailinux-wallpaper] SDDM-Theme: Infinity-SDDM-6"
+echo "I: [ailinux-wallpaper] SDDM-Theme: breeze (safe KDE default)"
 
 echo "I: [ailinux-wallpaper] fertig"

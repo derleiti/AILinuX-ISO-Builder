@@ -3,7 +3,7 @@
 [![CI](https://github.com/derleiti/AILinuX-ISO-Builder/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/derleiti/AILinuX-ISO-Builder/actions/workflows/ci.yml)
 [![Security](https://github.com/derleiti/AILinuX-ISO-Builder/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/derleiti/AILinuX-ISO-Builder/actions/workflows/security.yml)
 
-Reproducible amd64 live/install ISO builder for **AILinuX 26.04**, based on Ubuntu 26.04 LTS with KDE Plasma, AILinux repositories/packages and Calamares.
+Reproducible amd64 live/install ISO builder for **AILinuX 26.05**, based on Ubuntu 26.05 LTS with KDE Plasma, AILinux repositories/packages and Calamares.
 
 ## Build
 

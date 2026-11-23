@@ -102,6 +102,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 ./scripts/resolve-latest-kernel.sh
+./scripts/normalize-iso-include-perms.sh
 if [ ! -s config/archives/ailinux.key.chroot ]; then
     ./scripts/prepare-keyrings.sh
 fi
@@ -211,6 +212,8 @@ if [ ! -s "$project_dir/binary/casper/filesystem.squashfs" ] || [ ! -s "$project
     ./scripts/rebuild-binary-tree.sh
 fi
 
+./scripts/validate-live-rootfs-permissions.sh "$project_dir/binary/casper/filesystem.squashfs"
+
 python3 ./scripts/finalize-binary-grub.py "$project_dir/binary/boot/grub/grub.cfg"
 
 generate_binary_checksums() {
@@ -258,17 +261,17 @@ if grep -q '^LB_BOOTLOADER="grub2"$' config/binary; then
         echo "Missing live-build binary tree: $project_dir/binary" >&2
         exit 1
     }
-    grub_iso="$project_dir/ailinux-26.04-amd64-$timestamp.iso"
+    grub_iso="$project_dir/ailinux-26.05-amd64-$timestamp.iso"
     rm -f "$project_dir/binary/boot/grub/grub_eltorito" "$grub_iso"
     # ISO9660 level 3 permits individual files above 4 GiB. This is required
     # for the full AILinux squashfs and remains a normal ISO9660 image for
     # direct USB boot and Ventoy. Keep native xorriso options after --.
-    grub-mkrescue -o "$grub_iso" -iso-level 3 "$project_dir/binary" -- -volid AILINUX_2604
+    grub-mkrescue -o "$grub_iso" -iso-level 3 "$project_dir/binary" -- -volid AILINUX_2605
     iso_path="$grub_iso"
 fi
 
 if [ -z "$iso_path" ]; then
-    iso_path=$(find "$project_dir" -maxdepth 1 -type f -name 'ailinux-26.04-amd64*.iso' -print -quit)
+    iso_path=$(find "$project_dir" -maxdepth 1 -type f -name 'ailinux-26.05-amd64*.iso' -print -quit)
 fi
 if [ -z "$iso_path" ]; then
     iso_path=$(find "$project_dir" -maxdepth 1 -type f -name 'live-image-amd64*.iso' -print -quit)
@@ -278,7 +281,7 @@ if [ -z "$iso_path" ]; then
     exit 1
 fi
 
-final_iso="$project_dir/output/ailinux-26.04-amd64-$timestamp.iso"
+final_iso="$project_dir/output/ailinux-26.05-amd64-$timestamp.iso"
 pending_iso=$final_iso
 install -m 0644 "$iso_path" "$final_iso"
 if [ "$iso_path" != "$final_iso" ]; then
@@ -290,10 +293,10 @@ pending_iso=
 # Only touch artifacts created by this build. Historical root-owned test ISOs
 # must not turn an otherwise successful rootless build into a failure.
 chown "$owner" "$final_iso" "$final_iso.sha256" "$log_file" 2>/dev/null || true
-ln -sfn "$(basename "$final_iso")" "$project_dir/output/ailinux-26.04-amd64-latest.iso"
-cp -f "$final_iso.sha256" "$project_dir/output/ailinux-26.04-amd64-latest.iso.sha256"
-chown -h "$owner" "$project_dir/output/ailinux-26.04-amd64-latest.iso" 2>/dev/null || true
-chown "$owner" "$project_dir/output/ailinux-26.04-amd64-latest.iso.sha256" 2>/dev/null || true
+ln -sfn "$(basename "$final_iso")" "$project_dir/output/ailinux-26.05-amd64-latest.iso"
+cp -f "$final_iso.sha256" "$project_dir/output/ailinux-26.05-amd64-latest.iso.sha256"
+chown -h "$owner" "$project_dir/output/ailinux-26.05-amd64-latest.iso" 2>/dev/null || true
+chown "$owner" "$project_dir/output/ailinux-26.05-amd64-latest.iso.sha256" 2>/dev/null || true
 
 echo "ISO: $final_iso"
 echo "SHA256: $final_iso.sha256"
