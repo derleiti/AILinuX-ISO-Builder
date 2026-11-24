@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+# KDE already provides Baloo. Keep LocalSearch available to other desktops.
+f=/etc/xdg/autostart/localsearch-3.desktop
+[ -f "$f" ] || exit 0
+sed -i '/^OnlyShowIn=/s/KDE;//g' "$f"
+if grep -q '^OnlyShowIn=.*KDE;' "$f"; then
+    echo 'LocalSearch still enabled for KDE' >&2
+    exit 1
+fi
